@@ -51,7 +51,7 @@ bool H265Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
 	if (frameSize <= MAX_RTP_PAYLOAD_SIZE) 
 	{
 		RtpPacketPtr rtpPkt(new char[1600]);
-        memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize); // 预留 4字节TCP Header, 12字节 RTP Header 
+       		memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize); // 预留 4字节TCP Header, 12字节 RTP Header 
 		
 		if(_sendFrameCallback)
 			_sendFrameCallback(channelId, rtpPkt, frameSize+4+RTP_HEADER_SIZE, 1, frame.timestamp);
@@ -66,7 +66,7 @@ bool H265Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
 		FU[2] = 0x80 | nalUnitType; 
 		
 		frameBuf  += 2;
-        frameSize -= 2;
+        	frameSize -= 2;
 		
 		while (frameSize + 3 > MAX_RTP_PAYLOAD_SIZE) 
 		{
@@ -74,16 +74,16 @@ bool H265Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
 			rtpPkt.get()[RTP_HEADER_SIZE+4] = FU[0];
 			rtpPkt.get()[RTP_HEADER_SIZE+5] = FU[1];
 			rtpPkt.get()[RTP_HEADER_SIZE+6] = FU[2];
-            memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE+3, frameBuf, MAX_RTP_PAYLOAD_SIZE-3);
+            		memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE+3, frameBuf, MAX_RTP_PAYLOAD_SIZE-3);
 			
 			if(_sendFrameCallback)
 				_sendFrameCallback(channelId, rtpPkt, 4+RTP_HEADER_SIZE+MAX_RTP_PAYLOAD_SIZE, 0, frame.timestamp);
 			
-            frameBuf  += MAX_RTP_PAYLOAD_SIZE - 3;
-            frameSize -= MAX_RTP_PAYLOAD_SIZE - 3;
+            		frameBuf  += MAX_RTP_PAYLOAD_SIZE - 3;
+           		 frameSize -= MAX_RTP_PAYLOAD_SIZE - 3;
 		
-            FU[2] &= ~0x80;						
-        }
+           		 FU[2] &= ~0x80;						
+       		 }
 		
 		{
 			RtpPacketPtr rtpPkt(new char[1600]);			
