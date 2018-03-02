@@ -11,9 +11,14 @@
 * 支持 H264,H265,G711A,AAC 四种音视频格式的转发。<br>
 * 支持同时传输音视频。<br>
 * 支持单播(RTP_OVER_UDP, RTSP_OVER_RTP), 组播。<br>
- 
+
 编译环境<br>
 -
 * Linux: ubuntu16.04 -- gcc4.7<br>
 * Windows: win10 -- vs2015<br>
- 
+
+后续计划<br>
+-
+* 增加其他音视频格式的支持
+* 增加RTCP
+* 其他优化
