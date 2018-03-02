@@ -7,7 +7,7 @@
 
 目前情况<br>
 -
-* 支持 Windows 和 Linux。
+* 支持 Windows 和 Linux平台。
 * 支持 H264, H265, G711A, AAC 四种音视频格式的转发。<br>
 * 支持同时传输音视频。<br>
 * 支持单播(RTP_OVER_UDP, RTSP_OVER_RTP), 组播。<br>
