@@ -55,7 +55,7 @@ bool H264Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
 		
 		if(_sendFrameCallback)
 			_sendFrameCallback(channelId, rtpPkt, frameSize+4+RTP_HEADER_SIZE, 1, frame.timestamp);
-    }	
+    	}	
 	else
 	{
 		char FU_A[2] = {0};
