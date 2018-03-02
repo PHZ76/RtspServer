@@ -189,11 +189,11 @@ void RtspConnection::handleCmdOption()
 	char response[2048] = {0};
 	
 	snprintf(response, sizeof(response),
-            "RTSP/1.0 200 OK\r\n"
-            "CSeq: %u\r\n"
-			"Public: OPTIONS, DESCRIBE, SETUP, TEARDOWN, PLAY\r\n"
-			"\r\n",
-            _rtspRequest->getCSeq());
+		"RTSP/1.0 200 OK\r\n"
+		"CSeq: %u\r\n"
+		"Public: OPTIONS, DESCRIBE, SETUP, TEARDOWN, PLAY\r\n"
+		"\r\n",
+		_rtspRequest->getCSeq());
 #if RTSP_DEBUG		
 	cout << response << endl;
 #endif
@@ -284,24 +284,24 @@ void RtspConnection::handleCmdSetup()
 		{
 			
 			if(!_rtpConnection->setupRtpOverMulticast(_rtspRequest->getChannelId(),
-													 mediaSessionPtr->getMulticastSockfd(_rtspRequest->getChannelId()), 
-													 mediaSessionPtr->getMulticastIp().c_str(),
-													 mediaSessionPtr->getMulticastPort(_rtspRequest->getChannelId())))
+			 					mediaSessionPtr->getMulticastSockfd(_rtspRequest->getChannelId()), 
+			 					mediaSessionPtr->getMulticastIp().c_str(),
+			 					mediaSessionPtr->getMulticastPort(_rtspRequest->getChannelId())))
 			{
 				goto server_error;
 			}	
 			
 			snprintf(response, sizeof(response),
-					"RTSP/1.0 200 OK\r\n"
-					"CSeq: %u\r\n"
-					"Transport: RTP/AVP;multicast;destination=%s;source=%s;port=%u;ttl=255\r\n"
-					"Session: %u\r\n"
-					"\r\n",
-					_rtspRequest->getCSeq(),
-					mediaSessionPtr->getMulticastIp().c_str(),
-					_rtspRequest->getIp().c_str(),
-					mediaSessionPtr->getMulticastPort(_rtspRequest->getChannelId()),
-					_rtpConnection->getRtpSessionId());  
+				"RTSP/1.0 200 OK\r\n"
+				"CSeq: %u\r\n"
+				"Transport: RTP/AVP;multicast;destination=%s;source=%s;port=%u;ttl=255\r\n"
+				"Session: %u\r\n"
+				"\r\n",
+				_rtspRequest->getCSeq(),
+				mediaSessionPtr->getMulticastIp().c_str(),
+				_rtspRequest->getIp().c_str(),
+				mediaSessionPtr->getMulticastPort(_rtspRequest->getChannelId()),
+				_rtpConnection->getRtpSessionId());  
 		}
 		else
 		{
@@ -317,14 +317,14 @@ void RtspConnection::handleCmdSetup()
 			uint16_t rtcpChannel = _rtspRequest->getRtcpChannel();
 			_rtpConnection->setupRtpOverTcp(_rtspRequest->getChannelId(), rtpChannel, rtcpChannel);	
 			snprintf(response, sizeof(response),
-					"RTSP/1.0 200 OK\r\n"
-					"CSeq: %u\r\n"
-					"Transport: RTP/AVP/TCP;unicast;interleaved=%d-%d\r\n"
-					"Session: %u\r\n"
-					"\r\n",
-					_rtspRequest->getCSeq(),  
-					rtpChannel, rtcpChannel,
-					_rtpConnection->getRtpSessionId()); 
+				"RTSP/1.0 200 OK\r\n"
+				"CSeq: %u\r\n"
+				"Transport: RTP/AVP/TCP;unicast;interleaved=%d-%d\r\n"
+				"Session: %u\r\n"
+				"\r\n",
+				_rtspRequest->getCSeq(),  
+				rtpChannel, rtcpChannel,
+				_rtpConnection->getRtpSessionId()); 
 		}
 		else if(_rtspRequest->getTransportMode() == RTP_OVER_UDP)
 		{		
@@ -336,16 +336,16 @@ void RtspConnection::handleCmdSetup()
 			}	
 			
 			snprintf(response, sizeof(response),
-					"RTSP/1.0 200 OK\r\n"
-					"CSeq: %u\r\n"
-					"Transport: RTP/AVP;unicast;client_port=%hu-%hu;server_port=%hu-%hu\r\n"
-					"Session: %u\r\n"
-					"\r\n",
-					_rtspRequest->getCSeq(),
-					rtpPort, rtcpPort,
-					_rtpConnection->getRtpPort(_rtspRequest->getChannelId()),
-					_rtpConnection->getRtcpPort(_rtspRequest->getChannelId()),
-					_rtpConnection->getRtpSessionId()); 
+				"RTSP/1.0 200 OK\r\n"
+				"CSeq: %u\r\n"
+				"Transport: RTP/AVP;unicast;client_port=%hu-%hu;server_port=%hu-%hu\r\n"
+				"Session: %u\r\n"
+				"\r\n",
+				_rtspRequest->getCSeq(),
+				rtpPort, rtcpPort,
+				_rtpConnection->getRtpPort(_rtspRequest->getChannelId()),
+				_rtpConnection->getRtcpPort(_rtspRequest->getChannelId()),
+				_rtpConnection->getRtpSessionId()); 
 		}
 		else
 		{
@@ -362,10 +362,10 @@ void RtspConnection::handleCmdSetup()
 
 transport_unsupport:
 	snprintf(response, sizeof(response),
-			"RTSP/1.0 461 Unsupported transport\r\n"
-			"CSeq: %d\r\n"
-			"\r\n",
-			_rtspRequest->getCSeq()); 
+		"RTSP/1.0 461 Unsupported transport\r\n"
+		"CSeq: %d\r\n"
+		"\r\n",
+		_rtspRequest->getCSeq()); 
 #if RTSP_DEBUG		
 	cout << response << endl;
 #endif	
@@ -374,10 +374,10 @@ transport_unsupport:
 	
 server_error:
 	snprintf(response, sizeof(response),
-			"RTSP/1.0 500 Internal Server Error\r\n"
-			"CSeq: %u\r\n"
-			"\r\n",
-			_rtspRequest->getCSeq());
+		"RTSP/1.0 500 Internal Server Error\r\n"
+		"CSeq: %u\r\n"
+		"\r\n",
+		_rtspRequest->getCSeq());
 #if RTSP_DEBUG					
 	cout << response << endl;
 #endif			
@@ -391,15 +391,15 @@ void RtspConnection::handleCmdPlay()
 	
 	char response[2048] = {0};
 	snprintf(response, sizeof(response),
-            "RTSP/1.0 200 OK\r\n"
-            "CSeq: %d\r\n"
-            "Range: npt=0.000-\r\n"
-            "Session: %u; timeout=60\r\n"
+		"RTSP/1.0 200 OK\r\n"
+		"CSeq: %d\r\n"
+		"Range: npt=0.000-\r\n"
+		"Session: %u; timeout=60\r\n"
 			"%s\r\n"
 			"\r\n",
-            _rtspRequest->getCSeq(), 
-			_rtpConnection->getRtpSessionId() ,
-			_rtpConnection->getRtpInfo(_rtspRequest->getRtspUrl()).c_str()); 
+		_rtspRequest->getCSeq(), 
+		_rtpConnection->getRtpSessionId() ,
+		_rtpConnection->getRtpInfo(_rtspRequest->getRtspUrl()).c_str()); 
 #if RTSP_DEBUG		
 	cout << response << endl;
 #endif	
@@ -418,7 +418,7 @@ void RtspConnection::handleCmdTeardown()
             "Session: %u\r\n"
             "\r\n",
             _rtspRequest->getCSeq(), 
-			_rtpConnection->getRtpSessionId());
+	    _rtpConnection->getRtpSessionId());
 #if RTSP_DEBUG		
 	cout << response << endl;
 #endif	
