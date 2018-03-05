@@ -112,11 +112,11 @@ std::string MediaSession::getSdpMessage()
 	std::string ip = NetInterface::getLocalIPAddress();
 	char buf[2048] = {0};
 	snprintf(buf, sizeof(buf),
-			"v=0\r\n"
-			"o=- 9%ld 1 IN IP4 %s\r\n"
-			"t=0 0\r\n" 
-			"a=control:*\r\n" , 
-			std::time(NULL), ip.c_str());
+		"v=0\r\n"
+		"o=- 9%ld 1 IN IP4 %s\r\n"
+		"t=0 0\r\n" 
+		"a=control:*\r\n" , 
+		std::time(NULL), ip.c_str());
 
 	if(_isMulticast)
 	{
@@ -132,26 +132,26 @@ std::string MediaSession::getSdpMessage()
 			if(_isMulticast)		 
 			{
 				snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
-						"%s\r\n",
-						_mediaSources[chn]->getMediaDescription(_multicastPort[chn]).c_str()); 
+					"%s\r\n",
+					_mediaSources[chn]->getMediaDescription(_multicastPort[chn]).c_str()); 
 					 
 				snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
-						"c=IN IP4 %s/255\r\n",
-						_multicastIp.c_str()); 
+					"c=IN IP4 %s/255\r\n",
+					_multicastIp.c_str()); 
 			}
 			else
 			{
 				snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
-						"%s\r\n",
-						_mediaSources[chn]->getMediaDescription(0).c_str());
+					"%s\r\n",
+					_mediaSources[chn]->getMediaDescription(0).c_str());
 			}
 			
 			snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
-					"%s\r\n",
-					_mediaSources[chn]->getAttribute().c_str());
+				"%s\r\n",
+				_mediaSources[chn]->getAttribute().c_str());
 					 
 			snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf),											
-					"a=control:track%d\r\n", chn);	
+				"a=control:track%d\r\n", chn);	
 		}
 	}
 	

@@ -51,11 +51,11 @@ bool H264Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
 	if (frameSize <= MAX_RTP_PAYLOAD_SIZE) 
 	{
 		RtpPacketPtr rtpPkt(new char[1600]);
-        memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize); // 预留12字节 rtp header 
+        	memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize); // 预留12字节 rtp header 
 		
 		if(_sendFrameCallback)
 			_sendFrameCallback(channelId, rtpPkt, frameSize+4+RTP_HEADER_SIZE, 1, frame.timestamp);
-    }	
+    	}	
 	else
 	{
 		char FU_A[2] = {0};
@@ -65,14 +65,14 @@ bool H264Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
 		FU_A[1] = 0x80 | (frameBuf[0] & 0x1f);
 		
 		frameBuf  += 1;
-        frameSize -= 1;
+        	frameSize -= 1;
 		
 		while (frameSize + 2 > MAX_RTP_PAYLOAD_SIZE) 
 		{
 			RtpPacketPtr rtpPkt(new char[1600]);			    
 			rtpPkt.get()[RTP_HEADER_SIZE+4] = FU_A[0];
 			rtpPkt.get()[RTP_HEADER_SIZE+5] = FU_A[1];
-            memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE+2, frameBuf, MAX_RTP_PAYLOAD_SIZE-2);
+            		memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE+2, frameBuf, MAX_RTP_PAYLOAD_SIZE-2);
 			
 			if(_sendFrameCallback)
 				_sendFrameCallback(channelId, rtpPkt, 4+RTP_HEADER_SIZE+MAX_RTP_PAYLOAD_SIZE, 0, frame.timestamp);

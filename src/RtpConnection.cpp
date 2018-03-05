@@ -152,7 +152,7 @@ uint64_t RtpConnection::getNtpTime(void)
 	uint64_t ms = tv.tv_sec*1000 + tv.tv_usec/1000;  	
 	return ms; // + NTP_OFFSET_US*1000;
 #else   */
-	auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::high_resolution_clock::now());
+	auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::steady_clock::now());
 	return timePoint.time_since_epoch().count(); // + NTP_OFFSET_US*1000;
 //#endif
 } 
@@ -218,7 +218,7 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr& rtpPkt
 	rtpPktPtr[2] = (uint8_t)(((pktSize-4)&0xFF00)>>8);
 	rtpPktPtr[3] = (uint8_t)((pktSize-4)&0xFF);	
 	
- 	if(_rtspConnection->_writeBuffer->isEmpty())	// 缓冲区没有数据, 直接发送
+  	if(_rtspConnection->_writeBuffer->isEmpty())	// 缓冲区没有数据, 直接发送
 	{
 		bytesSend = ::send(_rtpfd[channelId], rtpPktPtr, pktSize, 0);
 		if(bytesSend < 0)
@@ -243,11 +243,12 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr& rtpPkt
 			_mediaChannelInfo[channelId].packetCount += 1;		
 			return pktSize;
 		}
-	}  
+	}   
 	
 	// 添加到缓冲区再发送
 	_rtspConnection->_writeBuffer->append(rtpPkt, pktSize, bytesSend);
 	int ret = 0;
+	bool empty = false;
 	do
 	{
 		ret = _rtspConnection->_writeBuffer->send(_rtpfd[channelId]); 
@@ -257,16 +258,24 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr& rtpPkt
 			return -1;
 		}
 		bytesSend += ret;
-	}while(ret > 0);
- 	
+		empty = _rtspConnection->_writeBuffer->isEmpty();
+	}while(!empty && ret>0);
 	
-	if(!_rtspConnection->_writeBuffer->isEmpty() && 
-		!_rtspConnection->_channel->isWriting())
+ 	if(empty && !_rtspConnection->_channel->isWriting())
 	{
 		_rtspConnection->_channel->setEvents(EVENT_IN|EVENT_OUT);
 		_rtspConnection->_loop->updateChannel(_rtspConnection->_channel);	
-	} 
+	}   
 	
+	/* SocketUtil::setBlock(_rtpfd[channelId], 500);
+	bytesSend = ::send(_rtpfd[channelId], rtpPktPtr, pktSize, 0);
+	if(bytesSend < 0)
+	{
+		teardown();
+		return -1;
+	}
+	SocketUtil::setNonBlock(_rtpfd[channelId]);
+	 */
 	return bytesSend;
 }
 

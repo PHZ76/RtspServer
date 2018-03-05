@@ -47,8 +47,7 @@ void Logger::log(Priority priority, const char* __file, const char* __func, int 
 {	
 	char buf[2048] = {0};
 	
-	sprintf(buf, "[%s][%s:%s:%d] ", Priority_To_String[priority], 
-								   __file, __func, __line);
+	sprintf(buf, "[%s][%s:%s:%d] ", Priority_To_String[priority],  __file, __func, __line);
 	va_list args;
 	va_start(args, fmt);
 	vsprintf(buf+strlen(buf), fmt, args);
@@ -70,10 +69,10 @@ void Logger::processEntries()
 		{
 			if(ofs_.is_open() && (!_shutdown))
 				ofs_ << "[" << Timestamp::localtime() << "]" 					 
-					 << _queue.front() << std::endl;		
+				     << _queue.front() << std::endl;		
 			else
 				std::cout << "[" << Timestamp::localtime() << "]" 
-						  << _queue.front() << std::endl;		
+					  << _queue.front() << std::endl;		
 			_queue.pop();
 		}
 		else

@@ -16,7 +16,7 @@ RtspConnection::RtspConnection(RtspServer* server, int sockfd)
 	, _sockfd(sockfd)
 	, _channel(new Channel(sockfd))
 	, _readBuffer(new BufferReader)
-	, _writeBuffer(new BufferWriter(300))
+	, _writeBuffer(new BufferWriter(200))
 	, _rtspRequest(new RtspRequest)
 	, _rtpConnection(new RtpConnection(this))
 {
@@ -26,7 +26,7 @@ RtspConnection::RtspConnection(RtspServer* server, int sockfd)
 	_channel->setErrorCallback([this](){this->handleError();}); 
 	
 	SocketUtil::setNonBlock(_sockfd);
-	SocketUtil::setSendBufSize(_sockfd, 100*1024);
+	SocketUtil::setSendBufSize(_sockfd, 50*1024);
 	
 	_channel->setEvents(EVENT_IN);
 	_loop->updateChannel(_channel);	
@@ -97,6 +97,7 @@ void RtspConnection::handleRead()
 void RtspConnection::handleWrite()
 {
 	int ret = 0;
+	bool empty = false;
 	
 	do
 	{
@@ -106,9 +107,10 @@ void RtspConnection::handleWrite()
 			handleClose();
 			return ;
 		}
-	}while(ret > 0);
+		empty = _writeBuffer->isEmpty();
+	}while(!empty && ret>0);
 	
-	if(_writeBuffer->isEmpty())
+	if(empty)
 	{
 		_channel->setEvents(EVENT_IN);
 		_loop->updateChannel(_channel);	
@@ -395,11 +397,11 @@ void RtspConnection::handleCmdPlay()
             "CSeq: %d\r\n"
             "Range: npt=0.000-\r\n"
             "Session: %u; timeout=60\r\n"
-			"%s\r\n"
+			//"%s\r\n"
 			"\r\n",
             _rtspRequest->getCSeq(), 
-			_rtpConnection->getRtpSessionId() ,
-			_rtpConnection->getRtpInfo(_rtspRequest->getRtspUrl()).c_str()); 
+			_rtpConnection->getRtpSessionId()/* ,
+			_rtpConnection->getRtpInfo(_rtspRequest->getRtspUrl()).c_str() */); 
 #if RTSP_DEBUG		
 	cout << response << endl;
 #endif	
