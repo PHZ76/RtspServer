@@ -76,13 +76,13 @@ int main(int agrc, char **argv)
 	session->addMediaSource(xop::channel_0, H264Source::createNew()); 
 	session->addMediaSource(xop::channel_1, AACSource::createNew(44100,2));
 
-	//  开启组播(ip,端口随机生成), 默认使用 RTP_OVER_UDP, RTSP_OVER_TCP
+	//  开启组播(ip,端口随机生成), 默认使用 RTP_OVER_UDP, RTP_OVER_RTSP
 	// session->startMulticast();
 	
 	// 设置通知回调函数。 在当前会话, 客户端连接或断开会发起通知
 	session->setNotifyCallback([&clients](MediaSessionId sessionId, uint32_t numClients) 
 	{
-		clients = numClients; //获取当前MediaSessionId客户端数量
+		clients = numClients; //获取当前MediaSession客户端数量
 		cout << "MediaSession" << "(" << sessionId << ") "
 			 << "clients: " << clients << endl;
 	});
