@@ -57,18 +57,18 @@ bool RtpConnection::setupRtpOverUdp(MediaChannelId channelId, uint16_t rtpPort, 
 		if(n == 10)
 			return false;
 		
-        _localRtpPort[channelId] = rd() & 0xfffe;
-        _localRtcpPort[channelId] =_localRtpPort[channelId] + 1;
+        	_localRtpPort[channelId] = rd() & 0xfffe;
+		_localRtcpPort[channelId] =_localRtpPort[channelId] + 1;
 
-        _rtpfd[channelId] = ::socket(AF_INET, SOCK_DGRAM, 0);
-        if(!SocketUtil::bind(_rtpfd[channelId], "0.0.0.0",  _localRtpPort[channelId]))
+        	_rtpfd[channelId] = ::socket(AF_INET, SOCK_DGRAM, 0);
+        	if(!SocketUtil::bind(_rtpfd[channelId], "0.0.0.0",  _localRtpPort[channelId]))
 		{
 			SocketUtil::close(_rtpfd[channelId]);
 			continue;
 		}
 		
 		 _rtcpfd[channelId] = ::socket(AF_INET, SOCK_DGRAM, 0);
-        if(!SocketUtil::bind(_rtcpfd[channelId], "0.0.0.0", _localRtcpPort[channelId]))
+        	if(!SocketUtil::bind(_rtcpfd[channelId], "0.0.0.0", _localRtcpPort[channelId]))
 		{
 			SocketUtil::close(_rtpfd[channelId]);
 			SocketUtil::close(_rtcpfd[channelId]);
@@ -76,7 +76,7 @@ bool RtpConnection::setupRtpOverUdp(MediaChannelId channelId, uint16_t rtpPort, 
 		}
 			
 		break;
-    }
+    	}
 	
 	_peerRtpAddr[channelId].sin_family = AF_INET;
 	_peerRtpAddr[channelId].sin_addr.s_addr = _peerAddr.sin_addr.s_addr;
@@ -282,7 +282,7 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr& rtpPkt
 int RtpConnection::sendRtpOverUdp(MediaChannelId channelId, RtpPacketPtr& rtpPkt, uint32_t pktSize)
 {	
 	_mediaChannelInfo[channelId].octetCount  += pktSize;
-    _mediaChannelInfo[channelId].packetCount += 1;		
+    	_mediaChannelInfo[channelId].packetCount += 1;		
 	
 	// 去掉RTP-OVER-TCP传输的4字节header
 	int ret = sendto(_rtpfd[channelId], rtpPkt.get()+4, 
