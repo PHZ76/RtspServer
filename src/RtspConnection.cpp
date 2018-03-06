@@ -393,7 +393,6 @@ void RtspConnection::handleCmdPlay()
 	
 	char response[2048] = {0};
 	snprintf(response, sizeof(response),
-<<<<<<< HEAD
             "RTSP/1.0 200 OK\r\n"
             "CSeq: %d\r\n"
             "Range: npt=0.000-\r\n"
@@ -403,17 +402,6 @@ void RtspConnection::handleCmdPlay()
             _rtspRequest->getCSeq(), 
 			_rtpConnection->getRtpSessionId()/* ,
 			_rtpConnection->getRtpInfo(_rtspRequest->getRtspUrl()).c_str() */); 
-=======
-		"RTSP/1.0 200 OK\r\n"
-		"CSeq: %d\r\n"
-		"Range: npt=0.000-\r\n"
-		"Session: %u; timeout=60\r\n"
-			"%s\r\n"
-			"\r\n",
-		_rtspRequest->getCSeq(), 
-		_rtpConnection->getRtpSessionId() ,
-		_rtpConnection->getRtpInfo(_rtspRequest->getRtspUrl()).c_str()); 
->>>>>>> 77cd18002037425c814a10fdd627e5d3daf4957b
 #if RTSP_DEBUG		
 	cout << response << endl;
 #endif	

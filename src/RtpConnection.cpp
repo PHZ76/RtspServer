@@ -142,32 +142,19 @@ std::string RtpConnection::getMulticastIp(MediaChannelId channelId) const
 	return std::string(inet_ntoa(_peerRtpAddr[channelId].sin_addr));
 }
 
-#define NTP_OFFSET 2208988800ULL  //1900~1970时间差(s): (70LL * 365 + 17) * 24 * 60 * 60
-
-uint64_t RtpConnection::getNtpTime(void)
-{	
-/* #if defined(__linux) || defined(__linux__) 
-	struct timeval tv = {0};
-	gettimeofday(&tv, NULL);
-	uint64_t ms = tv.tv_sec*1000 + tv.tv_usec/1000;  	
-	return ms; // + NTP_OFFSET_US*1000;
-#else   */
-	auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::steady_clock::now());
-	return timePoint.time_since_epoch().count(); // + NTP_OFFSET_US*1000;
-//#endif
-} 
-
 std::string RtpConnection::getRtpInfo(const std::string& rtspUrl)
 {
 	char buf[1024] = {0};
 	strcpy(buf, "RTP-Info: ");
 	
 	int numChannel = 0;
-	uint64_t ntpTime = getNtpTime();
+	
+	auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::high_resolution_clock::now());
+	uint64_t timePointCount = timePoint.time_since_epoch().count();
 	
 	for(int chn=0; chn<MAX_MEDIA_CHANNEL; chn++)
 	{
-		uint64_t rtpTime = ntpTime*_mediaChannelInfo[chn].clockRate/1000;	
+		uint64_t rtpTime = timePointCount*_mediaChannelInfo[chn].clockRate/1000;	
 		if(_mediaChannelInfo[chn].isPlay)
 		{
 			if(numChannel != 0)
@@ -281,9 +268,6 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr& rtpPkt
 
 int RtpConnection::sendRtpOverUdp(MediaChannelId channelId, RtpPacketPtr& rtpPkt, uint32_t pktSize)
 {	
-	_mediaChannelInfo[channelId].octetCount  += pktSize;
-    	_mediaChannelInfo[channelId].packetCount += 1;		
-	
 	// 去掉RTP-OVER-TCP传输的4字节header
 	int ret = sendto(_rtpfd[channelId], rtpPkt.get()+4, 
 					pktSize-4, 0, (struct sockaddr *)&(_peerRtpAddr[channelId]), 

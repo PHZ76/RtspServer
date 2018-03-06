@@ -53,8 +53,6 @@ private:
 	friend class RtspConnection;
 	friend class MediaSession;
 	
-	uint64_t getNtpTime();
-	
 	int sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr& rtpPkt, uint32_t pktSize);
 	int sendRtpOverUdp(MediaChannelId channelId, RtpPacketPtr& rtpPkt, uint32_t pktSize);
 	
