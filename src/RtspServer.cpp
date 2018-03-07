@@ -91,7 +91,7 @@ bool RtspServer::pushFrame(MediaSessionId sessionId, MediaChannelId channelId, A
 	if(iter->second->getClientNum() != 0)
 	{
 		auto sessionPtr = iter->second;
-		if(sessionPtr->getFrame(channelId, frame))
+		if(sessionPtr->saveFrame(channelId, frame))
 		{
 			return _loop->addTriggerEvent([sessionPtr, channelId]() 
 			{ 

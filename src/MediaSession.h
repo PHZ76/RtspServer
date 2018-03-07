@@ -41,7 +41,7 @@ public:
 	
 	MediaSource* getMediaSource(MediaChannelId channelId);
 	
-	bool getFrame(MediaChannelId channelId, AVFrame& frame);
+	bool saveFrame(MediaChannelId channelId, AVFrame& frame);
 	bool handleFrame(MediaChannelId channelId);
 	
 	bool addClient(SOCKET sockfd, std::shared_ptr<RtpConnection>& rtpConnPtr);

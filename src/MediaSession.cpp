@@ -168,7 +168,7 @@ MediaSource* MediaSession::getMediaSource(MediaChannelId channelId)
 	return nullptr;
 }
 
-bool MediaSession::getFrame(MediaChannelId channelId, AVFrame& frame)
+bool MediaSession::saveFrame(MediaChannelId channelId, AVFrame& frame)
 {
 	return _buffer[channelId].push(move(frame));
 }
