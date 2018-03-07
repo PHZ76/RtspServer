@@ -45,7 +45,7 @@ bool H265Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
 	char *frameBuf  = frame.buffer.get();
 	uint32_t frameSize = frame.size;
 	
-	if(frame.timestamp != 0)
+	if(frame.timestamp == 0)
 		frame.timestamp = getTimeStamp();
 	
 	if (frameSize <= MAX_RTP_PAYLOAD_SIZE) 
