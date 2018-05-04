@@ -196,9 +196,9 @@ void RtspConnection::handleCmdOption()
             "Public: OPTIONS, DESCRIBE, SETUP, TEARDOWN, PLAY\r\n"
             "\r\n",
             _rtspRequest->getCSeq());
-#if RTSP_DEBUG		
+    #if RTSP_DEBUG		
 	cout << response << endl;
-#endif
+    #endif
 	sendResponse(response, strlen(response));
 }
 
@@ -214,9 +214,9 @@ void RtspConnection::handleCmdDescribe()
 				"CSeq: %u\r\n"
 				"\r\n",
 				_rtspRequest->getCSeq());
-#if RTSP_DEBUG					
+        #if RTSP_DEBUG					
 		cout << response << endl;	
-#endif		
+        #endif		
 		sendResponse(response, strlen(response));
 		return ;
 	}  	 
