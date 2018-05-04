@@ -61,13 +61,13 @@ string AACSource::getAttribute()  // RFC 3640
 
     int profile = 1;
     sprintf(buf+strlen(buf), 
-        "a=fmtp:96 profile-level-id=1;"
-        //"streamtype=5;"
-        "mode=AAC-hbr;"
-        "sizelength=13;indexlength=3;indexdeltalength=3;"
-        "config=%02X%02x",
-        ((profile+1) << 3) | (index >> 1),
-        (index << 7) | (_channels<< 3));
+            "a=fmtp:96 profile-level-id=1;"
+            //"streamtype=5;"
+            "mode=AAC-hbr;"
+            "sizelength=13;indexlength=3;indexdeltalength=3;"
+            "config=%02X%02x",
+            ((profile+1) << 3) | (index >> 1),
+            (index << 7) | (_channels<< 3));
 
     return string(buf);
 }
