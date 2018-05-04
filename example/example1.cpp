@@ -24,42 +24,42 @@ void snedFrame(RtspServer* rtspServer, MediaSessionId sessionId, int& clients)
 {
     static uint32_t audio_pts = 1024;
         
-	while(1)
-	{
-		if(clients > 0) // 媒体会话有客户端在线, 发送音视频数据
-		{
-			{
-				/* 
+    while(1)
+    {
+        if(clients > 0) // 媒体会话有客户端在线, 发送音视频数据
+        {
+            {
+                /* 
                     ... 
-					//获取一帧 H264, 打包
-					xop::AVFrame videoFrame = {0};
-					videoFrame.size = 100000;  // 视频帧大小 
-					videoFrame.timestamp = H264Source::getTimeStamp(); // 时间戳, 建议使用编码器提供的时间戳
-					videoFrame.buffer.reset(new char[videoFrame.size+1000]);
-					memcpy(videoFrame.buffer.get(), 视频帧数据, videoFrame.size);					
-					
-					rtspServer->pushFrame(sessionId, channel_0, videoFrame); // 推送到服务器进行转发
-				*/
-			}
-					
-			{				
-				/*
-					//获取一帧 AAC, 打包
-					xop::AVFrame audioFrame = {0};
-					audioFrame.size = 500;  // 音频帧大小 
-					audioFrame.timestamp = audio_pts; // 时间戳
-					audio_pts += 1024;
-					audioFrame.buffer.reset(new char[audioFrame.size+500]);
-					memcpy(audioFrame.buffer.get(), 音频帧数据, audioFrame.size);
-					
-					// 推送到服务器进行转发
-					rtspServer->pushFrame(sessionId, channel_1, audioFrame); // 接口 线程安全
-				*/
-			}		
-		}
+                    //获取一帧 H264, 打包
+                    xop::AVFrame videoFrame = {0};
+                    videoFrame.size = 100000;  // 视频帧大小 
+                    videoFrame.timestamp = H264Source::getTimeStamp(); // 时间戳, 建议使用编码器提供的时间戳
+                    videoFrame.buffer.reset(new char[videoFrame.size+1000]);
+                    memcpy(videoFrame.buffer.get(), 视频帧数据, videoFrame.size);					
+                    
+                    rtspServer->pushFrame(sessionId, channel_0, videoFrame); // 推送到服务器进行转发
+                */
+            }
+                    
+            {				
+                /*
+                    //获取一帧 AAC, 打包
+                    xop::AVFrame audioFrame = {0};
+                    audioFrame.size = 500;  // 音频帧大小 
+                    audioFrame.timestamp = audio_pts; // 时间戳
+                    audio_pts += 1024;
+                    audioFrame.buffer.reset(new char[audioFrame.size+500]);
+                    memcpy(audioFrame.buffer.get(), 音频帧数据, audioFrame.size);
+                    
+                    // 推送到服务器进行转发
+                    rtspServer->pushFrame(sessionId, channel_1, audioFrame); // 接口 线程安全
+                */
+            }		
+        }
 
-		xop::Timer::sleep(1000); 
-	}
+        xop::Timer::sleep(1000); 
+    }
 }
 
 int main(int agrc, char **argv)
