@@ -254,15 +254,6 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr& rtpPkt
 		_rtspConnection->_loop->updateChannel(_rtspConnection->_channel);	
 	}   
 	
-	/* SocketUtil::setBlock(_rtpfd[channelId], 500);
-	bytesSend = ::send(_rtpfd[channelId], rtpPktPtr, pktSize, 0);
-	if(bytesSend < 0)
-	{
-		teardown();
-		return -1;
-	}
-	SocketUtil::setNonBlock(_rtpfd[channelId]);
-	 */
 	return bytesSend;
 }
 
