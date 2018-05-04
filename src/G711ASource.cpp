@@ -49,7 +49,7 @@ bool G711ASource::handleFrame(MediaChannelId channelId, AVFrame& frame)
 	char *frameBuf  = frame.buffer.get();
 	uint32_t frameSize = frame.size;
 	
-	RtpPacketPtr rtpPkt(new char[1500]);
+    RtpPacketPtr rtpPkt(new char[1500]);
     memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize);
 	
 	if(_sendFrameCallback)

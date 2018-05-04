@@ -1,5 +1,5 @@
-#ifndef _AAC_SOURCE_H
-#define _AAC_SOURCE_H
+#ifndef AAC_SOURCE_H
+#define AAC_SOURCE_H
 
 #include "MediaSource.h"
 #include "rtp.h"
