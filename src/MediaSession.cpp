@@ -87,7 +87,7 @@ bool MediaSession::startMulticast()
                 break;
             }
         }
-        
+
         if(n == 10)
         {
             SocketUtil::close(_multicastSockfd[channel_0]);
@@ -145,7 +145,7 @@ std::string MediaSession::getSdpMessage()
                         "%s\r\n",
                         _mediaSources[chn]->getMediaDescription(0).c_str());
             }
-            
+
             snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
                     "%s\r\n",
                     _mediaSources[chn]->getAttribute().c_str());
@@ -175,16 +175,16 @@ bool MediaSession::saveFrame(MediaChannelId channelId, AVFrame& frame)
 
 bool MediaSession::handleFrame(MediaChannelId channelId)
 {
-	if(_mediaSources[channelId])
-	{
+    if(_mediaSources[channelId])
+    {
         AVFrame frame;
         if(_buffer[channelId].pop(frame))
         {
             _mediaSources[channelId]->handleFrame(channelId, frame);
         }
-	}
-	
-	return true;
+    }
+
+    return true;
 }
 
 bool MediaSession::addClient(SOCKET sockfd, std::shared_ptr<RtpConnection>& rtpConnPtr)
