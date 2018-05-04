@@ -214,25 +214,24 @@ bool RtspRequest::parseTransport(std::string& message)
 			_headerLineParma.emplace("rtcp_channel", make_pair("", rtcpChannel));
 		}		
 		else if((pos=message.find("RTP/AVP")) != std::string::npos)
-		{
+		{           
 			uint16_t rtpPort = 0, rtcpPort = 0;	
 			if(((message.find("unicast", pos)) != std::string::npos))
 			{
 				_transport = RTP_OVER_UDP;
+                if(sscanf(message.c_str()+pos, "%*[^;];%*[^;];%*[^=]=%hu-%hu", 
+					 &rtpPort, &rtcpPort) != 2)
+                {
+                    return false;
+                }
 					
 			}
 			else if((message.find("multicast", pos)) != std::string::npos)
 			{
-				_transport = RTP_OVER_MULTICAST;
+				_transport = RTP_OVER_MULTICAST;                        
 			}
 			else
-				return false;
-			
-			if(sscanf(message.c_str()+pos, "%*[^;];%*[^;];%*[^=]=%hu-%hu", 
-					 &rtpPort, &rtcpPort) != 2)
-			{
-				return false;
-			}
+				return false;						
 					
 			_headerLineParma.emplace("rtp_port", make_pair("", rtpPort));
 			_headerLineParma.emplace("rtcp_port", make_pair("", rtcpPort));
