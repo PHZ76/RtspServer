@@ -41,21 +41,21 @@ string G711ASource::getAttribute()
 
 bool G711ASource::handleFrame(MediaChannelId channelId, AVFrame& frame)
 {
-	if (frame.size > MAX_RTP_PAYLOAD_SIZE)
-	{
-		return false;
-	}
+    if (frame.size > MAX_RTP_PAYLOAD_SIZE)
+    {
+        return false;
+    }
 
-	char *frameBuf  = frame.buffer.get();
-	uint32_t frameSize = frame.size;
-	
+    char *frameBuf  = frame.buffer.get();
+    uint32_t frameSize = frame.size;
+
     RtpPacketPtr rtpPkt(new char[1500]);
     memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize);
-	
-	if(_sendFrameCallback)
-		_sendFrameCallback(channelId, rtpPkt, frameSize+4+RTP_HEADER_SIZE, 1, frame.timestamp);
-	
-	return true;
+
+    if(_sendFrameCallback)
+        _sendFrameCallback(channelId, rtpPkt, frameSize+4+RTP_HEADER_SIZE, 1, frame.timestamp);
+
+    return true;
 }
 
 uint32_t G711ASource::getTimeStamp()
