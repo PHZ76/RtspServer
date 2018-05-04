@@ -37,7 +37,7 @@ private:
 	
 	uint32_t _sampleRate = 44100;   // 采样频率
 	uint32_t _channels = 2;         // 通道数
-	uint32_t _frameRate = 25;	    // 帧率, 8000/320
+	uint32_t _frameRate = 25;       // 帧率, 8000/320
 };
 	
 }
