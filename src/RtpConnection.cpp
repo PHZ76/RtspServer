@@ -57,7 +57,7 @@ bool RtpConnection::setupRtpOverUdp(MediaChannelId channelId, uint16_t rtpPort, 
         if(n == 10)
             return false;
 
-            _localRtpPort[channelId] = rd() & 0xfffe;
+        _localRtpPort[channelId] = rd() & 0xfffe;
         _localRtcpPort[channelId] =_localRtpPort[channelId] + 1;
 
         _rtpfd[channelId] = ::socket(AF_INET, SOCK_DGRAM, 0);
@@ -89,7 +89,7 @@ bool RtpConnection::setupRtpOverUdp(MediaChannelId channelId, uint16_t rtpPort, 
     _mediaChannelInfo[channelId].isSetup = true;
     _transportMode = RTP_OVER_UDP;	
 		
-	return true;
+    return true;
 }
 
 bool RtpConnection::setupRtpOverMulticast(MediaChannelId channelId, int sockfd, std::string ip, uint16_t port)
