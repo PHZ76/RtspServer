@@ -16,21 +16,21 @@ class EventLoop;
 class TcpServer 
 {
 public:	
-	TcpServer(EventLoop* loop, std::string ip, uint16_t port);
-	virtual ~TcpServer();  
+    TcpServer(EventLoop* loop, std::string ip, uint16_t port);
+    virtual ~TcpServer();  
 
-	void setMessageCallback(const MessageCallback& cb)
-	{ _messageCallback = cb; }
+    void setMessageCallback(const MessageCallback& cb)
+    { _messageCallback = cb; }
 
 protected:
-	void newConnection(int sockfd);
-	void removeConnection(TcpConnectionPtr& conn);
-	void disconnect(int sockfd);
-	
-	EventLoop* _eventLoop; 
-	std::shared_ptr<Acceptor> _acceptor; 
-	MessageCallback _messageCallback;
-	std::unordered_map<int, std::shared_ptr<TcpConnection>> _connections;
+    void newConnection(int sockfd);
+    void removeConnection(TcpConnectionPtr& conn);
+    void disconnect(int sockfd);
+
+    EventLoop* _eventLoop; 
+    std::shared_ptr<Acceptor> _acceptor; 
+    MessageCallback _messageCallback;
+    std::unordered_map<int, std::shared_ptr<TcpConnection>> _connections;
 };
 
 }

@@ -9,11 +9,11 @@ namespace xop
 class TaskScheduler 
 {
 public:
-	virtual ~TaskScheduler() {}
+    virtual ~TaskScheduler() {}
 
-	virtual void updateChannel(ChannelPtr channel) = 0;
-	virtual void removeChannel(ChannelPtr& channel) = 0;
-	virtual bool handleEvent(int timeout) = 0;
+    virtual void updateChannel(ChannelPtr channel) = 0;
+    virtual void removeChannel(ChannelPtr& channel) = 0;
+    virtual bool handleEvent(int timeout) = 0;
 
 protected:
 	
