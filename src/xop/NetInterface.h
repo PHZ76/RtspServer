@@ -5,12 +5,11 @@
 
 namespace xop
 {
-	class NetInterface
-	{
-	public:
-		static std::string getLocalIPAddress();
-	};
-
+    class NetInterface
+    {
+    public:
+        static std::string getLocalIPAddress();
+    };
 }
 
 #endif

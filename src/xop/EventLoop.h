@@ -22,40 +22,40 @@ typedef std::function<void(void)> TriggerEvent;
 class EventLoop 
 {
 public:
-	EventLoop(TaskScheduler* taskScheduler=nullptr);
-	virtual ~EventLoop();
+    EventLoop(TaskScheduler* taskScheduler=nullptr);
+    virtual ~EventLoop();
 
-	void loop();
-	void quit();
-	
-	bool addTriggerEvent(TriggerEvent callback);
-	
-	TimerId addTimer(TimerEvent timerEvent, uint32_t ms, bool repeat);
-	void removeTimer(TimerId timerId);	
-	
-	void updateChannel(ChannelPtr channel);
-	void removeChannel(ChannelPtr& channel);
+    void loop();
+    void quit();
+
+    bool addTriggerEvent(TriggerEvent callback);
+
+    TimerId addTimer(TimerEvent timerEvent, uint32_t ms, bool repeat);
+    void removeTimer(TimerId timerId);	
+
+    void updateChannel(ChannelPtr channel);
+    void removeChannel(ChannelPtr& channel);
 	
 private:
-	void wake();
-	void handleTriggerEvent();
-	
-	TaskScheduler* _taskScheduler;
-	std::atomic_bool _shutdown;
-	
-	std::shared_ptr<Pipe> _wakeupPipe;
-	std::shared_ptr<Channel> _wakeupChannel;
-	
-	//typedef std::queue<TriggerEvent> TriggerEventQueue;
-	typedef RingBuffer<TriggerEvent> TriggerEventQueue;
-	std::shared_ptr<TriggerEventQueue> _triggerEvents;
-	std::mutex _mutex;
-	
-	TimerQueue _timerQueue;
-	
-	static const char kTriggetEvent = 1;
-	static const char kTimerEvent = 2;
-	static const int kMaxTriggetEvents = 1024;
+    void wake();
+    void handleTriggerEvent();
+
+    TaskScheduler* _taskScheduler;
+    std::atomic_bool _shutdown;
+
+    std::shared_ptr<Pipe> _wakeupPipe;
+    std::shared_ptr<Channel> _wakeupChannel;
+
+    //typedef std::queue<TriggerEvent> TriggerEventQueue;
+    typedef RingBuffer<TriggerEvent> TriggerEventQueue;
+    std::shared_ptr<TriggerEventQueue> _triggerEvents;
+    std::mutex _mutex;
+
+    TimerQueue _timerQueue;
+
+    static const char kTriggetEvent = 1;
+    static const char kTimerEvent = 2;
+    static const int kMaxTriggetEvents = 1024;
 };
 
 }

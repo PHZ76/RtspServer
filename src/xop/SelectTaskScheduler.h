@@ -22,25 +22,25 @@ namespace xop
 class SelectTaskScheduler : public TaskScheduler
 {
 public:
-	SelectTaskScheduler();
-	virtual ~SelectTaskScheduler();
-	
-	void updateChannel(ChannelPtr channel);
-	void removeChannel(ChannelPtr& channel);
-	bool handleEvent(int timeout);
+    SelectTaskScheduler();
+    virtual ~SelectTaskScheduler();
+
+    void updateChannel(ChannelPtr channel);
+    void removeChannel(ChannelPtr& channel);
+    bool handleEvent(int timeout);
 	
 private:
-	fd_set _fdReadBackup;
-	fd_set _fdWriteBackup;
-	fd_set _fdExpBackup;
-	int _maxfd = 0;
-	
-	bool _isfdReadReset = false;
-	bool _isfdWriteReset = false;
-	bool _isfdExpReset = false;
-	
-	std::mutex _mutex;
-	std::unordered_map<int, ChannelPtr> _channels;
+    fd_set _fdReadBackup;
+    fd_set _fdWriteBackup;
+    fd_set _fdExpBackup;
+    int _maxfd = 0;
+
+    bool _isfdReadReset = false;
+    bool _isfdWriteReset = false;
+    bool _isfdExpReset = false;
+
+    std::mutex _mutex;
+    std::unordered_map<int, ChannelPtr> _channels;
 };
 
 }
