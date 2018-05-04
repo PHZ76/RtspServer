@@ -6,7 +6,7 @@
 using namespace xop;
 
 Acceptor::Acceptor(EventLoop* eventLoop, std::string ip, uint16_t port)
-	: _eventLoop(eventLoop)
+    : _eventLoop(eventLoop)
 {	
     _tcpSocket.reset(new TcpSocket(socket(AF_INET, SOCK_STREAM, 0)));
     _acceptChannel.reset(new Channel(_tcpSocket->fd()));

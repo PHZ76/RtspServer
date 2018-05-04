@@ -7,7 +7,7 @@ using namespace xop;
 const char BufferReader::kCRLF[] = "\r\n";
 
 BufferReader::BufferReader(uint32_t initialSize)
-	: _buffer(initialSize)
+    : _buffer(initialSize)
 {
 	
 }	
