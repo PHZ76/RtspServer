@@ -13,73 +13,73 @@
 
 namespace xop
 {
-	typedef std::function<void(void)> TimerEvent;
-	typedef std::pair<int64_t, uint32_t> TimerId;
+    typedef std::function<void(void)> TimerEvent;
+    typedef std::pair<int64_t, uint32_t> TimerId;
 
-	class Timer
-	{
-	public:
-		Timer() = delete;
+    class Timer
+    {
+    public:
+        Timer() = delete;
 
-		Timer(const TimerEvent& event, uint32_t ms, bool repeat)
-			: eventCallback(event)
-			, _interval(ms)
-			, _repeat(repeat)
-		{
-			if (_interval == 0)
-				_interval = 1;
-		}
+        Timer(const TimerEvent& event, uint32_t ms, bool repeat)
+            : eventCallback(event)
+            , _interval(ms)
+            , _repeat(repeat)
+        {
+            if (_interval == 0)
+                _interval = 1;
+        }
 
-		TimerEvent eventCallback = [] {};
+        TimerEvent eventCallback = [] {};
 
-		bool isRepeat() const 
-		{ 
-			return _repeat;
-		}
+        bool isRepeat() const 
+        { 
+            return _repeat;
+        }
 
-		void setNextTimeout(int64_t currentTimePoint) 
-		{ 
-			_nextTimeout = currentTimePoint + _interval;
-		}
+        void setNextTimeout(int64_t currentTimePoint) 
+        { 
+            _nextTimeout = currentTimePoint + _interval;
+        }
 
-		int64_t getNextTimeout() const 
-		{ 
-			return _nextTimeout;
-		}
+        int64_t getNextTimeout() const 
+        { 
+            return _nextTimeout;
+        }
 
-		static void sleep(unsigned ms) 
-		{ 
-			std::this_thread::sleep_for(std::chrono::milliseconds(ms)); 
-		}
+        static void sleep(unsigned ms) 
+        { 
+            std::this_thread::sleep_for(std::chrono::milliseconds(ms)); 
+        }
 
-	private:
-		bool _repeat = false;
-		uint32_t _interval = 0;
-		int64_t _nextTimeout = 0;
-	};
+    private:
+        bool _repeat = false;
+        uint32_t _interval = 0;
+        int64_t _nextTimeout = 0;
+    };
 
-	class TimerQueue
-	{
-	public:
-		// 返回timerId
-		TimerId addTimer(const TimerEvent& event, uint32_t ms, bool repeat);
+    class TimerQueue
+    {
+    public:
+        // 返回timerId
+        TimerId addTimer(const TimerEvent& event, uint32_t ms, bool repeat);
 
-		void removeTimer(TimerId timerId);
+        void removeTimer(TimerId timerId);
 
-		// 返回最近一次超时的时间, 没有定时器任务返回-1
-		int64_t getTimeRemaining();
+        // 返回最近一次超时的时间, 没有定时器任务返回-1
+        int64_t getTimeRemaining();
 
-		void handleTimerEvent();
+        void handleTimerEvent();
 
-	private:
-		int64_t getTimeNow();
+    private:
+        int64_t getTimeNow();
 
-		std::mutex _mutex;
-		std::map<TimerId, std::shared_ptr<Timer>> _timers;
-		std::unordered_map<uint32_t, std::shared_ptr<Timer>> _repeatTimers;
-		uint32_t _lastTimerId = 0;
-		uint32_t _timeRemaining = 0;
-	};
+        std::mutex _mutex;
+        std::map<TimerId, std::shared_ptr<Timer>> _timers;
+        std::unordered_map<uint32_t, std::shared_ptr<Timer>> _repeatTimers;
+        uint32_t _lastTimerId = 0;
+        uint32_t _timeRemaining = 0;
+    };
 }
 
 #endif 
