@@ -137,7 +137,7 @@ std::string MediaSession::getSdpMessage()
                      
                 snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
                         "c=IN IP4 %s/255\r\n",
-                        multicastIp.c_str()); 
+                        _multicastIp.c_str()); 
             }
             else
             {

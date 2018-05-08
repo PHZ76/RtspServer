@@ -38,38 +38,39 @@ string AACSource::getMediaDescription(uint16_t port)
 
 static uint32_t AACSampleRate[16] = 
 {
-    96000, 88200, 64000, 48000,
-    44100, 32000, 24000, 22050,
-    16000, 12000, 11025, 8000,
-    0, 0, 0, 0 /*reserved */
+	96000, 88200, 64000, 48000,
+	44100, 32000, 24000, 22050,
+	16000, 12000, 11025, 8000,
+	7350, 0, 0, 0 /*reserved */
 };
 
 string AACSource::getAttribute()  // RFC 3640
 {
-    char buf[500] = { 0 };
-    sprintf(buf, "a=rtpmap:96 MPEG4-GENERIC/%u/%u\r\n", _sampleRate, _channels);
+	char buf[500] = { 0 };
+	sprintf(buf, "a=rtpmap:97 MPEG4-GENERIC/%u/%u\r\n", _sampleRate, _channels);
 
-    int index = 0;
-    for (index = 0; index < 16; index++)
-    {
-        if (AACSampleRate[index] == _sampleRate)
-            break;
-    }
+	uint8_t index = 0;
+	for (index = 0; index < 16; index++)
+	{
+		if (AACSampleRate[index] == _sampleRate)
+			break;
+	}
+	if (index == 16)
+		return ""; // error
+
+	uint8_t profile = 1;
     
-    if (index == 16)
-        return ""; // error
+    char configStr[10] = {0}; 
+    sprintf(configStr, "%02x%02x", (uint8_t)((profile+1) << 3)|(index >> 1), (uint8_t)((index << 7)|(_channels<< 3)));   
+    
+	sprintf(buf+strlen(buf), 
+			"a=fmtp:97 profile-level-id=1;"
+			"mode=AAC-hbr;"
+			"sizelength=13;indexlength=3;indexdeltalength=3;"              
+			"config=4000%04u3FC0;",            
+			 atoi(configStr)*2);
 
-    int profile = 1;
-    sprintf(buf+strlen(buf), 
-            "a=fmtp:96 profile-level-id=1;"
-            //"streamtype=5;"
-            "mode=AAC-hbr;"
-            "sizelength=13;indexlength=3;indexdeltalength=3;"
-            "config=%02X%02x",
-            ((profile+1) << 3) | (index >> 1),
-            (index << 7) | (_channels<< 3));
-
-    return string(buf);
+	return string(buf);
 }
 
 #define ADTS_SIZE 7
