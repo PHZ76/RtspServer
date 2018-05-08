@@ -46,31 +46,31 @@ static uint32_t AACSampleRate[16] =
 
 string AACSource::getAttribute()  // RFC 3640
 {
-	char buf[500] = { 0 };
-	sprintf(buf, "a=rtpmap:97 MPEG4-GENERIC/%u/%u\r\n", _sampleRate, _channels);
+    char buf[500] = { 0 };
+    sprintf(buf, "a=rtpmap:97 MPEG4-GENERIC/%u/%u\r\n", _sampleRate, _channels);
 
-	uint8_t index = 0;
-	for (index = 0; index < 16; index++)
-	{
-		if (AACSampleRate[index] == _sampleRate)
-			break;
-	}
-	if (index == 16)
-		return ""; // error
+    uint8_t index = 0;
+    for (index = 0; index < 16; index++)
+    {
+        if (AACSampleRate[index] == _sampleRate)
+            break;
+    }
+    if (index == 16)
+        return ""; // error
 
-	uint8_t profile = 1;
-    
+    uint8_t profile = 1;
+
     char configStr[10] = {0}; 
     sprintf(configStr, "%02x%02x", (uint8_t)((profile+1) << 3)|(index >> 1), (uint8_t)((index << 7)|(_channels<< 3)));   
-    
-	sprintf(buf+strlen(buf), 
-			"a=fmtp:97 profile-level-id=1;"
-			"mode=AAC-hbr;"
-			"sizelength=13;indexlength=3;indexdeltalength=3;"              
-			"config=4000%04u3FC0;",            
-			 atoi(configStr)*2);
 
-	return string(buf);
+    sprintf(buf+strlen(buf), 
+            "a=fmtp:97 profile-level-id=1;"
+            "mode=AAC-hbr;"
+            "sizelength=13;indexlength=3;indexdeltalength=3;"              
+            "config=4000%04u3FC0;",            
+             atoi(configStr)*2);
+
+    return string(buf);
 }
 
 #define ADTS_SIZE 7
