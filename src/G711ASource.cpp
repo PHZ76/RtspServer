@@ -53,7 +53,7 @@ bool G711ASource::handleFrame(MediaChannelId channelId, AVFrame& frame)
     memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize);
 
     if(_sendFrameCallback)
-        _sendFrameCallback(channelId, rtpPkt, frameSize+4+RTP_HEADER_SIZE, 1, frame.timestamp);
+        _sendFrameCallback(channelId, frame.type, rtpPkt, frameSize+4+RTP_HEADER_SIZE, 1, frame.timestamp);
 
     return true;
 }

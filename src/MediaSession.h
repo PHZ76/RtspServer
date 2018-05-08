@@ -41,8 +41,9 @@ public:
 
     MediaSource* getMediaSource(MediaChannelId channelId);
 
-    bool saveFrame(MediaChannelId channelId, AVFrame& frame);
+    bool saveFrame(MediaChannelId channelId, AVFrame frame);
     bool handleFrame(MediaChannelId channelId);
+    bool handleFrame(MediaChannelId channelId, AVFrame frame);
 
     bool addClient(SOCKET sockfd, std::shared_ptr<RtpConnection>& rtpConnPtr);
     void removeClient(SOCKET sockfd);
@@ -63,15 +64,24 @@ public:
     { return _multicastIp; }
 
     uint16_t getMulticastPort(MediaChannelId channelId) const 
-    { return _multicastPort[channelId]; }
+    { 
+        if(channelId >= MAX_MEDIA_CHANNEL)
+            return 0;
+        return _multicastPort[channelId]; 
+    }
 
     uint16_t getMulticastSockfd(MediaChannelId channelId) const 
-    { return _multicastSockfd[channelId]; }
+    { 
+        if(channelId >= MAX_MEDIA_CHANNEL)
+            return 0;
+        return _multicastSockfd[channelId]; 
+    }
 	
 private:
     friend class MediaSource;
     friend class RtspServer;
     MediaSession(std::string rtspUrlSuffxx);
+    //bool sendRtpPacket(MediaChannelId channelId, RtpPacketPtr& rtpPkt, uint32_t pktSize, uint8_t last, uint32_t ts);
 
     MediaSessionId _sessionId = 0;
     std::string _suffix; 
@@ -83,6 +93,7 @@ private:
     NotifyCallback _notifyCallback;
     ClientMap _clients;
 
+    // 
     bool _isMulticast = false;
     uint16_t _multicastPort[MAX_MEDIA_CHANNEL]; 
     std::string _multicastIp;

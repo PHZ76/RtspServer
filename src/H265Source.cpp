@@ -51,20 +51,20 @@ bool H265Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
     if (frameSize <= MAX_RTP_PAYLOAD_SIZE) 
     {
         RtpPacketPtr rtpPkt(new char[1600]);
-            memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize); // 预留 4字节TCP Header, 12字节 RTP Header 
-
+        memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize); // 预留 4字节TCP Header, 12字节 RTP Header 
+        
         if(_sendFrameCallback)
-            _sendFrameCallback(channelId, rtpPkt, frameSize+4+RTP_HEADER_SIZE, 1, frame.timestamp);
+            _sendFrameCallback(channelId, frame.type, rtpPkt, frameSize+4+RTP_HEADER_SIZE, 1, frame.timestamp);
     }	
     else
     {	
-        char FU[3] = {0};
         // 参考live555
-        char nalUnitType = (frameBuf[0]&0x7E)>>1;
+        char FU[3] = {0};	
+        char nalUnitType = (frameBuf[0] & 0x7E) >> 1; 
         FU[0] = (frameBuf[0] & 0x81) | (49<<1); 
         FU[1] = frameBuf[1]; 
-        FU[2] = 0x80 | nalUnitType; 
-
+        FU[2] = (0x80 | nalUnitType); 
+        
         frameBuf  += 2;
         frameSize -= 2;
         
@@ -74,15 +74,15 @@ bool H265Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
             rtpPkt.get()[RTP_HEADER_SIZE+4] = FU[0];
             rtpPkt.get()[RTP_HEADER_SIZE+5] = FU[1];
             rtpPkt.get()[RTP_HEADER_SIZE+6] = FU[2];
-                    memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE+3, frameBuf, MAX_RTP_PAYLOAD_SIZE-3);
-
+            memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE+3, frameBuf, MAX_RTP_PAYLOAD_SIZE-3);
+            
             if(_sendFrameCallback)
-                _sendFrameCallback(channelId, rtpPkt, 4+RTP_HEADER_SIZE+MAX_RTP_PAYLOAD_SIZE, 0, frame.timestamp);
-
-                frameBuf  += MAX_RTP_PAYLOAD_SIZE - 3;
-                frameSize -= MAX_RTP_PAYLOAD_SIZE - 3;
-
-                FU[2] &= ~0x80;						
+                _sendFrameCallback(channelId, frame.type, rtpPkt, 4+RTP_HEADER_SIZE+MAX_RTP_PAYLOAD_SIZE, 0, frame.timestamp);
+            
+            frameBuf  += (MAX_RTP_PAYLOAD_SIZE - 3);
+            frameSize -= (MAX_RTP_PAYLOAD_SIZE - 3);
+        
+            FU[2] &= ~0x80;						
         }
         
         {
@@ -92,14 +92,15 @@ bool H265Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
             rtpPkt.get()[RTP_HEADER_SIZE+5] = FU[1];
             rtpPkt.get()[RTP_HEADER_SIZE+6] = FU[2];
             memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE+3, frameBuf, frameSize);
-
+            
             if(_sendFrameCallback)
-                _sendFrameCallback(channelId, rtpPkt, 4+RTP_HEADER_SIZE+3+frameSize, 1, frame.timestamp);
+                _sendFrameCallback(channelId, frame.type, rtpPkt, 4+RTP_HEADER_SIZE+3+frameSize, 1, frame.timestamp);
         }            
     }
 
     return true;
 }
+
 
 uint32_t H265Source::getTimeStamp()
 {
@@ -109,8 +110,8 @@ uint32_t H265Source::getTimeStamp()
 	uint32_t ts = ((tv.tv_sec*1000)+((tv.tv_usec+500)/1000))*90; // 90: _clockRate/1000;
 	return ts;
 #else */
-    //auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now());
-    //auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::steady_clock::now());
+	//auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now());
+	//auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::steady_clock::now());
     auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::high_resolution_clock::now());
     return (uint32_t)(timePoint.time_since_epoch().count()*90);
 //#endif 

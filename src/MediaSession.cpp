@@ -12,9 +12,9 @@ using namespace xop;
 using namespace std;
 
 MediaSession::MediaSession(std::string rtspUrlSuffxx)
-	: _suffix(rtspUrlSuffxx)
-	, _mediaSources(2)
-	, _buffer(2)
+    : _suffix(rtspUrlSuffxx)
+    , _mediaSources(2)
+    , _buffer(2)
 {
     for(int n=0; n<MAX_MEDIA_CHANNEL; n++)
     {
@@ -39,13 +39,14 @@ MediaSession::~MediaSession()
 
 bool MediaSession::addMediaSource(MediaChannelId channelId, MediaSource* source)
 {
-    source->setSendFrameCallback([this](MediaChannelId channelId, RtpPacketPtr& rtpPkt, uint32_t pktSize, uint8_t last, uint32_t ts)->bool
+    source->setSendFrameCallback([this](MediaChannelId channelId, uint8_t frameType, RtpPacketPtr& rtpPkt, uint32_t pktSize, uint8_t last, uint32_t ts)->bool
     {
         for(auto iter=_clients.begin(); iter!=_clients.end(); iter++)
         {
+            iter->second->setFrameType(frameType);
             iter->second->setRtpHeader(channelId, rtpPkt, last, ts);
             iter->second->sendRtpPacket(channelId, rtpPkt, pktSize);
-
+            
             if(_isMulticast) // 组播只发送一次
                 break;
         }
@@ -87,7 +88,7 @@ bool MediaSession::startMulticast()
                 break;
             }
         }
-
+        
         if(n == 10)
         {
             SocketUtil::close(_multicastSockfd[channel_0]);
@@ -114,6 +115,7 @@ std::string MediaSession::getSdpMessage()
     snprintf(buf, sizeof(buf),
             "v=0\r\n"
             "o=- 9%ld 1 IN IP4 %s\r\n"
+            //"s=%s\r\n" 
             "t=0 0\r\n" 
             "a=control:*\r\n" , 
             std::time(NULL), ip.c_str());
@@ -121,10 +123,10 @@ std::string MediaSession::getSdpMessage()
     if(_isMulticast)
     {
         snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf),
-                "a=type:broadcast\r\n"
-                "a=rtcp-unicast: reflection\r\n");
+                 "a=type:broadcast\r\n"
+                 "a=rtcp-unicast: reflection\r\n");
     }
-        
+		
     for (uint32_t chn=0; chn<_mediaSources.size(); chn++)
     {
         if(_mediaSources[chn])
@@ -132,20 +134,20 @@ std::string MediaSession::getSdpMessage()
             if(_isMulticast)		 
             {
                 snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
-                    "%s\r\n",
-                    _mediaSources[chn]->getMediaDescription(_multicastPort[chn]).c_str()); 
+                        "%s\r\n",
+                        _mediaSources[chn]->getMediaDescription(_multicastPort[chn]).c_str()); 
                      
                 snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
                         "c=IN IP4 %s/255\r\n",
                         _multicastIp.c_str()); 
             }
-            else
+            else 
             {
                 snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
                         "%s\r\n",
                         _mediaSources[chn]->getMediaDescription(0).c_str());
             }
-
+            
             snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
                     "%s\r\n",
                     _mediaSources[chn]->getAttribute().c_str());
@@ -168,7 +170,7 @@ MediaSource* MediaSession::getMediaSource(MediaChannelId channelId)
     return nullptr;
 }
 
-bool MediaSession::saveFrame(MediaChannelId channelId, AVFrame& frame)
+bool MediaSession::saveFrame(MediaChannelId channelId, AVFrame frame)
 {
     return _buffer[channelId].push(move(frame));
 }
@@ -187,16 +189,26 @@ bool MediaSession::handleFrame(MediaChannelId channelId)
     return true;
 }
 
+bool MediaSession::handleFrame(MediaChannelId channelId, AVFrame frame)
+{
+    if(_mediaSources[channelId])
+    {
+        _mediaSources[channelId]->handleFrame(channelId, frame);
+    }
+
+    return true;
+}
+
 bool MediaSession::addClient(SOCKET sockfd, std::shared_ptr<RtpConnection>& rtpConnPtr)
 {
     auto iter = _clients.find (sockfd);
     if(iter == _clients.end())
     {
         _clients.emplace(sockfd, rtpConnPtr);
-
+        
         if(_notifyCallback)
             _notifyCallback(_sessionId, _clients.size()); //回调通知当前客户端数量
-
+        
         return true;
     }
             

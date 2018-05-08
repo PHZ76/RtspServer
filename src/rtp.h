@@ -3,10 +3,10 @@
 
 #include <memory>
 
-#define RTP_HEADER_SIZE         12
-#define MAX_RTP_PAYLOAD_SIZE    1440//1462
-#define RTP_VERSION             2
-#define RTP_TCP_HEAD_SIZE       4
+#define RTP_HEADER_SIZE   	   12
+#define MAX_RTP_PAYLOAD_SIZE   1420//1460  1500-20-12-8
+#define RTP_VERSION			   2
+#define RTP_TCP_HEAD_SIZE	   4
 
 namespace xop
 {

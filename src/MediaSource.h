@@ -19,7 +19,7 @@ typedef std::map<SOCKET, std::shared_ptr<RtpConnection>> ClientMap; // <rtspfd, 
 class MediaSource
 {
 public:
-    typedef std::function<void (MediaChannelId channelId, RtpPacketPtr& rtpPkt, uint32_t pktSize, uint8_t last, uint32_t ts)> SendFrameCallback;
+    typedef std::function<void (MediaChannelId channelId, uint8_t frameType, RtpPacketPtr& rtpPkt, uint32_t pktSize, uint8_t last, uint32_t ts)> SendFrameCallback;
 
     MediaSource() {}
     virtual ~MediaSource() {}
@@ -42,7 +42,7 @@ public:
 
     virtual uint32_t getClockRate() const
     { return _clockRate; }
-	
+
 protected:
     MediaType _mediaType = NONE;
     uint32_t _payload = 0;

@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <string>
 #include <mutex>
+#include <atomic>
 #include "xop/Acceptor.h"
 #include "xop/EventLoop.h"
 #include "xop/Socket.h"
@@ -26,13 +27,13 @@ public:
     MediaSessionId addMeidaSession(MediaSession* session);
     void removeMeidaSession(MediaSessionId sessionId);	
 
-    MediaSessionPtr lookMediaSession(const std::string& suffix);
-    MediaSessionPtr lookMediaSession(MediaSessionId sessionId);
-
     bool pushFrame(MediaSessionId sessionId, MediaChannelId channelId, AVFrame frame);
 	
 private:
     friend class RtspConnection;
+
+    MediaSessionPtr lookMediaSession(const std::string& suffix);
+    MediaSessionPtr lookMediaSession(MediaSessionId sessionId);
 
     void newConnection(SOCKET sockfd);
     void removeConnection(std::shared_ptr<RtspConnection> rtspConnPtr);
@@ -42,7 +43,8 @@ private:
     std::unordered_map<SOCKET, std::shared_ptr<RtspConnection>> _connections;
 
     mutable std::mutex _mutex;
-    MediaSessionId _lastMediaSessionId = 1;
+    //MediaSessionId _lastMediaSessionId = 1;
+    std::atomic_uint _lastMediaSessionId;
     std::unordered_map<MediaSessionId, std::shared_ptr<MediaSession>> _mediaSessions; 
     std::unordered_map<std::string, MediaSessionId> _rtspSuffixMap;
 };

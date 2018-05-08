@@ -1,5 +1,5 @@
-#ifndef AAC_SOURCE_H
-#define AAC_SOURCE_H
+#ifndef _AAC_SOURCE_H
+#define _AAC_SOURCE_H
 
 #include "MediaSource.h"
 #include "rtp.h"
@@ -31,13 +31,13 @@ public:
     bool handleFrame(MediaChannelId channelId, AVFrame& frame);
 
     static uint32_t getTimeStamp(uint32_t sampleRate=44100);
-
+	
 private:
     AACSource(uint32_t sampleRate, uint32_t channels);
 
     uint32_t _sampleRate = 44100;   // 采样频率
     uint32_t _channels = 2;         // 通道数
-    uint32_t _frameRate = 25;       // 帧率, 8000/320
+    uint32_t _frameRate = 25;	    // 帧率, 8000/320
 };
 	
 }

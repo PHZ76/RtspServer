@@ -9,8 +9,9 @@ using namespace std;
 RtspServer::RtspServer(EventLoop* loop, std::string ip, uint16_t port)
     : _loop(loop)
     , _acceptor(new Acceptor(loop, ip, port))
+    , _lastMediaSessionId(1)
 {
-    _acceptor->setNewConnectionCallback([this](SOCKET sockfd){this->newConnection(sockfd);});
+    _acceptor->setNewConnectionCallback(std::bind(&RtspServer::newConnection, this, placeholders::_1));
     _acceptor->listen();
 }
 
@@ -91,11 +92,11 @@ bool RtspServer::pushFrame(MediaSessionId sessionId, MediaChannelId channelId, A
     if(iter->second->getClientNum() != 0)
     {
         auto sessionPtr = iter->second;
-        if(sessionPtr->saveFrame(channelId, frame))
+        //if(sessionPtr->saveFrame(channelId, frame))
         {
-            return _loop->addTriggerEvent([sessionPtr, channelId]() 
+            return _loop->addTriggerEvent([sessionPtr, channelId, frame]() 
             { 
-                sessionPtr->handleFrame(channelId); 
+                sessionPtr->handleFrame(channelId, frame); 
             }); 
         }		
     }
@@ -107,10 +108,7 @@ void RtspServer::newConnection(SOCKET sockfd)
 {
     std::shared_ptr<RtspConnection> conn(new RtspConnection(this, sockfd));
     _connections[sockfd] = conn;
-    conn->setCloseCallback([this](std::shared_ptr<RtspConnection> rtspConnPtr) 
-    {
-        this->removeConnection(rtspConnPtr);
-    });
+    conn->setCloseCallback(std::bind(&RtspServer::removeConnection, this, placeholders::_1));
 }
 
 void RtspServer::removeConnection(std::shared_ptr<RtspConnection> rtspConnPtr)

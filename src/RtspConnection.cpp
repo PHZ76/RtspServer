@@ -42,9 +42,9 @@ void RtspConnection::handleRead()
     int ret = _readBuffer->readFd(_sockfd);
     if(ret > 0 && (!_isPlay))
     {
-        #if RTSP_DEBUG	
-        cout << _readBuffer->peek() << endl << endl;
-        #endif			
+#if RTSP_DEBUG	
+            cout << _readBuffer->peek() << endl << endl;
+#endif			
         if(_rtspRequest->parseRequest(_readBuffer.get()))
         {
             if(!_rtspRequest->gotAll()) //解析完成
@@ -96,7 +96,7 @@ void RtspConnection::handleRead()
 
 void RtspConnection::handleWrite()
 {
-    int ret = 0;
+    int ret = 0, again = 5;
     bool empty = false;
 
     do
@@ -108,6 +108,7 @@ void RtspConnection::handleWrite()
             return ;
         }
         empty = _writeBuffer->isEmpty();
+        //again--;
     }while(!empty && ret>0);
 
     if(empty)
@@ -151,11 +152,11 @@ void RtspConnection::sendResponse(const char* data, int len)
         bytesSend = ::send(_sockfd, (char*)data, len, 0);
         if(bytesSend < 0)
         {
-            #if defined(__linux) || defined(__linux__) 
+#if defined(__linux) || defined(__linux__) 
             if(errno != EINTR && errno != EAGAIN)	
-            #else 
+#else 
             if(WSAGetLastError() != EWOULDBLOCK)
-            #endif
+#endif
             {
                 handleClose();
                 return ;
@@ -188,44 +189,44 @@ void RtspConnection::sendResponse(const char* data, int len)
 
 void RtspConnection::handleCmdOption()
 {
-	char response[2048] = {0};
-	
-	snprintf(response, sizeof(response),
+    char response[2048] = {0};
+
+    snprintf(response, sizeof(response),
             "RTSP/1.0 200 OK\r\n"
             "CSeq: %u\r\n"
             "Public: OPTIONS, DESCRIBE, SETUP, TEARDOWN, PLAY\r\n"
             "\r\n",
             _rtspRequest->getCSeq());
-    #if RTSP_DEBUG		
-	cout << response << endl;
-    #endif
-	sendResponse(response, strlen(response));
+#if RTSP_DEBUG		
+    cout << response << endl;
+#endif
+    sendResponse(response, strlen(response));
 }
 
 void RtspConnection::handleCmdDescribe()
 {
-	char response[2048] = {0};
-	
- 	MediaSessionPtr mediaSessionPtr = _rtspServer->lookMediaSession(_rtspRequest->getRtspUrlSuffix());	
-	if(!mediaSessionPtr)
-	{
-		snprintf(response, sizeof(response),
-				"RTSP/1.0 404 Not Found\r\n"
-				"CSeq: %u\r\n"
-				"\r\n",
-				_rtspRequest->getCSeq());
-        #if RTSP_DEBUG					
-		cout << response << endl;	
-        #endif		
-		sendResponse(response, strlen(response));
-		return ;
-	}  	 
-	else
-	{
+    char response[2048] = {0};
+
+    MediaSessionPtr mediaSessionPtr = _rtspServer->lookMediaSession(_rtspRequest->getRtspUrlSuffix());	
+    if(!mediaSessionPtr)
+    {
+        snprintf(response, sizeof(response),
+                "RTSP/1.0 404 Not Found\r\n"
+                "CSeq: %u\r\n"
+                "\r\n",
+                _rtspRequest->getCSeq());
+#if RTSP_DEBUG					
+        cout << response << endl;	
+#endif		
+        sendResponse(response, strlen(response));
+        return ;
+    }  	 
+    else
+    {
         // 关联媒体会话
         _sessionId = mediaSessionPtr->getMediaSessionId();
         mediaSessionPtr->addClient(_sockfd, _rtpConnection);	
-
+        
         for(int chn=0; chn<2; chn++)
         {
             MediaSource* source = mediaSessionPtr->getMediaSource((MediaChannelId)chn);
@@ -237,8 +238,8 @@ void RtspConnection::handleCmdDescribe()
                 _rtpConnection->setPayloadType((MediaChannelId)chn, source->getPayloadType());
             }
         }	
-	}
-	
+    }
+
     std::string sdp = mediaSessionPtr->getSdpMessage();
     if(sdp == "")
     {
@@ -247,9 +248,9 @@ void RtspConnection::handleCmdDescribe()
                 "CSeq: %u\r\n"
                 "\r\n",
                 _rtspRequest->getCSeq());
-        #if RTSP_DEBUG					
+#if RTSP_DEBUG					
         cout << response << endl;	
-        #endif		
+#endif		
         sendResponse(response, strlen(response));
         return ;
     }
@@ -262,9 +263,9 @@ void RtspConnection::handleCmdDescribe()
             "\r\n"
             "%s",
             _rtspRequest->getCSeq(), strlen(sdp.c_str()), sdp.c_str());
-    #if RTSP_DEBUG				
+#if RTSP_DEBUG				
     cout << response << endl;
-    #endif	
+#endif	
     sendResponse(response, strlen(response)); 
 
     return ;
@@ -286,9 +287,9 @@ void RtspConnection::handleCmdSetup()
         {
             
             if(!_rtpConnection->setupRtpOverMulticast(_rtspRequest->getChannelId(),
-                                                    mediaSessionPtr->getMulticastSockfd(_rtspRequest->getChannelId()), 
-                                                    mediaSessionPtr->getMulticastIp().c_str(),
-                                                    mediaSessionPtr->getMulticastPort(_rtspRequest->getChannelId())))
+                                                     mediaSessionPtr->getMulticastSockfd(_rtspRequest->getChannelId()), 
+                                                     mediaSessionPtr->getMulticastIp().c_str(),
+                                                     mediaSessionPtr->getMulticastPort(_rtspRequest->getChannelId())))
             {
                 goto server_error;
             }	
@@ -361,22 +362,22 @@ void RtspConnection::handleCmdSetup()
             goto transport_unsupport;
         }
     }
-	
-    #if RTSP_DEBUG		
+
+#if RTSP_DEBUG		
     cout << response << endl;
-    #endif	
+#endif	
     sendResponse(response, strlen(response));		
     return ;
 
-transport_unsupport:
+    transport_unsupport:
     snprintf(response, sizeof(response),
             "RTSP/1.0 461 Unsupported transport\r\n"
             "CSeq: %d\r\n"
             "\r\n",
             _rtspRequest->getCSeq()); 
-    #if RTSP_DEBUG		
+#if RTSP_DEBUG		
     cout << response << endl;
-    #endif	
+#endif	
     sendResponse(response, strlen(response));		
     return ;
 
@@ -386,9 +387,9 @@ transport_unsupport:
             "CSeq: %u\r\n"
             "\r\n",
             _rtspRequest->getCSeq());
-    #if RTSP_DEBUG					
+#if RTSP_DEBUG					
     cout << response << endl;
-    #endif			
+#endif			
     sendResponse(response, strlen(response));
     return ;
 }
@@ -403,15 +404,13 @@ void RtspConnection::handleCmdPlay()
             "CSeq: %d\r\n"
             "Range: npt=0.000-\r\n"
             "Session: %u; timeout=60\r\n"
-            "%s\r\n"
             "\r\n",
             _rtspRequest->getCSeq(), 
-            _rtpConnection->getRtpSessionId() ,
-            _rtpConnection->getRtpInfo(_rtspRequest->getRtspUrl()).c_str());
+            _rtpConnection->getRtpSessionId());
 
-    #if RTSP_DEBUG		
+#if RTSP_DEBUG		
     cout << response << endl;
-    #endif	
+#endif	
     sendResponse(response, strlen(response));		
 }
 
@@ -428,9 +427,9 @@ void RtspConnection::handleCmdTeardown()
             "\r\n",
             _rtspRequest->getCSeq(), 
             _rtpConnection->getRtpSessionId());
-    #if RTSP_DEBUG		
+#if RTSP_DEBUG		
     cout << response << endl;
-    #endif	
+#endif	
     sendResponse(response, strlen(response));	
     //handleClose();
 }

@@ -10,10 +10,10 @@ using namespace xop;
 using namespace std;
 
 AACSource::AACSource(uint32_t sampleRate, uint32_t channels)
-	: _sampleRate(sampleRate)
-	, _channels(channels)
+    : _sampleRate(sampleRate)
+    , _channels(channels)
 {
-    _payload = 96;
+    _payload = 97;
     _mediaType = AAC;
     _clockRate = sampleRate;
 }
@@ -31,17 +31,17 @@ AACSource::~AACSource()
 string AACSource::getMediaDescription(uint16_t port)
 {
     char buf[100] = { 0 };
-    sprintf(buf, "m=audio %hu RTP/AVP 96", port);
+    sprintf(buf, "m=audio %hu RTP/AVP 97", port);
 
     return string(buf);
 }
 
 static uint32_t AACSampleRate[16] = 
 {
-	96000, 88200, 64000, 48000,
-	44100, 32000, 24000, 22050,
-	16000, 12000, 11025, 8000,
-	7350, 0, 0, 0 /*reserved */
+    96000, 88200, 64000, 48000,
+    44100, 32000, 24000, 22050,
+    16000, 12000, 11025, 8000,
+    7350, 0, 0, 0 /*reserved */
 };
 
 string AACSource::getAttribute()  // RFC 3640
@@ -100,7 +100,7 @@ bool AACSource::handleFrame(MediaChannelId channelId, AVFrame& frame)
     memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE+AU_SIZE, frameBuf, frameSize);
 
     if(_sendFrameCallback)
-        _sendFrameCallback(channelId, rtpPkt, frameSize+4+RTP_HEADER_SIZE+AU_SIZE, 1, frame.timestamp);
+        _sendFrameCallback(channelId, frame.type, rtpPkt, frameSize+4+RTP_HEADER_SIZE+AU_SIZE, 1, frame.timestamp);
 
     return true;
 }

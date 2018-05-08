@@ -21,12 +21,14 @@ typedef enum __MediaType
 #define VIDEO_FRAME_P 0x02	/* P帧 */
 #define VIDEO_FRAME_B 0x03	/* B帧 */
 
+#define AUDIO_FRAME   0x11
+
 typedef struct __AVFrame
 {	
-    std::shared_ptr<char> buffer;   /* 帧数据 */
-    uint32_t size;                  /* 帧大小 */
-    uint8_t  type;                  /* 帧类型 */	
-    uint32_t timestamp;             /* 时间戳 */
+    std::shared_ptr<char> buffer; /* 帧数据 */
+    uint32_t size;				  /* 帧大小 */
+    uint8_t  type;				  /* 帧类型 */	
+    uint32_t timestamp;		  	  /* 时间戳 */
 } AVFrame;
 
 #define MAX_MEDIA_CHANNEL 2

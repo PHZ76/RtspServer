@@ -26,6 +26,7 @@ public:
     void setPayloadType(MediaChannelId channelId, uint32_t payload) 	
     { _mediaChannelInfo[channelId].rtpHeader.payload = payload; }
 
+    void setFrameType();
     bool setupRtpOverTcp(MediaChannelId channelId, uint16_t rtpChannel, uint16_t rtcpChannel);
     bool setupRtpOverUdp(MediaChannelId channelId, uint16_t rtpPort, uint16_t rtcpPort);
     bool setupRtpOverMulticast(MediaChannelId channelId, int sockfd, std::string ip, uint16_t port);
@@ -46,9 +47,10 @@ public:
 
     std::string getRtpInfo(const std::string& rtspUrl);
 
+    void setFrameType(uint8_t frameType=0);
     void setRtpHeader(MediaChannelId channelId, RtpPacketPtr& rtpPkt, uint8_t last, uint32_t ts);
     void sendRtpPacket(MediaChannelId channelId, RtpPacketPtr& rtpPkt, uint32_t pktSize);
-
+	
 private:
     friend class RtspConnection;
     friend class MediaSession;
@@ -61,7 +63,9 @@ private:
     TransportMode _transportMode;
 
     // server
-    bool _isClosed = false;
+    bool _isClosed = false, _isIDRFrame = false;
+    uint8_t _frameType = 0;
+
     uint16_t _localRtpPort[2];	
     uint16_t _localRtcpPort[2];		
     SOCKET _rtpfd[2], _rtcpfd[2];
