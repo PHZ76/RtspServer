@@ -38,7 +38,7 @@ string AACSource::getMediaDescription(uint16_t port)
 
 static uint32_t AACSampleRate[16] = 
 {
-    96000, 88200, 64000, 48000,
+    97000, 88200, 64000, 48000,
     44100, 32000, 24000, 22050,
     16000, 12000, 11025, 8000,
     7350, 0, 0, 0 /*reserved */
@@ -47,7 +47,7 @@ static uint32_t AACSampleRate[16] =
 string AACSource::getAttribute()  // RFC 3640
 {
     char buf[500] = { 0 };
-    sprintf(buf, "a=rtpmap:97 MPEG4-GENERIC/%u/%u\r\n", _sampleRate, _channels);
+    sprintf(buf, "a=rtpmap:97 MPEG4-GENERIC/%u/%u\r\n", _sampleRate, _channels);   
 
     uint8_t index = 0;
     for (index = 0; index < 16; index++)
@@ -59,16 +59,15 @@ string AACSource::getAttribute()  // RFC 3640
         return ""; // error
 
     uint8_t profile = 1;
-
     char configStr[10] = {0}; 
     sprintf(configStr, "%02x%02x", (uint8_t)((profile+1) << 3)|(index >> 1), (uint8_t)((index << 7)|(_channels<< 3)));   
 
     sprintf(buf+strlen(buf), 
             "a=fmtp:97 profile-level-id=1;"
-            "mode=AAC-hbr;"
+            "mode=AAC-hbr;"    
             "sizelength=13;indexlength=3;indexdeltalength=3;"              
-            "config=4000%04u3FC0;",            
-             atoi(configStr)*2);
+            "config=%04u;",            
+             atoi(configStr));
 
     return string(buf);
 }
@@ -82,14 +81,14 @@ bool AACSource::handleFrame(MediaChannelId channelId, AVFrame& frame)
         return false;
     }
 
-    char *frameBuf  = frame.buffer.get() + ADTS_SIZE;
+    char *frameBuf  = frame.buffer.get() + ADTS_SIZE; // 打包RTP去掉ADTS头
     uint32_t frameSize = frame.size - ADTS_SIZE;
 
     char AU[AU_SIZE] = { 0 };
     AU[0] = 0x00;
     AU[1] = 0x10;
     AU[2] = (frameSize & 0x1fe0) >> 5;
-    AU[3] = (frameSize & 0x1f) << 3;
+    AU[3] = (frameSize & 0x1f) << 3; 
 
     RtpPacketPtr rtpPkt(new char[1500]);
     rtpPkt.get()[4 + RTP_HEADER_SIZE + 0] = AU[0];
