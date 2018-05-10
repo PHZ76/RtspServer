@@ -19,9 +19,6 @@ public:
     uint32_t getChannels() const
     { return _channels; }
 
-    uint32_t getFrameRate() const 
-    { return _frameRate; }
-
     // SDP媒体描述 m=
     virtual std::string getMediaDescription(uint16_t port=0); 
 
@@ -37,7 +34,6 @@ private:
 
     uint32_t _sampleRate = 44100;   // 采样频率
     uint32_t _channels = 2;         // 通道数
-    uint32_t _frameRate = 25;	    // 帧率, 8000/320
 };
 	
 }
