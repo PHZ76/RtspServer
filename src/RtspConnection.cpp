@@ -431,7 +431,7 @@ void RtspConnection::handleCmdTeardown()
     cout << response << endl;
 #endif	
     sendResponse(response, strlen(response));	
-    //handleClose();
+    handleClose();
 }
 
 

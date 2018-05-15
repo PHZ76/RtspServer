@@ -25,7 +25,21 @@ RtpConnection::RtpConnection(RtspConnection *rtspConnection)
 
 RtpConnection::~RtpConnection()
 {
-	
+	if(_transportMode != RTP_OVER_MULTICAST)
+    {
+        for(int chn=0; chn<MAX_MEDIA_CHANNEL; chn++)
+        {
+            if(_rtpfd[chn] > 0)
+            {
+               SocketUtil::close(_rtpfd[chn]);
+            }
+            
+            if(_rtcpfd[chn] > 0)
+            {
+                SocketUtil::close(_rtcpfd[chn]);
+            }
+        }
+    }	
 }
 
 bool RtpConnection::setupRtpOverTcp(MediaChannelId channelId, uint16_t rtpChannel, uint16_t rtcpChannel)
@@ -128,11 +142,17 @@ void RtpConnection::teardown()
             _mediaChannelInfo[chn].isPlay = false;
             if(_transportMode ==  RTP_OVER_UDP) 
             {
-                if(_rtpfd[chn] != 0)
-                    SocketUtil::close(_rtpfd[chn]);
-                
-                if(_rtcpfd[chn] != 0)
+                if(_rtpfd[chn] > 0)
+                {
+                     SocketUtil::close(_rtpfd[chn]);
+                     _rtpfd[chn] = -1;
+                }                
+
+                if(_rtcpfd[chn] > 0)
+                {
                     SocketUtil::close(_rtcpfd[chn]);
+                    _rtcpfd[chn] = -1;
+                }                    
             }
         }
         _rtspConnection->handleClose(); //通知rtsp connection关闭连接
@@ -146,7 +166,7 @@ string RtpConnection::getMulticastIp(MediaChannelId channelId) const
 
 string RtpConnection::getRtpInfo(const std::string& rtspUrl)
 {
-
+    return " ";
 }
 
 void RtpConnection::setFrameType(uint8_t frameType)
@@ -220,9 +240,15 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr& rtpPkt
         }
     }   
 
+    if(!_rtspConnection->_writeBuffer->isFull())
+    {
+         teardown();
+         return -1;
+    }
+    
     // 添加到缓冲区再发送
     _rtspConnection->_writeBuffer->append(rtpPkt, pktSize, bytesSend);
-    int again = 5, ret = 0;
+    int ret = 0;
     bool empty = false;
     do
     {
@@ -234,7 +260,6 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr& rtpPkt
         }
         bytesSend += ret;
         empty = _rtspConnection->_writeBuffer->isEmpty();
-        //again--;
     }while(!empty && ret>0);
 
     if(empty && !_rtspConnection->_channel->isWriting())
