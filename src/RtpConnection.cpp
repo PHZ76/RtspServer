@@ -240,7 +240,7 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr& rtpPkt
         }
     }   
 
-    if(!_rtspConnection->_writeBuffer->isFull())
+    if(_rtspConnection->_writeBuffer->isFull())
     {
          teardown();
          return -1;
