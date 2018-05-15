@@ -40,6 +40,10 @@ void Acceptor::handleAccept()
         {
             _newConnectionCallback(connfd);
         }
+        else
+        {
+            SocketUtil::close(connfd);
+        }
     }
 }
 
