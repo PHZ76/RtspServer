@@ -200,7 +200,7 @@ void RtpConnection::setFrameType(uint8_t frameType)
 
 void RtpConnection::setRtpHeader(MediaChannelId channelId, RtpPacketPtr& rtpPkt, uint8_t last, uint32_t ts)
 {
-    if(_mediaChannelInfo[channelId].isPlay  && _isIDRFrame) //第一帧发送I帧
+    if(_mediaChannelInfo[channelId].isPlay  && /* _isIDRFrame */) //第一帧发送I帧
     {
         _mediaChannelInfo[channelId].rtpHeader.marker = last;	
         _mediaChannelInfo[channelId].rtpHeader.ts = htonl(ts);
@@ -214,7 +214,7 @@ void RtpConnection::sendRtpPacket(MediaChannelId channelId, RtpPacketPtr& rtpPkt
     if(_isClosed)
         return ;
     
-    if(_mediaChannelInfo[channelId].isPlay && _isIDRFrame) //第一帧发送I帧
+    if(_mediaChannelInfo[channelId].isPlay && /* _isIDRFrame */) //第一帧发送I帧
     {	
         if(_transportMode == RTP_OVER_TCP)
         {		
