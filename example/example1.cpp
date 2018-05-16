@@ -64,43 +64,42 @@ void snedFrame(RtspServer* rtspServer, MediaSessionId sessionId, int& clients)
 
 int main(int agrc, char **argv)
 {	
-	XOP_Init();
-	
-	
-	int clients = 0; // 记录当前客户端数量
-	std::string ip = NetInterface::getLocalIPAddress(); //获取网卡ip地址
-	
-	std::shared_ptr<EventLoop> eventLoop(new EventLoop());  
-	RtspServer server(eventLoop.get(), ip, 554);  //创建一个RTSP服务器
+    XOP_Init();
 
-	MediaSession *session = MediaSession::createNew("live"); // 创建一个媒体会话, url: rtsp://ip/live
-    
-	// 会话同时传输音视频, track0:h264, track1:aac
-	session->addMediaSource(xop::channel_0, H264Source::createNew()); 
-	session->addMediaSource(xop::channel_1, AACSource::createNew(44100,2));
-	
-	// session->startMulticast(); // 开启组播(ip,端口随机生成), 默认使用 RTP_OVER_UDP, RTP_OVER_RTSP
-	
-	// 设置通知回调函数。 在当前会话, 客户端连接或断开会发起通知
-	session->setNotifyCallback([&clients](MediaSessionId sessionId, uint32_t numClients) 
-	{
-		clients = numClients; //获取当前媒体会话客户端数量
-		cout << "MediaSession" << "(" << sessionId << ") "
-			 << "clients: " << clients << endl;
-	});
-	
-	cout << "rtsp://" << ip << "/" << session->getRtspUrlSuffix() << endl;
-		
-	MediaSessionId sessionId = server.addMeidaSession(session); // 添加session到RtspServer后, session会失效
+    int clients = 0; // 记录当前客户端数量
+    std::string ip = NetInterface::getLocalIPAddress(); //获取网卡ip地址
+
+    std::shared_ptr<EventLoop> eventLoop(new EventLoop());  
+    RtspServer server(eventLoop.get(), ip, 554);  //创建一个RTSP服务器
+
+    MediaSession *session = MediaSession::createNew("live"); // 创建一个媒体会话, url: rtsp://ip/live
+
+    // 会话同时传输音视频, track0:h264, track1:aac
+    session->addMediaSource(xop::channel_0, H264Source::createNew()); 
+    session->addMediaSource(xop::channel_1, AACSource::createNew(44100,2));
+
+    // session->startMulticast(); // 开启组播(ip,端口随机生成), 默认使用 RTP_OVER_UDP, RTP_OVER_RTSP
+
+    // 设置通知回调函数。 在当前会话, 客户端连接或断开会发起通知
+    session->setNotifyCallback([&clients](MediaSessionId sessionId, uint32_t numClients) 
+    {
+        clients = numClients; //获取当前媒体会话客户端数量
+        cout << "MediaSession" << "(" << sessionId << ") "
+            << "clients: " << clients << endl;
+    });
+
+    cout << "rtsp://" << ip << "/" << session->getRtspUrlSuffix() << endl;
+        
+    MediaSessionId sessionId = server.addMeidaSession(session); // 添加session到RtspServer后, session会失效
     //server.removeMeidaSession(sessionId); //取消会话, 接口线程安全
-       	 
-	thread t(snedFrame, &server, sessionId, ref(clients)); // 负责音视频数据转发的线程
-	t.detach(); // 后台运行
+         
+    thread t(snedFrame, &server, sessionId, ref(clients)); // 负责音视频数据转发的线程
+    t.detach(); // 后台运行
 
-	// 主线程运行 RtspServer 
-	eventLoop->loop();
-	
-	getchar();
-	return 0;
+    // 主线程运行 RtspServer 
+    eventLoop->loop();
+
+    getchar();
+    return 0;
 }
 
