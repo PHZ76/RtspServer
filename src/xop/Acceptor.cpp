@@ -35,7 +35,6 @@ void Acceptor::handleAccept()
     int connfd = _tcpSocket->accept();
     if (connfd > 0)
     {
-        LOG("Client connect: %d\n", connfd);
         if (_newConnectionCallback)		
         {
             _newConnectionCallback(connfd);
