@@ -1,3 +1,6 @@
+// PHZ
+// 2018-5-15
+
 #include "TcpServer.h"
 #include "Acceptor.h"
 #include "EventLoop.h"
@@ -10,7 +13,7 @@ TcpServer::TcpServer(EventLoop* eventLoop, std::string ip, uint16_t port)
     : _eventLoop(eventLoop),
       _acceptor(new Acceptor(eventLoop, ip, port))
 {
-    _acceptor->setNewConnectionCallback(std::bind(&TcpServer::newConnection, this, std::placeholders::_1));
+    _acceptor->setNewConnectionCallback([this](SOCKET sockfd) { this->newConnection(sockfd); });
     _acceptor->listen();
 }
 
@@ -19,23 +22,23 @@ TcpServer::~TcpServer()
 	
 }
 
-void TcpServer::newConnection(int sockfd)
+void TcpServer::newConnection(SOCKET sockfd)
 {
     TcpConnectionPtr conn(new TcpConnection(_eventLoop, sockfd));
     _connections[sockfd] = conn;
     conn->setMessageCallback(_messageCallback);
-    conn->setCloseCallback(std::bind(&TcpServer::removeConnection, this, std::placeholders::_1));
+    conn->setCloseCallback([this](TcpConnectionPtr& conn) { this->removeConnection(conn); });
 }
 
 void TcpServer::removeConnection(TcpConnectionPtr& conn)
 {
-    _eventLoop->addTriggerEvent(std::bind(&TcpServer::disconnect, this, conn->fd()));
+    SOCKET sockfd = conn->fd();
+    _eventLoop->addTriggerEvent([sockfd, this]()
+    {
+        this->_connections.erase(sockfd);
+    });
 }
 
-void TcpServer::disconnect(int sockfd)
-{
-    _connections.erase(sockfd);
-}
 
 
 

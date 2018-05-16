@@ -1,3 +1,6 @@
+// PHZ
+// 2018-5-15
+
 #include "EpollTaskScheduler.h"
 
 #if defined(__linux) || defined(__linux__) 
@@ -18,7 +21,6 @@ EpollTaskScheduler::~EpollTaskScheduler()
 {
 	
 }
-
 
 void EpollTaskScheduler::updateChannel(ChannelPtr channel)
 {
@@ -41,8 +43,8 @@ void EpollTaskScheduler::updateChannel(ChannelPtr channel)
     {
         if(!channel->isNoneEvent())
         {
-        _channels.emplace(fd, channel);
-        update(EPOLL_CTL_ADD, channel);
+            _channels.emplace(fd, channel);
+            update(EPOLL_CTL_ADD, channel);
         }	
     }	
 #endif
@@ -52,8 +54,12 @@ void EpollTaskScheduler::update(int operation, ChannelPtr& channel)
 {
 #if defined(__linux) || defined(__linux__) 
     struct epoll_event event = {0};
-    event.data.ptr = channel.get();
-    event.events = channel->events();
+    
+    if(operation != EPOLL_CTL_DEL)
+    {
+        event.data.ptr = channel.get();
+        event.events = channel->events();
+    }
 
     if(::epoll_ctl(_epollfd, operation, channel->fd(), &event) < 0)
     {
@@ -94,8 +100,7 @@ bool EpollTaskScheduler::handleEvent(int timeout)
     for(int n=0; n<numEvents; n++)
     {
         if(events[n].data.ptr)
-        {
-            //Channel *channel = (Channel *)events[n].data.ptr;
+        {        
             ((Channel *)events[n].data.ptr)->handleEvent(events[n].events);
         }
     }		

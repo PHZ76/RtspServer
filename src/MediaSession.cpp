@@ -1,3 +1,6 @@
+// PHZ
+// 2018-5-16
+
 #include "MediaSession.h"
 #include "RtpConnection.h"
 #include <cstring>
@@ -39,18 +42,20 @@ MediaSession::~MediaSession()
 
 bool MediaSession::addMediaSource(MediaChannelId channelId, MediaSource* source)
 {
-    source->setSendFrameCallback([this](MediaChannelId channelId, uint8_t frameType, RtpPacketPtr& rtpPkt, uint32_t pktSize, uint8_t last, uint32_t ts)->bool
+    source->setSendFrameCallback([this](MediaChannelId channelId, uint8_t frameType, RtpPacketPtr& rtpPkt, uint32_t pktSize, uint8_t last, uint32_t ts)
     {
         for(auto iter=_clients.begin(); iter!=_clients.end(); iter++)
         {
-            iter->second->setFrameType(frameType);
-            iter->second->setRtpHeader(channelId, rtpPkt, last, ts);
-            iter->second->sendRtpPacket(channelId, rtpPkt, pktSize);
-            
-            if(_isMulticast) // 组播只发送一次
-                break;
+            if(iter->second)
+            {
+                iter->second->setFrameType(frameType);
+                iter->second->setRtpHeader(channelId, rtpPkt, last, ts);
+                iter->second->sendRtpPacket(channelId, rtpPkt, pktSize);
+
+                if(_isMulticast) // 组播只发送一次
+                    break;
+            }           
         }
-        return true;
     });
     _mediaSources[channelId].reset(source);
 
@@ -102,7 +107,7 @@ bool MediaSession::startMulticast()
     return true;
 }
 
-std::string MediaSession::getSdpMessage()
+std::string MediaSession::getSdpMessage(std::string sessionName)
 {
     if(_sdp != "")
         return _sdp;
@@ -119,7 +124,14 @@ std::string MediaSession::getSdpMessage()
             "t=0 0\r\n" 
             "a=control:*\r\n" , 
             std::time(NULL), ip.c_str());
-
+    
+    if(sessionName != "")
+    {
+        snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
+                "s=%s\r\n",
+                sessionName.c_str());
+    }
+    
     if(_isMulticast)
     {
         snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf),
@@ -199,7 +211,7 @@ bool MediaSession::handleFrame(MediaChannelId channelId, AVFrame frame)
     return true;
 }
 
-bool MediaSession::addClient(SOCKET sockfd, std::shared_ptr<RtpConnection>& rtpConnPtr)
+bool MediaSession::addClient(SOCKET sockfd, std::shared_ptr<RtpConnection> rtpConnPtr)
 {
     auto iter = _clients.find (sockfd);
     if(iter == _clients.end())
@@ -216,10 +228,9 @@ bool MediaSession::addClient(SOCKET sockfd, std::shared_ptr<RtpConnection>& rtpC
 }
 
 void MediaSession::removeClient(SOCKET sockfd)
-{
+{  
     _clients.erase(sockfd);
-
-    if(_notifyCallback)
+    if(_notifyCallback)        
         _notifyCallback(_sessionId, _clients.size());  //回调通知当前客户端数量
 }
 

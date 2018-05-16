@@ -1,3 +1,9 @@
+// PHZ
+// 2018-5-15
+
+// PHZ
+// 2018-5-15
+
 #ifndef XOP_TCPSERVER_H
 #define XOP_TCPSERVER_H
 
@@ -25,7 +31,6 @@ public:
 protected:
     void newConnection(int sockfd);
     void removeConnection(TcpConnectionPtr& conn);
-    void disconnect(int sockfd);
 
     EventLoop* _eventLoop; 
     std::shared_ptr<Acceptor> _acceptor; 

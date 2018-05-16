@@ -1,5 +1,5 @@
-#ifndef _XOP_RTP_H
-#define _XOP_RTP_H
+#ifndef XOP_RTP_H
+#define XOP_RTP_H
 
 #include <memory>
 

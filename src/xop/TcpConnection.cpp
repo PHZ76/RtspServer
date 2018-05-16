@@ -1,3 +1,6 @@
+// PHZ
+// 2018-5-15
+
 #include "TcpConnection.h"
 #include "EventLoop.h"
 #include "Channel.h"
@@ -9,19 +12,19 @@ using namespace std;
 
 TcpConnection::TcpConnection(EventLoop *eventLoop, int sockfd)
     : _eventLoop(eventLoop)
-    ,  _channel(new Channel(sockfd))
-    ,  _readBuf(new BufferReader)
+    , _channel(new Channel(sockfd))
+    , _readBuf(new BufferReader)
     , _writeBuf(new BufferWriter)
 {
-    _channel->setReadCallback(std::bind(&TcpConnection::handleRead, this));
-    _channel->setWriteCallback(std::bind(&TcpConnection::handleWrite, this));
-    _channel->setCloseCallback(std::bind(&TcpConnection::handleClose, this));
-    _channel->setErrorCallback(std::bind(&TcpConnection::handleError, this));
+    _channel->setReadCallback([this]() { this->handleRead(); });
+    _channel->setWriteCallback([this]() { this->handleWrite(); });
+    _channel->setCloseCallback([this]() { this->handleClose(); });
+    _channel->setErrorCallback([this]() { this->handleError(); });
 
     SocketUtil::setKeepAlive(_channel->fd());
     SocketUtil::setNonBlock(_channel->fd());
 
-    _channel->setEvents(EVENT_IN);
+    _channel->enableReading();
     _eventLoop->updateChannel(_channel);
 }
 
@@ -61,7 +64,7 @@ void TcpConnection::handleWrite()
 
     if(_writeBuf->isEmpty())
     {
-        _channel->setEvents(EVENT_IN);
+        _channel->disableWriting();
         _eventLoop->updateChannel(_channel);
     } 
 }
@@ -114,7 +117,7 @@ void TcpConnection::send(const void* message, int len)
 
         if (!_writeBuf->isEmpty() && !_channel->isWriting())
         {
-            _channel->setEvents(EVENT_IN | EVENT_OUT);
+            _channel->enableWriting();
             _eventLoop->updateChannel(_channel);
         }
     }

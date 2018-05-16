@@ -1,3 +1,6 @@
+// PHZ
+// 2018-5-16
+
 #include "RtspServer.h"
 #include "RtspConnection.h"
 #include "xop/log.h"
@@ -11,8 +14,25 @@ RtspServer::RtspServer(EventLoop* loop, std::string ip, uint16_t port)
     , _acceptor(new Acceptor(loop, ip, port))
     , _lastMediaSessionId(1)
 {
-    _acceptor->setNewConnectionCallback(std::bind(&RtspServer::newConnection, this, placeholders::_1));
+    _acceptor->setNewConnectionCallback([this](SOCKET sockfd) { this->newConnection(sockfd); });
     _acceptor->listen();
+    
+    if(_loop)
+    {
+        // RTSP 心跳检测
+        _timerId = _loop->addTimer([this]() 
+        {
+            for(auto iter : _connections)
+            {
+                if(!iter.second->isAlive())
+                {
+                    iter.second->handleClose();
+                    continue;
+                }
+                iter.second->resetAliveCount();          
+            }
+        }, 60*1000, true); 
+    }   
 }
 
 RtspServer::~RtspServer()
@@ -92,13 +112,7 @@ bool RtspServer::pushFrame(MediaSessionId sessionId, MediaChannelId channelId, A
     if(iter->second->getClientNum() != 0)
     {
         auto sessionPtr = iter->second;
-        //if(sessionPtr->saveFrame(channelId, frame))
-        {
-            return _loop->addTriggerEvent([sessionPtr, channelId, frame]() 
-            { 
-                sessionPtr->handleFrame(channelId, frame); 
-            }); 
-        }		
+        return _loop->addTriggerEvent([sessionPtr, channelId, frame]() { sessionPtr->handleFrame(channelId, frame); }); 		
     }
 
     return false;
@@ -106,30 +120,16 @@ bool RtspServer::pushFrame(MediaSessionId sessionId, MediaChannelId channelId, A
 
 void RtspServer::newConnection(SOCKET sockfd)
 {
-    std::shared_ptr<RtspConnection> conn(new RtspConnection(this, sockfd));
-    _connections[sockfd] = conn;
-    conn->setCloseCallback(std::bind(&RtspServer::removeConnection, this, placeholders::_1));
+    std::shared_ptr<RtspConnection> rtspConn(new RtspConnection(this, sockfd));
+    rtspConn->setCloseCallback([this](SOCKET sockfd) { this->removeConnection(sockfd); });
+    _connections.emplace(sockfd, rtspConn);   
 }
 
-void RtspServer::removeConnection(std::shared_ptr<RtspConnection> rtspConnPtr)
+void RtspServer::removeConnection(SOCKET sockfd)
 {
-    _loop->addTriggerEvent([rtspConnPtr, this]() 
+    if(!_loop->addTriggerEvent([sockfd, this]() { _connections.erase(sockfd); }))
     {
-        SOCKET sockfd = rtspConnPtr->fd();
-        if(rtspConnPtr->getMediaSessionId() != 0)
-        {
-            std::lock_guard<std::mutex> locker(_mutex);
-            
-            //从媒体会话删除连接
-            auto iter = _mediaSessions.find(rtspConnPtr->getMediaSessionId());
-            if(iter != _mediaSessions.end())
-            {
-                iter->second->removeClient(sockfd);
-            }
-        }
-
-        _connections.erase(sockfd);
-        SocketUtil::close(sockfd);
-    });
+        _loop->addTimer([sockfd, this]() { _connections.erase(sockfd); }, 1, false);
+    }
 } 
 

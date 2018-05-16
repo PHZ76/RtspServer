@@ -14,7 +14,6 @@ namespace xop
 {
 
 class RtpConnection;
-typedef std::map<SOCKET, std::shared_ptr<RtpConnection>> ClientMap; // <rtspfd, ...>
 
 class MediaSource
 {

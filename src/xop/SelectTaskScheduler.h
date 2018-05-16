@@ -1,5 +1,8 @@
-#ifndef XOP_SELECT__TASK_SCHEDULER_H
-#define XOP_SELECT__TASK_SCHEDULER_H
+// PHZ
+// 2018-5-15
+
+#ifndef XOP_SELECT_TASK_SCHEDULER_H
+#define XOP_SELECT_TASK_SCHEDULER_H
 
 #include "TaskScheduler.h"
 #include <mutex>

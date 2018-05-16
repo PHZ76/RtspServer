@@ -1,5 +1,8 @@
-#ifndef _MEDIA_SESSION_H
-#define _MEDIA_SESSION_H
+// PHZ
+// 2018-5-16
+
+#ifndef XOP_MEDIA_SESSION_H
+#define XOP_MEDIA_SESSION_H
 
 #include <memory>
 #include <string>
@@ -13,6 +16,7 @@
 
 namespace xop
 {
+    
 class MediaSession
 {
 public:
@@ -24,7 +28,7 @@ public:
     bool addMediaSource(MediaChannelId channelId, MediaSource* source);
     bool removeMediaSource(MediaChannelId channelId);
 
-    // 启动组播, 可以不指定IP端口
+    // 启动组播, IP端口随机生成
     bool startMulticast(); 
 
     // 新的客户端加入, 会触发回调函数通知客户端
@@ -37,7 +41,7 @@ public:
     void setRtspUrlSuffix(std::string& suffix) 
     { _suffix = suffix; }
 
-    std::string getSdpMessage(); 
+    std::string getSdpMessage(std::string sessionName=""); 
 
     MediaSource* getMediaSource(MediaChannelId channelId);
 
@@ -45,7 +49,7 @@ public:
     bool handleFrame(MediaChannelId channelId);
     bool handleFrame(MediaChannelId channelId, AVFrame frame);
 
-    bool addClient(SOCKET sockfd, std::shared_ptr<RtpConnection>& rtpConnPtr);
+    bool addClient(SOCKET sockfd, std::shared_ptr<RtpConnection> rtpConnPtr);
     void removeClient(SOCKET sockfd);
 
     void setMediaSessionId(MediaSessionId sessionId)
@@ -81,7 +85,6 @@ private:
     friend class MediaSource;
     friend class RtspServer;
     MediaSession(std::string rtspUrlSuffxx);
-    //bool sendRtpPacket(MediaChannelId channelId, RtpPacketPtr& rtpPkt, uint32_t pktSize, uint8_t last, uint32_t ts);
 
     MediaSessionId _sessionId = 0;
     std::string _suffix; 
@@ -91,7 +94,7 @@ private:
     std::vector<RingBuffer<AVFrame>> _buffer;
 
     NotifyCallback _notifyCallback;
-    ClientMap _clients;
+    std::map<SOCKET, std::shared_ptr<RtpConnection>> _clients;
 
     // 
     bool _isMulticast = false;

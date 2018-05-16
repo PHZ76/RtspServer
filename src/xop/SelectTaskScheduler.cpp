@@ -1,3 +1,6 @@
+// PHZ
+// 2018-5-15
+
 #include "SelectTaskScheduler.h"
 #include "log.h"
 #include "Timer.h"
@@ -147,8 +150,9 @@ bool SelectTaskScheduler::handleEvent(int timeout)
         memcpy(&_fdExpBackup, &fdExp, sizeof(fd_set));
     }
     else
+    {
         memcpy(&fdExp, &_fdExpBackup, sizeof(fd_set));
-
+    }
 
     if(timeout < 0)
     {
@@ -167,7 +171,7 @@ bool SelectTaskScheduler::handleEvent(int timeout)
 #endif 
         return false;
     }
-	
+
     std::forward_list<std::pair<ChannelPtr, int>> eventList;
     if(ret > 0)
     {

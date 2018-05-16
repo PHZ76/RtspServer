@@ -12,7 +12,7 @@ Acceptor::Acceptor(EventLoop* eventLoop, std::string ip, uint16_t port)
     _acceptChannel.reset(new Channel(_tcpSocket->fd()));
     SocketUtil::setReuseAddr(_tcpSocket->fd());
     SocketUtil::setReusePort(_tcpSocket->fd());
-    //SocketUtil::setNonBlock(_tcpSocket->fd());
+    SocketUtil::setNonBlock(_tcpSocket->fd());
     _tcpSocket->bind(ip, port);
 }
 
@@ -25,9 +25,8 @@ Acceptor::~Acceptor()
 void Acceptor::listen()
 {
     _tcpSocket->listen(1024);
-
-    _acceptChannel->setEvents(EVENT_IN);
-    _acceptChannel->setReadCallback(std::bind(&Acceptor::handleAccept, this));
+    _acceptChannel->setReadCallback([this]() { this->handleAccept(); });
+    _acceptChannel->enableReading();
     _eventLoop->updateChannel(_acceptChannel);
 }
 
@@ -36,6 +35,7 @@ void Acceptor::handleAccept()
     int connfd = _tcpSocket->accept();
     if (connfd > 0)
     {
+        LOG("Client connect: %d\n", connfd);
         if (_newConnectionCallback)		
         {
             _newConnectionCallback(connfd);

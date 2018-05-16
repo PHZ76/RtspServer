@@ -1,7 +1,5 @@
-//
-// Author: PHZ
-// Date: 2018-1-15
-//
+// PHZ
+// 2018-5-16
 
 #ifndef XOP_RTSP_REQUEST_H
 #define XOP_RTSP_REQUEST_H
@@ -10,9 +8,7 @@
 #include <unordered_map>
 #include <string>
 #include <cstring>
-
 #include "rtp.h"
-
 #include "media.h"
 #include "xop/BufferReader.h"
 
@@ -32,7 +28,7 @@ public:
 	
     enum Method 
     {
-        OPTIONS, DESCRIBE, SETUP, PLAY, TEARDOWN,
+        OPTIONS, DESCRIBE, SETUP, PLAY, TEARDOWN, GET_PARAMETER, RTCP,
         NONE, // 自定义
     };
 

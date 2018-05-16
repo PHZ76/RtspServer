@@ -1,3 +1,6 @@
+// PHZ
+// 2018-5-15
+
 #ifndef XOP_BUFFER_WRITER_H
 #define XOP_BUFFER_WRITER_H
 
@@ -39,7 +42,7 @@ private:
     std::queue<Packet> _buffer;  		
     int _maxQueueLength = 0;
 
-    static const int kMaxQueueLength = 60;
+    static const int kMaxQueueLength = 30;
 };
 
 }

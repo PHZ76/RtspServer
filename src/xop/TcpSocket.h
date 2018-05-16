@@ -1,5 +1,8 @@
-#ifndef _XOP_TCP_SOCKET_H
-#define _XOP_TCP_SOCKET_H
+// PHZ
+// 2018-5-15
+
+#ifndef XOP_TCP_SOCKET_H
+#define XOP_TCP_SOCKET_H
 
 #include <cstdint>
 #include <string>
@@ -7,24 +10,26 @@
 
 namespace xop
 {
-    class TcpSocket
-    {
-    public:
-        TcpSocket(SOCKET sockfd);
-        virtual ~TcpSocket();
+    
+class TcpSocket
+{
+public:
+    TcpSocket(SOCKET sockfd);
+    virtual ~TcpSocket();
 
-        bool bind(std::string ip, uint16_t port);
-        bool listen(int backlog);
-        SOCKET accept();
-        bool connect(std::string ip, uint16_t port);
-        void close();
-        void shutdownWrite();
+    bool bind(std::string ip, uint16_t port);
+    bool listen(int backlog);
+    SOCKET accept();
+    bool connect(std::string ip, uint16_t port);
+    void close();
+    void shutdownWrite();
 
-        SOCKET fd() const { return _sockfd; }
-        
-    private:
-        SOCKET _sockfd = -1;
-    };
+    SOCKET fd() const { return _sockfd; }
+    
+private:
+    SOCKET _sockfd = -1;
+};
+
 }
 
 #endif

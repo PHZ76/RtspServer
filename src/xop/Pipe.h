@@ -1,5 +1,8 @@
-#ifndef _XOP_PIPE_H
-#define _XOP_PIPE_H
+// PHZ
+// 2018-5-15
+
+#ifndef XOP_PIPE_H
+#define XOP_PIPE_H
 
 namespace xop
 {

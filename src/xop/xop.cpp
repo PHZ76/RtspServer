@@ -1,3 +1,6 @@
+// PHZ
+// 2018-5-15
+
 #include "xop.h"
 #if defined(WIN32) || defined(_WIN32) 
 #include<windows.h>
@@ -12,9 +15,6 @@ bool XOP_Init()
         WSACleanup();
         return false;
     }
-
-    // ...
-
 #endif
     return true;
 }

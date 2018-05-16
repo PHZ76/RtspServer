@@ -1,3 +1,6 @@
+// PHZ
+// 2018-5-15
+
 #include "BufferWriter.h"
 #include "Socket.h"
 #include "SocketUtil.h"
@@ -64,12 +67,12 @@ int BufferWriter::send(int sockfd, int timeout)
     }
     else if(ret < 0)
     {
-        #if defined(__linux) || defined(__linux__)
+#if defined(__linux) || defined(__linux__)
         if(errno==EINTR || errno==EAGAIN)			
-        #else
+#else
         int error = WSAGetLastError();
         if(error==EWOULDBLOCK || error==0)
-        #endif
+#endif
             ret = 0;
     }
 

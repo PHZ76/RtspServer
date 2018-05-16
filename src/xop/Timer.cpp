@@ -88,5 +88,3 @@ void TimerQueue::handleTimerEvent()
     }
 }
 
-
-

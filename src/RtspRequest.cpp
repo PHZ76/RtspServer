@@ -1,6 +1,8 @@
+// PHZ
+// 2018-5-16
+
 #include "RtspRequest.h"
 #include "media.h"
-
 #include "xop/log.h"
 
 using namespace std;
@@ -50,7 +52,7 @@ bool RtspRequest::parseRequestLine(const char* begin, const char* end)
     char method[64] = {0}; 
     char url[512] = {0}; 
     char version[64] = {0};
-
+    
     if(sscanf(message.c_str(), "%s %s %s", method, url, version) != 3) 
     {		
         return true; // 		  
@@ -76,6 +78,10 @@ bool RtspRequest::parseRequestLine(const char* begin, const char* end)
     else if(methodString == "TEARDOWN")
     {
         _method = TEARDOWN;
+    }
+    else if(methodString == "GET_PARAMETER")
+    {
+        _method = GET_PARAMETER;
     }
     else 
     {
@@ -168,6 +174,12 @@ bool RtspRequest::parseHeadersLine(const char* begin, const char* end)
         return true;
     }
 
+    if(_method == GET_PARAMETER)
+    {
+        _state = kGotAll;
+        return true;
+    }
+    
     return true;
 }
 

@@ -1,3 +1,6 @@
+// PHZ
+// 2018-5-15
+
 #include "BufferReader.h"
 #include "Socket.h"
 #include <cstring>
@@ -27,6 +30,7 @@ int BufferReader::readFd(int sockfd)
         {
             return 0; // close
         }
+        
         _buffer.resize(BufferReaderSize + MAX_BYTES_PER_READ);
     }
 	
@@ -67,3 +71,4 @@ uint32_t BufferReader::readUntilCrlf(std::string& data)
 
     return size;
 }
+

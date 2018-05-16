@@ -1,3 +1,6 @@
+// PHZ
+// 2018-5-15
+
 #ifndef XOP_SINNAL_H
 #define XOP_SINNAL_H
 
@@ -6,8 +9,10 @@
 #include <errno.h>
 #include <stdio.h>
 #endif
-//signal(SIGPIPE, SIG_IGN);
 
+namespace xop
+{
+    
 class Signal
 {
 public:	
@@ -22,6 +27,8 @@ public:
 #endif
     }
 };
+
+}
 
 #endif
 

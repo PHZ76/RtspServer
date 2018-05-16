@@ -1,11 +1,17 @@
+// PHZ
+// 2018-5-16
+
 #include "RtpConnection.h"
 #include "RtspConnection.h"
 #include "xop/SocketUtil.h"
+#ifdef HISI
+#include "hi3516a_comm.h"
+#endif	
 
 using namespace std;
 using namespace xop;
 
-RtpConnection::RtpConnection(RtspConnection *rtspConnection)
+RtpConnection::RtpConnection(RtspConnection* rtspConnection)
     : _rtspConnection(rtspConnection)
 {
     std::random_device rd;
@@ -56,7 +62,7 @@ bool RtpConnection::setupRtpOverTcp(MediaChannelId channelId, uint16_t rtpChanne
 }
 
 bool RtpConnection::setupRtpOverUdp(MediaChannelId channelId, uint16_t rtpPort, uint16_t rtcpPort)
-{
+{    
     if(SocketUtil::getPeerAddr(_rtspConnection->fd(), &_peerAddr) < 0)
     {
         return false;
@@ -119,13 +125,14 @@ bool RtpConnection::setupRtpOverMulticast(MediaChannelId channelId, int sockfd, 
 
     _mediaChannelInfo[channelId].isSetup = true;
     _transportMode = RTP_OVER_MULTICAST;	
-
+    _isMulticast = true;
+    
     return true;
 }
 
 void RtpConnection::play()
 {
-    for(int chn=0; chn<2; chn++)
+    for(int chn=0; chn<MAX_MEDIA_CHANNEL; chn++)
     {
         if(_mediaChannelInfo[chn].isSetup)
             _mediaChannelInfo[chn].isPlay = true;
@@ -137,25 +144,10 @@ void RtpConnection::teardown()
     if(!_isClosed)
     {
         _isClosed = true; // teardown只调用一次
-        for(int chn=0; chn<2; chn++)
+        for(int chn=0; chn<MAX_MEDIA_CHANNEL; chn++)
         {
             _mediaChannelInfo[chn].isPlay = false;
-            if(_transportMode ==  RTP_OVER_UDP) 
-            {
-                if(_rtpfd[chn] > 0)
-                {
-                     SocketUtil::close(_rtpfd[chn]);
-                     _rtpfd[chn] = -1;
-                }                
-
-                if(_rtcpfd[chn] > 0)
-                {
-                    SocketUtil::close(_rtcpfd[chn]);
-                    _rtcpfd[chn] = -1;
-                }                    
-            }
         }
-        _rtspConnection->handleClose(); //通知rtsp connection关闭连接
     }
 }
 
@@ -166,7 +158,35 @@ string RtpConnection::getMulticastIp(MediaChannelId channelId) const
 
 string RtpConnection::getRtpInfo(const std::string& rtspUrl)
 {
+#ifdef HISI    
+    char buf[1024] = {0};
+    strcpy(buf, "RTP-Info: ");
+
+    int numChannel = 0;
+
+    HI_U64 pu64CurPts;
+    HI_MPI_SYS_GetCurPts(&pu64CurPts);
+    uint64_t ts = (pu64CurPts/1000) ;
+
+    for(int chn=0; chn<MAX_MEDIA_CHANNEL; chn++)
+    {
+        uint32_t rtpTime = (uint32_t)(ts*_mediaChannelInfo[chn].clockRate/1000);	
+        if(_mediaChannelInfo[chn].isPlay)
+        {
+            if(numChannel != 0)
+                snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), ",");
+            
+            snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf),
+                    "url=%s/track%d;seq=0;rtptime=%u",
+                    rtspUrl.c_str(), chn, rtpTime);
+            numChannel++;
+        }	
+    }
+
+    return std::string(buf);
+#else
     return " ";
+#endif    
 }
 
 void RtpConnection::setFrameType(uint8_t frameType)
@@ -180,7 +200,7 @@ void RtpConnection::setFrameType(uint8_t frameType)
 
 void RtpConnection::setRtpHeader(MediaChannelId channelId, RtpPacketPtr& rtpPkt, uint8_t last, uint32_t ts)
 {
-    if(_mediaChannelInfo[channelId].isPlay /* && _isIDRFrame */) //第一帧发送I帧
+    if(_mediaChannelInfo[channelId].isPlay  && _isIDRFrame) //第一帧发送I帧
     {
         _mediaChannelInfo[channelId].rtpHeader.marker = last;	
         _mediaChannelInfo[channelId].rtpHeader.ts = htonl(ts);
@@ -191,6 +211,9 @@ void RtpConnection::setRtpHeader(MediaChannelId channelId, RtpPacketPtr& rtpPkt,
 
 void RtpConnection::sendRtpPacket(MediaChannelId channelId, RtpPacketPtr& rtpPkt, uint32_t pktSize)
 {
+    if(_isClosed)
+        return ;
+    
     if(_mediaChannelInfo[channelId].isPlay && _isIDRFrame) //第一帧发送I帧
     {	
         if(_transportMode == RTP_OVER_TCP)
@@ -204,7 +227,7 @@ void RtpConnection::sendRtpPacket(MediaChannelId channelId, RtpPacketPtr& rtpPkt
     }
 }
 
-int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr& rtpPkt, uint32_t pktSize)
+int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr rtpPkt, uint32_t pktSize)
 {
     int bytesSend = 0;
     char* rtpPktPtr = rtpPkt.get();
@@ -240,6 +263,7 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr& rtpPkt
         }
     }   
 
+    // 缓冲区溢出
     if(_rtspConnection->_writeBuffer->isFull())
     {
          teardown();

@@ -1,3 +1,6 @@
+// PHZ
+// 2018-5-15
+
 #include "EventLoop.h"
 #include "Signal.h"
 
@@ -38,9 +41,10 @@ void EventLoop::loop()
 
     while(!_shutdown)
     {
+        handleTriggerEvent();
+        _timerQueue.handleTimerEvent();        
         int64_t timeout = _timerQueue.getTimeRemaining();
-        _taskScheduler->handleEvent(timeout);
-        _timerQueue.handleTimerEvent();
+        _taskScheduler->handleEvent(timeout);        
     }
 }
 
@@ -71,10 +75,10 @@ void EventLoop::removeTimer(TimerId timerId)
 }
 
 bool EventLoop::addTriggerEvent(TriggerEvent callback)
-{
-    std::lock_guard<std::mutex> lock(_mutex);
+{   
     if(_triggerEvents->size() < kMaxTriggetEvents)
     {
+        std::lock_guard<std::mutex> lock(_mutex);
         char event = kTriggetEvent;
         _triggerEvents->push(std::move(callback));
         _wakeupPipe->write(&event, 1);
@@ -86,41 +90,21 @@ bool EventLoop::addTriggerEvent(TriggerEvent callback)
 
 void EventLoop::wake()
 {
-    char event = 0;
-    while(_wakeupPipe->read(&event, 1) == 1)
-    {
-        switch(event)
-        {
-            case kTriggetEvent:
-            {
-                handleTriggerEvent();
-            }
-            break;
-            
-            case kTimerEvent:
-            {
-                
-            }
-            break;
-            
-            default:
-            {
-                
-            }
-            break;
-        }
-    }
+    char event[10] = {0};
+    while(_wakeupPipe->read(event, 10) > 0);
+    
+    return ;
 }
 
 void EventLoop::handleTriggerEvent()
 {
-    if(_triggerEvents->size() > 0)
+    do
     {
         TriggerEvent callback;
         if(_triggerEvents->pop(callback))
         {
             callback();	
-        }
-    }
+        }           
+    } while(_triggerEvents->size() > 0);
 }
 
