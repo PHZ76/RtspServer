@@ -6,15 +6,14 @@
 #include "H264Source.h"
 #include "AACSource.h"
 #include "xop.h"
+#include "xop/EventLoop.h"
+#include "xop/NetInterface.h"
+#include "xop/Timer.h"
+#include "xop/Timestamp.h"
 #include <thread>
 #include <memory>
 #include <iostream>
 #include <string>
-
-#if defined(WIN32) || defined(_WIN32) 
-#pragma comment(lib, "Ws2_32.lib")
-#pragma comment(lib,"Iphlpapi.lib")
-#endif 
 
 using namespace std;
 using namespace xop;
@@ -38,7 +37,8 @@ void snedFrame(RtspServer* rtspServer, MediaSessionId sessionId, int& clients)
                     videoFrame.buffer.reset(new char[videoFrame.size+1000]);
                     memcpy(videoFrame.buffer.get(), 视频帧数据, videoFrame.size);					
                     
-                    rtspServer->pushFrame(sessionId, channel_0, videoFrame); // 推送到服务器进行转发
+					// 推送到服务器进行转发
+                    rtspServer->pushFrame(sessionId, channel_0, videoFrame); 
                 */
             }
                     
@@ -52,8 +52,7 @@ void snedFrame(RtspServer* rtspServer, MediaSessionId sessionId, int& clients)
                     audioFrame.buffer.reset(new char[audioFrame.size+500]);
                     memcpy(audioFrame.buffer.get(), 音频帧数据, audioFrame.size);
                     
-                    // 推送到服务器进行转发
-                    rtspServer->pushFrame(sessionId, channel_1, audioFrame); // 接口 线程安全
+                    rtspServer->pushFrame(sessionId, channel_1, audioFrame); 
                 */
             }		
         }
@@ -64,7 +63,7 @@ void snedFrame(RtspServer* rtspServer, MediaSessionId sessionId, int& clients)
 
 int main(int agrc, char **argv)
 {	
-    XOP_Init();
+    XOP_Init(); //WSAStartup
 
     int clients = 0; // 记录当前客户端数量
     std::string ip = NetInterface::getLocalIPAddress(); //获取网卡ip地址

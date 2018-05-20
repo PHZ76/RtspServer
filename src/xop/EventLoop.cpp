@@ -44,7 +44,7 @@ void EventLoop::loop()
         handleTriggerEvent();
         _timerQueue.handleTimerEvent();        
         int64_t timeout = _timerQueue.getTimeRemaining();
-        _taskScheduler->handleEvent(timeout);        
+        _taskScheduler->handleEvent((int)timeout);        
     }
 }
 

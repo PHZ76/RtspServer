@@ -1,6 +1,10 @@
 // PHZ
 // 2018-5-16
 
+#if defined(WIN32) || defined(_WIN32) 
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "G711ASource.h"
 #include "RtpConnection.h"
 #include <cstdio>
@@ -63,7 +67,7 @@ bool G711ASource::handleFrame(MediaChannelId channelId, AVFrame& frame)
 
 uint32_t G711ASource::getTimeStamp()
 {
-    auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::high_resolution_clock::now());
-    return (uint32_t)(timePoint.time_since_epoch().count()*8);
+    auto timePoint = chrono::time_point_cast<chrono::microseconds>(chrono::high_resolution_clock::now());
+    return (uint32_t)(timePoint.time_since_epoch().count()/1000*8);
 }
 

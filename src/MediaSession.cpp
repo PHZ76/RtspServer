@@ -123,7 +123,7 @@ std::string MediaSession::getSdpMessage(std::string sessionName)
             //"s=%s\r\n" 
             "t=0 0\r\n" 
             "a=control:*\r\n" , 
-            std::time(NULL), ip.c_str());
+            (long)std::time(NULL), ip.c_str());
     
     if(sessionName != "")
     {

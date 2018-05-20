@@ -232,7 +232,7 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr rtpPkt,
     int bytesSend = 0;
     char* rtpPktPtr = rtpPkt.get();
     rtpPktPtr[0] = '$';
-    rtpPktPtr[1] = _mediaChannelInfo[channelId].rtpChannel;
+    rtpPktPtr[1] = (uint8_t)_mediaChannelInfo[channelId].rtpChannel;
     rtpPktPtr[2] = (uint8_t)(((pktSize-4)&0xFF00)>>8);
     rtpPktPtr[3] = (uint8_t)((pktSize-4)&0xFF);	
 
@@ -243,26 +243,27 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr rtpPkt,
         {
 #if defined(__linux) || defined(__linux__) 
             if(errno==EINTR || errno == EAGAIN)		
-#else 		
-            if(WSAGetLastError() == EWOULDBLOCK)
+#else 		         
+            int error = WSAGetLastError();
+			if (error == WSAEWOULDBLOCK || error == WSAEINPROGRESS || error == 0)
 #endif
                 bytesSend = 0;
             else
-            {
+            {				
                 teardown();
                 return -1;
             }			
         }
-        
-        _mediaChannelInfo[channelId].octetCount += bytesSend;
+		
+        //_mediaChannelInfo[channelId].octetCount += bytesSend;
         
         if(bytesSend == pktSize)
         {
-            _mediaChannelInfo[channelId].packetCount += 1;		
+            //_mediaChannelInfo[channelId].packetCount += 1;		
             return pktSize;
         }
     }   
-
+	
     // 缓冲区溢出
     if(_rtspConnection->_writeBuffer->isFull())
     {

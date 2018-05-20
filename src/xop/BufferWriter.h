@@ -26,7 +26,7 @@ public:
     { return _buffer.empty(); }
 
     bool isFull() const 
-    { return (_buffer.size()>=_maxQueueLength?true:false); }
+    { return ((int)_buffer.size()>=_maxQueueLength?true:false); }
 
     uint32_t size() const 
     { return _buffer.size(); }

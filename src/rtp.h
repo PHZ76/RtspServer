@@ -46,8 +46,8 @@ struct MediaChannelInfo
     bool isPlay;
 
     // tcp
-    uint8_t rtpChannel;
-    uint8_t rtcpChannel;
+	uint16_t rtpChannel;
+	uint16_t rtcpChannel;
 
     // udp
     uint16_t rtpPort;

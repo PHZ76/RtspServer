@@ -24,7 +24,7 @@ bool Pipe::create()
     uint16_t port = 0;
     int again = 5;
 
-    while(again--)
+    while(--again)
     {
         port = rd(); // random
         if (rp.bind("127.0.0.1", port))

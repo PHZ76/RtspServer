@@ -1,6 +1,10 @@
 // PHZ
 // 2018-5-16
 
+#if defined(WIN32) || defined(_WIN32) 
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "H264Source.h"
 #include "RtpConnection.h"
 #include <cstdio>
@@ -111,8 +115,11 @@ uint32_t H264Source::getTimeStamp()
 #else  */
 	//auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now());
 	//auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::steady_clock::now());
-    auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::high_resolution_clock::now());
-    return (uint32_t)(timePoint.time_since_epoch().count()*90);
+    //auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::high_resolution_clock::now());
+    //return (uint32_t)(timePoint.time_since_epoch().count()*90);
+	auto timePoint = chrono::time_point_cast<chrono::microseconds>(chrono::high_resolution_clock::now());
+	return (uint32_t)(timePoint.time_since_epoch().count()/1000*90);
+	
 //#endif 
 }
 

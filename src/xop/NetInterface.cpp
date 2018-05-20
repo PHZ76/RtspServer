@@ -72,7 +72,7 @@ std::string NetInterface::getLocalIPAddress()
                 // pIpAddrString->IpMask.String 
                 //pIpAdapterInfo->GatewayList.IpAddress.String
                 std::string ip(pIpAddrString->IpAddress.String);
-                delete pIpAdapterInfo;
+                //delete pIpAdapterInfo;
                 return ip;
             }		
             pIpAddrString = pIpAddrString->Next;

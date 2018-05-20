@@ -29,7 +29,7 @@ public:
     { _messageCallback = cb; }
 
 protected:
-    void newConnection(int sockfd);
+    void newConnection(SOCKET sockfd);
     void removeConnection(TcpConnectionPtr& conn);
 
     EventLoop* _eventLoop; 

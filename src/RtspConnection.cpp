@@ -147,7 +147,7 @@ void RtspConnection::handleClose()
 {
     if(!_isClosed)
     {
-        _isClosed = true; // handleClose只能调用一次
+        _isClosed = true; 
         _loop->removeChannel(_channel);	
 
         if(_sessionId != 0)
@@ -202,7 +202,8 @@ void RtspConnection::sendResponse(const char* data, int len)
 #if defined(__linux) || defined(__linux__) 
             if(errno != EINTR && errno != EAGAIN)	
 #else 
-            if(WSAGetLastError() != EWOULDBLOCK)
+			int error = WSAGetLastError();
+			if (error == WSAEWOULDBLOCK || error == WSAEINPROGRESS || error == 0)
 #endif
             {
                 handleClose();

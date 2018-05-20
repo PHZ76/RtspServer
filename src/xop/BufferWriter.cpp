@@ -18,7 +18,7 @@ bool BufferWriter::append(std::shared_ptr<char> data, uint32_t size, uint32_t in
     if(size <= index)
         return false;
 
-    if(_buffer.size() >= _maxQueueLength)
+    if((int)_buffer.size() >= _maxQueueLength)
         return false;		
 
     Packet pkt = {data, size, index};
@@ -32,7 +32,7 @@ bool BufferWriter::append(const char* data, uint32_t size, uint32_t index)
     if(size <= index)
         return false;
 
-    if(_buffer.size() >= _maxQueueLength)
+    if((int)_buffer.size() >= _maxQueueLength)
         return false;		
 
     Packet pkt;
@@ -71,7 +71,7 @@ int BufferWriter::send(int sockfd, int timeout)
         if(errno==EINTR || errno==EAGAIN)			
 #else
         int error = WSAGetLastError();
-        if(error==EWOULDBLOCK || error==0)
+		if (error == WSAEWOULDBLOCK || error == WSAEINPROGRESS || error == 0)
 #endif
             ret = 0;
     }
