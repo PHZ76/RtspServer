@@ -36,8 +36,8 @@ void snedFrame(RtspServer* rtspServer, MediaSessionId sessionId, int& clients)
                     videoFrame.timestamp = H264Source::getTimeStamp(); // 时间戳, 建议使用编码器提供的时间戳
                     videoFrame.buffer.reset(new char[videoFrame.size+1000]);
                     memcpy(videoFrame.buffer.get(), 视频帧数据, videoFrame.size);					
-                    
-					// 推送到服务器进行转发
+
+                    // 推送到服务器进行转发, 接口线程安全
                     rtspServer->pushFrame(sessionId, channel_0, videoFrame); 
                 */
             }
@@ -51,13 +51,13 @@ void snedFrame(RtspServer* rtspServer, MediaSessionId sessionId, int& clients)
                     audio_pts += 1024;
                     audioFrame.buffer.reset(new char[audioFrame.size+500]);
                     memcpy(audioFrame.buffer.get(), 音频帧数据, audioFrame.size);
-                    
+
                     rtspServer->pushFrame(sessionId, channel_1, audioFrame); 
                 */
             }		
         }
 
-        xop::Timer::sleep(1000); 
+        xop::Timer::sleep(1000); // 根据帧率计算延时
     }
 }
 
