@@ -4,7 +4,7 @@
 项目介绍<br>
 -
 * C++11实现的RTSP服务器。<br>
-* 案例1 [DesktopSharing](https://github.com/PHZ76/DesktopSharing): 抓取屏幕和麦克风的音视频数，编码后进行RTSP推送。<br>
+* 案例1-[DesktopSharing](https://github.com/PHZ76/DesktopSharing): 抓取屏幕和麦克风的音视频数据，编码后进行RTSP推送。<br>
 
 目前情况<br>
 -
