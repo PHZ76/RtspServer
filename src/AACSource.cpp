@@ -16,18 +16,19 @@
 using namespace xop;
 using namespace std;
 
-AACSource::AACSource(uint32_t sampleRate, uint32_t channels)
+AACSource::AACSource(uint32_t sampleRate, uint32_t channels, bool hasADTS)
     : _sampleRate(sampleRate)
     , _channels(channels)
+	, _hasADTS(hasADTS)
 {
     _payload = 97;
     _mediaType = AAC;
     _clockRate = sampleRate;
 }
 
-AACSource* AACSource::createNew(uint32_t sampleRate, uint32_t channels)
+AACSource* AACSource::createNew(uint32_t sampleRate, uint32_t channels, bool hasADTS)
 {
-    return new AACSource(sampleRate, channels);
+    return new AACSource(sampleRate, channels, hasADTS);
 }
 
 AACSource::~AACSource()
@@ -88,9 +89,15 @@ bool AACSource::handleFrame(MediaChannelId channelId, AVFrame& frame)
         return false;
     }
 
-    char *frameBuf  = frame.buffer.get() + ADTS_SIZE; // 打包RTP去掉ADTS头
-    uint32_t frameSize = frame.size - ADTS_SIZE;
+	int adtsSize = 0;
+	if (_hasADTS)
+	{
+		adtsSize = ADTS_SIZE;
+	}
 
+	char *frameBuf = frame.buffer.get() + adtsSize; // 打包RTP去掉ADTS头
+	uint32_t frameSize = frame.size - adtsSize;
+	 
     char AU[AU_SIZE] = { 0 };
     AU[0] = 0x00;
     AU[1] = 0x10;
@@ -113,8 +120,11 @@ bool AACSource::handleFrame(MediaChannelId channelId, AVFrame& frame)
 
 uint32_t AACSource::getTimeStamp(uint32_t sampleRate)
 {
+	//auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::high_resolution_clock::now());
+	//return (uint32_t)(timePoint.time_since_epoch().count() * sampleRate / 1000);
+
     auto timePoint = chrono::time_point_cast<chrono::microseconds>(chrono::high_resolution_clock::now());
-    return (uint32_t)(timePoint.time_since_epoch().count()/1000*sampleRate/1000);
+	return (uint32_t)((timePoint.time_since_epoch().count() + 500) / 1000 * sampleRate / 1000);
 }
 
 

@@ -1,8 +1,11 @@
 // PHZ
-// 2018-5-15
+// 2018-5-24
 
 #include "EventLoop.h"
-#include "Signal.h"
+#include "xop.h"
+#if defined(__linux) || defined(__linux__) 
+#include <signal.h>
+#endif
 
 using namespace xop;
 
@@ -37,8 +40,14 @@ EventLoop::~EventLoop()
 
 void EventLoop::loop()
 {
-    Signal::ignoreSignal();
-
+#if defined(__linux) || defined(__linux__) 
+    signal(SIGPIPE, SIG_IGN);
+    signal(SIGQUIT, SIG_IGN);
+    signal(SIGUSR1, SIG_IGN);
+    signal(SIGTERM, SIG_IGN);
+    signal(SIGKILL, SIG_IGN);
+#endif     
+	_shutdown = false;
     while(!_shutdown)
     {
         handleTriggerEvent();
@@ -51,6 +60,8 @@ void EventLoop::loop()
 void EventLoop::quit()
 {
     _shutdown = true;
+	char event = kTriggetEvent;
+	_wakeupPipe->write(&event, 1);
 }
 	
 void EventLoop::updateChannel(ChannelPtr channel)

@@ -23,8 +23,6 @@ typedef std::pair<int64_t, uint32_t> TimerId;
 class Timer
 {
 public:
-    Timer() = delete;
-
     Timer(const TimerEvent& event, uint32_t ms, bool repeat)
         : eventCallback(event)
         , _interval(ms)
@@ -34,21 +32,11 @@ public:
             _interval = 1;
     }
 
-    TimerEvent eventCallback = [] {};
+	Timer() { }
 
     bool isRepeat() const 
     { 
         return _isRepeat;
-    }
-
-    void setNextTimeout(int64_t currentTimePoint) 
-    { 
-        _nextTimeout = currentTimePoint + _interval;
-    }
-
-    int64_t getNextTimeout() const 
-    { 
-        return _nextTimeout;
     }
 
     static void sleep(unsigned ms) 
@@ -56,7 +44,47 @@ public:
         std::this_thread::sleep_for(std::chrono::milliseconds(ms)); 
     }
 
+	void setEventCallback(const TimerEvent& event)
+	{
+		eventCallback = event;
+	}
+
+	void start(int64_t microseconds, bool repeat=false)
+	{
+		_isRepeat = repeat;
+		auto timeBegin = std::chrono::high_resolution_clock::now();
+		int64_t elapsed = 0;
+
+		do
+		{
+			std::this_thread::sleep_for(std::chrono::microseconds(microseconds - elapsed));
+			timeBegin = std::chrono::high_resolution_clock::now();
+			eventCallback();
+			elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - timeBegin).count();
+			if (elapsed < 0)
+				elapsed = 0;
+		} while (_isRepeat);
+	}
+
+	void stop()
+	{
+		_isRepeat = false;
+	}
+
 private:
+	friend class TimerQueue;
+
+	void setNextTimeout(int64_t currentTimePoint)
+	{
+		_nextTimeout = currentTimePoint + _interval;
+	}
+
+	int64_t getNextTimeout() const
+	{
+		return _nextTimeout;
+	}
+
+	TimerEvent eventCallback = [] {};
     bool _isRepeat = false;
     uint32_t _interval = 0;
     int64_t _nextTimeout = 0;

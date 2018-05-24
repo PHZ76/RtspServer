@@ -44,7 +44,7 @@ string H264Source::getMediaDescription(uint16_t port)
 	
 string H264Source::getAttribute()
 {
-    return string("a=rtpmap:96 H264/90000");
+    return string("a=rtpmap:96 H264/90000\r\na=AvgBitRate:integer;5000000\r\na=MaxBitRate:integer;5000000");
 }
 
 bool H264Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
@@ -115,11 +115,12 @@ uint32_t H264Source::getTimeStamp()
 #else  */
 	//auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now());
 	//auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::steady_clock::now());
+
     //auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::high_resolution_clock::now());
     //return (uint32_t)(timePoint.time_since_epoch().count()*90);
+
 	auto timePoint = chrono::time_point_cast<chrono::microseconds>(chrono::high_resolution_clock::now());
-	return (uint32_t)(timePoint.time_since_epoch().count()/1000*90);
-	
+	return (uint32_t)((timePoint.time_since_epoch().count()+500) / 1000* 90 );	
 //#endif 
 }
 

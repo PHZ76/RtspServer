@@ -20,9 +20,7 @@ using namespace xop;
 
 // 负责音视频数据转发的线程函数
 void snedFrame(RtspServer* rtspServer, MediaSessionId sessionId, int& clients)
-{
-    static uint32_t audio_pts = 1024;
-        
+{       
     while(1)
     {
         if(clients > 0) // 媒体会话有客户端在线, 发送音视频数据
@@ -47,7 +45,7 @@ void snedFrame(RtspServer* rtspServer, MediaSessionId sessionId, int& clients)
                     //获取一帧 AAC, 打包
                     xop::AVFrame audioFrame = {0};
                     audioFrame.size = 500;  // 音频帧大小 
-                    audioFrame.timestamp = audio_pts; // 时间戳
+                    audioFrame.timestamp = AACSource::getTimeStamp();; // 时间戳
                     audio_pts += 1024;
                     audioFrame.buffer.reset(new char[audioFrame.size+500]);
                     memcpy(audioFrame.buffer.get(), 音频帧数据, audioFrame.size);

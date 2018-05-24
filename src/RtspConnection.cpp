@@ -29,7 +29,7 @@ RtspConnection::RtspConnection(RtspServer* server, int sockfd)
     _channel->setErrorCallback([this]() { this->handleError(); }); 
     
     SocketUtil::setNonBlock(_sockfd);
-    SocketUtil::setSendBufSize(_sockfd, 50*1024);
+    SocketUtil::setSendBufSize(_sockfd, 100*1024);
     SocketUtil::setKeepAlive(_sockfd);
     
     _channel->enableReading();

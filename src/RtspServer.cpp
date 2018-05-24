@@ -37,7 +37,7 @@ RtspServer::RtspServer(EventLoop* loop, std::string ip, uint16_t port)
 
 RtspServer::~RtspServer()
 {
-	
+	_loop->removeTimer(_timerId);
 }
 
 MediaSessionId RtspServer::addMeidaSession(MediaSession* session)

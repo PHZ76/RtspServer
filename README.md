@@ -16,8 +16,8 @@
 
 编译环境<br>
 -
-* Linux: ubuntu16.04 -- gcc4.7<br>
-* Windows: win10 -- vs2015<br>
+* Linux: gcc 4.7<br>
+* Windows: VS2017<br>
 
 后续计划<br>
 -
