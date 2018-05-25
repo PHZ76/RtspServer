@@ -19,9 +19,13 @@
 * Linux: gcc 4.7<br>
 * Windows: vs2017<br>
 
+整体框架<br>
+-
+![image](https://github.com/PHZ76/RtspServer/blob/master/pic/1.pic.JPG) <br><br>
+
 后续计划<br>
 -
-* 增加其他音视频格式的支持。<br>
+* 多线程支持。<br>
 * 增加RTCP。<br>
 * 其他优化。<br>
 
