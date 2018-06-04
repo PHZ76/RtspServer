@@ -96,7 +96,6 @@ public:
     TimerId addTimer(const TimerEvent& event, uint32_t ms, bool repeat);
     void removeTimer(TimerId timerId);
 
-    // 返回最近一次超时的时间, 没有定时器任务返回-1
     int64_t getTimeRemaining();
     void handleTimerEvent();
 

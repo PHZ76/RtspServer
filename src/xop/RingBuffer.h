@@ -17,11 +17,13 @@ public:
         : _buffer(capacity)
         , _capacity(capacity)
         , _numDatas(0)
+        , _putPos(0)
+        , _getPos(0)
     { }
 	
     ~RingBuffer() {	}
 
-    bool push(const T& data) { return pushData(std::forward<T>(data)); } 	
+    bool push(T& data) { return pushData(std::forward<T>(data)); } 	
     bool push(T&& data) { return pushData(data); } 
         
     bool pop(T& data)
@@ -47,10 +49,10 @@ private:
 	{
         if (_numDatas < _capacity)
         {
-        _buffer[_putPos] = std::forward<F>(data);
-        add(_putPos);
-        _numDatas++;
-        return true;
+            _buffer[_putPos] = std::forward<F>(data);
+            add(_putPos);
+            _numDatas++;
+            return true;
         }
 
         return false;
@@ -61,11 +63,11 @@ private:
         pos = (((pos+1)==_capacity) ? 0 : (pos+1));
     }
 
-    int _capacity = 0;	
-    int _putPos   = 0;  					
-    int _getPos   = 0;  		
-
-    std::atomic_int _numDatas;     			
+    int _capacity;	
+    int _putPos;  					
+    int _getPos;  		
+   		
+    int _numDatas; //std::atomic_int _numDatas;     
     std::vector<T> _buffer;	
 };
 

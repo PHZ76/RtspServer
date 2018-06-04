@@ -54,7 +54,7 @@ int BufferWriter::send(int sockfd, int timeout)
     if(timeout > 0)
         SocketUtil::setBlock(sockfd, timeout); // 超时返回-1
 
-    Packet &pkt = _buffer.front();
+    Packet& pkt = _buffer.front();
 
     int ret = ::send(sockfd, pkt.data.get()+pkt.writeIndex, pkt.size-pkt.writeIndex, 0);
     if(ret > 0)
