@@ -38,7 +38,7 @@ public:
     RtspConnection(RTSP* rtsp, EventLoop* loop, int sockfd);
     ~RtspConnection();
 
-    int fd() const 
+    int fd() const
     { return _sockfd; }
 
     MediaSessionId getMediaSessionId()
@@ -46,73 +46,73 @@ public:
 
     void setCloseCallback(const CloseCallback& cb)
     { _closeCallback = cb; }
-	
-    void keepAlive() 
+
+    void keepAlive()
     { _aliveCount++; }
-    
-    bool isAlive() const 
-    { 
+
+    bool isAlive() const
+    {
 		if (_isClosed)
 		{
 			return false;
 		}
 
-        if(_rtpConnection) 
+        if(_rtpConnection)
         {
             // 组播暂时不加入心跳检测
             if(_rtpConnection->isMulticast())
                 return true;
         }
-        
-        return (_aliveCount > 0); 
+
+        return (_aliveCount > 0);
     }
-    
-    void resetAliveCount() 
+
+    void resetAliveCount()
     { _aliveCount = 0; }
-    
+
 private:
     friend class RtpConnection;
     friend class MediaSession;
     friend class RtspServer;
-	friend class RtspPusher;
+    friend class RtspPusher;
 
     void handleRead();
     void handleWrite();
     void handleClose();
-    void handleError();	
+    void handleError();
     void handleRtcp(SOCKET sockfd);
 
-	void sendMessage(std::shared_ptr<char> buf, uint32_t size);
-	bool handleRtspRequest();
-	bool handleRtspResponse();
-   
+    void sendMessage(std::shared_ptr<char> buf, uint32_t size);
+    bool handleRtspRequest();
+    bool handleRtspResponse();
+
     void handleCmdOption();
     void handleCmdDescribe();
     void handleCmdSetup();
     void handleCmdPlay();
     void handleCmdTeardown();
     void handleCmdGetParamter();
-    	
-	void sendOptions();
-	void sendAnnounce();
-	void sendSetup();
-	void handleRecord();
+
+    void sendOptions();
+    void sendAnnounce();
+    void sendSetup();
+    void handleRecord();
 
     int _sockfd = -1;
     int _aliveCount = 0;
-    bool _isClosed=false, _isPlay=false, _isRecord=false;	
+    bool _isClosed=false, _isPlay=false, _isRecord=false;
 
-	RTSP* _rtsp;
+    RTSP* _rtsp;
     xop::EventLoop* _loop;
-	enum ConnectionMode _connMode = RTSP_SERVER;
+    enum ConnectionMode _connMode = RTSP_SERVER;
     MediaSessionId _sessionId = 0;
 
-    std::shared_ptr<xop::Channel> _channel;		
+    std::shared_ptr<xop::Channel> _channel;
     std::shared_ptr<RtspRequest> _rtspRequest;
-	std::shared_ptr<RtspResponse> _rtspResponse;
+    std::shared_ptr<RtspResponse> _rtspResponse;
     std::shared_ptr<xop::BufferReader> _readBuffer;
     std::shared_ptr<xop::BufferWriter> _writeBuffer;
-    std::shared_ptr<RtpConnection> _rtpConnection;    
+    std::shared_ptr<RtpConnection> _rtpConnection;
     std::shared_ptr<xop::Channel> _rtcpChannel[MAX_MEDIA_CHANNEL];
 
     CloseCallback _closeCallback;
@@ -121,4 +121,3 @@ private:
 }
 
 #endif
-

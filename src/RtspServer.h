@@ -28,8 +28,8 @@ public:
     
 private:
     friend class RtspConnection;
-	MediaSessionPtr lookMediaSession(const std::string& suffix);
-	MediaSessionPtr lookMediaSession(MediaSessionId sessionId);
+    MediaSessionPtr lookMediaSession(const std::string& suffix);
+    MediaSessionPtr lookMediaSession(MediaSessionId sessionId);
 
     void newConnection(SOCKET sockfd);
     void removeConnection(SOCKET sockfd);

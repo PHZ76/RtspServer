@@ -21,7 +21,7 @@ enum TransportMode
     RTP_OVER_MULTICAST = 3,
 };
 
-typedef struct _RTP_header 
+typedef struct _RTP_header
 {
 #ifdef BIGENDIAN//defined(sun) || defined(__BIG_ENDIAN) || defined(NET_ENDIAN)
     unsigned char version:2;
@@ -31,27 +31,27 @@ typedef struct _RTP_header
     unsigned char marker:1;
     unsigned char payload:7;
 #else
-    unsigned char csrc:4;		
-    unsigned char extension:1;		
-    unsigned char padding:1;		
-    unsigned char version:2;		
-    unsigned char payload:7;		
-    unsigned char marker:1;		
+    unsigned char csrc:4;
+    unsigned char extension:1;
+    unsigned char padding:1;
+    unsigned char version:2;
+    unsigned char payload:7;
+    unsigned char marker:1;
 #endif
     unsigned short seq;
     unsigned int   ts;
-    unsigned int   ssrc;	        				
-} RtpHeader; 
+    unsigned int   ssrc;
+} RtpHeader;
 
 struct MediaChannelInfo
 {
     bool isSetup;
-    bool isPlay;   //¿Í»§¶ËÀ­Á÷
-	bool isRecord; //ÍÆÁ÷µ½·þÎñÆ÷
+    bool isPlay;   //ï¿½Í»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    bool isRecord; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
     // tcp
-	uint16_t rtpChannel;
-	uint16_t rtcpChannel;
+    uint16_t rtpChannel;
+    uint16_t rtcpChannel;
 
     // udp
     uint16_t rtpPort;
@@ -68,7 +68,7 @@ struct MediaChannelInfo
 };
 
 typedef std::shared_ptr<char> RtpPacketPtr;
-	
+
 }
 
 #endif

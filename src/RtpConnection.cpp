@@ -7,7 +7,7 @@
 
 #ifdef HISI
 #include "hi3516a_comm.h"
-#endif	
+#endif
 
 using namespace std;
 using namespace xop;
@@ -27,7 +27,7 @@ RtpConnection::RtpConnection(RtspConnection* rtspConnection)
         _mediaChannelInfo[chn].rtpHeader.seq = htons(1);
         _mediaChannelInfo[chn].rtpHeader.ts = htonl(rd());
         _mediaChannelInfo[chn].rtpHeader.ssrc = htonl(rd());
-    }	
+    }
 }
 
 RtpConnection::~RtpConnection()
@@ -40,29 +40,29 @@ RtpConnection::~RtpConnection()
             {
                SocketUtil::close(_rtpfd[chn]);
             }
-            
+
             if(_rtcpfd[chn] > 0)
             {
                 SocketUtil::close(_rtcpfd[chn]);
             }
         }
-    }	
+    }
 }
 
 bool RtpConnection::setupRtpOverTcp(MediaChannelId channelId, uint16_t rtpChannel, uint16_t rtcpChannel)
-{	
+{
     _mediaChannelInfo[channelId].rtpChannel = rtpChannel;
     _mediaChannelInfo[channelId].rtcpChannel = rtcpChannel;
     _rtpfd[channelId] = _rtspConnection->fd();
     _rtcpfd[channelId] = _rtspConnection->fd();
     _mediaChannelInfo[channelId].isSetup = true;
     _transportMode = RTP_OVER_TCP;
-        
+
     return true;
 }
 
 bool RtpConnection::setupRtpOverUdp(MediaChannelId channelId, uint16_t rtpPort, uint16_t rtcpPort)
-{    
+{
     if(SocketUtil::getPeerAddr(_rtspConnection->fd(), &_peerAddr) < 0)
     {
         return false;
@@ -72,11 +72,11 @@ bool RtpConnection::setupRtpOverUdp(MediaChannelId channelId, uint16_t rtpPort, 
     _mediaChannelInfo[channelId].rtcpPort = rtcpPort;
 
     std::random_device rd;
-    for (int n = 0; n <= 10; n++) 
+    for (int n = 0; n <= 10; n++)
     {
         if(n == 10)
             return false;
-        
+
         _localRtpPort[channelId] = rd() & 0xfffe;
         _localRtcpPort[channelId] =_localRtpPort[channelId] + 1;
 
@@ -86,7 +86,7 @@ bool RtpConnection::setupRtpOverUdp(MediaChannelId channelId, uint16_t rtpPort, 
             SocketUtil::close(_rtpfd[channelId]);
             continue;
         }
-        
+
          _rtcpfd[channelId] = ::socket(AF_INET, SOCK_DGRAM, 0);
         if(!SocketUtil::bind(_rtcpfd[channelId], "0.0.0.0", _localRtcpPort[channelId]))
         {
@@ -94,7 +94,7 @@ bool RtpConnection::setupRtpOverUdp(MediaChannelId channelId, uint16_t rtpPort, 
             SocketUtil::close(_rtcpfd[channelId]);
             continue;
         }
-            
+
         break;
     }
 
@@ -109,8 +109,8 @@ bool RtpConnection::setupRtpOverUdp(MediaChannelId channelId, uint16_t rtpPort, 
     _peerRtcpAddr[channelId].sin_port = htons(_mediaChannelInfo[channelId].rtcpPort);
 
     _mediaChannelInfo[channelId].isSetup = true;
-    _transportMode = RTP_OVER_UDP;	
-        
+    _transportMode = RTP_OVER_UDP;
+
     return true;
 }
 
@@ -119,14 +119,14 @@ bool RtpConnection::setupRtpOverMulticast(MediaChannelId channelId, int sockfd, 
     _mediaChannelInfo[channelId].rtpPort = port;
     _rtpfd[channelId] = sockfd;
 
-    _peerRtpAddr[channelId].sin_family = AF_INET;   
-    _peerRtpAddr[channelId].sin_addr.s_addr = inet_addr(ip.c_str()); 
-    _peerRtpAddr[channelId].sin_port = htons(port);   
+    _peerRtpAddr[channelId].sin_family = AF_INET;
+    _peerRtpAddr[channelId].sin_addr.s_addr = inet_addr(ip.c_str());
+    _peerRtpAddr[channelId].sin_port = htons(port);
 
     _mediaChannelInfo[channelId].isSetup = true;
-    _transportMode = RTP_OVER_MULTICAST;	
+    _transportMode = RTP_OVER_MULTICAST;
     _isMulticast = true;
-    
+
     return true;
 }
 
@@ -168,7 +168,7 @@ string RtpConnection::getMulticastIp(MediaChannelId channelId) const
 
 string RtpConnection::getRtpInfo(const std::string& rtspUrl)
 {
-#ifdef HISI    
+#ifdef HISI
     char buf[1024] = {0};
     strcpy(buf, "RTP-Info: ");
 
@@ -180,17 +180,17 @@ string RtpConnection::getRtpInfo(const std::string& rtspUrl)
 
     for(int chn=0; chn<MAX_MEDIA_CHANNEL; chn++)
     {
-        uint32_t rtpTime = (uint32_t)(ts*_mediaChannelInfo[chn].clockRate/1000);	
+        uint32_t rtpTime = (uint32_t)(ts*_mediaChannelInfo[chn].clockRate/1000);
         if(_mediaChannelInfo[chn].isPlay)
         {
             if(numChannel != 0)
                 snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), ",");
-            
+
             snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf),
                     "url=%s/track%d;seq=0;rtptime=%u",
                     rtspUrl.c_str(), chn, rtpTime);
             numChannel++;
-        }	
+        }
     }
 
     return std::string(buf);
@@ -218,7 +218,7 @@ string RtpConnection::getRtpInfo(const std::string& rtspUrl)
 	}
 
 	return std::string(buf);
-#endif    
+#endif
 }
 
 void RtpConnection::setFrameType(uint8_t frameType)
@@ -234,9 +234,9 @@ void RtpConnection::setRtpHeader(MediaChannelId channelId, RtpPacketPtr& rtpPkt,
 {
     if((_mediaChannelInfo[channelId].isPlay || _mediaChannelInfo[channelId].isRecord)  &&  _isIDRFrame ) //第一帧发送I帧
     {
-        _mediaChannelInfo[channelId].rtpHeader.marker = last;	
+        _mediaChannelInfo[channelId].rtpHeader.marker = last;
         _mediaChannelInfo[channelId].rtpHeader.ts = htonl(ts);
-        _mediaChannelInfo[channelId].rtpHeader.seq = htons(_mediaChannelInfo[channelId].packetSeq++);	
+        _mediaChannelInfo[channelId].rtpHeader.seq = htons(_mediaChannelInfo[channelId].packetSeq++);
         memcpy(rtpPkt.get()+4, &_mediaChannelInfo[channelId].rtpHeader, RTP_HEADER_SIZE);
     }
 }
@@ -245,11 +245,11 @@ void RtpConnection::sendRtpPacket(MediaChannelId channelId, RtpPacketPtr& rtpPkt
 {
     if(_isClosed)
         return ;
-    
+
     if((_mediaChannelInfo[channelId].isPlay || _mediaChannelInfo[channelId].isRecord) && _isIDRFrame) //第一帧发送I帧
-    {	
+    {
         if(_transportMode == RTP_OVER_TCP)
-        {		
+        {
             sendRtpOverTcp(channelId, rtpPkt, pktSize);	// 缓存
         }
         else //if(_transportMode == RTP_OVER_UDP || _transportMode==RTP_OVER_MULTICAST)
@@ -265,7 +265,7 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr rtpPkt,
     char* rtpPktPtr = rtpPkt.get();
     rtpPktPtr[0] = '$';
     rtpPktPtr[1] = (uint8_t)_mediaChannelInfo[channelId].rtpChannel;
-	rtpPktPtr[2] = (uint8_t)(((pktSize-4)&0xFF00)>>8);
+    rtpPktPtr[2] = (uint8_t)(((pktSize-4)&0xFF00)>>8);
     rtpPktPtr[3] = (uint8_t)((pktSize-4)&0xFF);	
 
     // 添加到缓冲区再发送
@@ -274,9 +274,9 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr rtpPkt,
     bool empty = false;
     do
     {
-        ret = _rtspConnection->_writeBuffer->send(_rtpfd[channelId]); 
+        ret = _rtspConnection->_writeBuffer->send(_rtpfd[channelId]);
         if(ret < 0)
-        {			
+        {
             teardown();
             return -1;
         }
@@ -287,23 +287,23 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr rtpPkt,
     if(empty && !_rtspConnection->_channel->isWriting())
     {
         _rtspConnection->_channel->setEvents(EVENT_IN|EVENT_OUT);
-        _rtspConnection->_loop->updateChannel(_rtspConnection->_channel);	
-    }  
+        _rtspConnection->_loop->updateChannel(_rtspConnection->_channel);
+    }
 
     return bytesSend;
 }
 
 int RtpConnection::sendRtpOverUdp(MediaChannelId channelId, RtpPacketPtr& rtpPkt, uint32_t pktSize)
-{	
+{
     //_mediaChannelInfo[channelId].octetCount  += pktSize;
-    //_mediaChannelInfo[channelId].packetCount += 1;		
+    //_mediaChannelInfo[channelId].packetCount += 1;
 
     // 去掉RTP-OVER-TCP传输的4字节header
-    int ret = sendto(_rtpfd[channelId], rtpPkt.get()+4, 
-                    pktSize-4, 0, (struct sockaddr *)&(_peerRtpAddr[channelId]), 
+    int ret = sendto(_rtpfd[channelId], rtpPkt.get()+4,
+                    pktSize-4, 0, (struct sockaddr *)&(_peerRtpAddr[channelId]),
                     sizeof(struct sockaddr_in));
     if(ret < 0)
-    {		
+    {
         teardown();
         return -1;
     }

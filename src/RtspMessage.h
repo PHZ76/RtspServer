@@ -4,7 +4,7 @@
 #ifndef XOP_RTSP_MESSAGE_H
 #define XOP_RTSP_MESSAGE_H
 
-#include <utility> 
+#include <utility>
 #include <unordered_map>
 #include <string>
 #include <cstring>
@@ -25,8 +25,8 @@ public:
         //kParseBody,	// 主体
         kGotAll,
     };
-	
-    enum Method 
+
+    enum Method
     {
         OPTIONS, DESCRIBE, SETUP, PLAY, TEARDOWN, GET_PARAMETER, RTCP,
         NONE, // 自定义
@@ -65,14 +65,14 @@ public:
     uint8_t getRtcpChannel() const;
     uint16_t getRtpPort() const;
     uint16_t getRtcpPort() const;
-	
+
 private:
     bool parseRequestLine(const char* begin, const char* end);
     bool parseHeadersLine(const char* begin, const char* end);
     bool parseCSeq(std::string& message);
     bool parseAccept(std::string& message);
     bool parseTransport(std::string& message);
-    bool parseSessionId(std::string& message);	 
+    bool parseSessionId(std::string& message);
     bool parseMediaChannel(std::string& message);
 
     Method _method;
@@ -82,22 +82,22 @@ private:
     std::unordered_map<std::string, std::pair<std::string, uint32_t>> _headerLineParma;
 
     RtspRequestParseState _state = kParseRequestLine;
-};	
-	
+};
+
 // RtspResponse没有对RTSP做全面解析, 后续补充
 class RtspResponse
 {
 public:
-	enum Method
-	{
-		OPTIONS, ANNOUNCE, SETUP, RECORD, RTCP,
-		NONE, // 自定义
-	};
+  enum Method
+  {
+  	OPTIONS, ANNOUNCE, SETUP, RECORD, RTCP,
+  	NONE, // 自定义
+  };
 
-	bool parseResponse(xop::BufferReader *buffer);
+  bool parseResponse(xop::BufferReader *buffer);
 
-	void setMethod(Method method)
-	{ _method = method; }
+  void setMethod(Method method)
+  { _method = method; }
 
 	Method getMethod() const
 	{ return _method; }
@@ -117,4 +117,3 @@ private:
 }
 
 #endif
-

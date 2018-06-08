@@ -23,25 +23,23 @@ public:
     { return _channels; }
 
     // SDP媒体描述 m=
-    virtual std::string getMediaDescription(uint16_t port=0); 
+    virtual std::string getMediaDescription(uint16_t port=0);
 
     // SDP属性 a=
-    virtual std::string getAttribute(); 
+    virtual std::string getAttribute();
 
     bool handleFrame(MediaChannelId channelId, AVFrame& frame);
 
     static uint32_t getTimeStamp(uint32_t sampleRate=44100);
-	
+
 private:
     AACSource(uint32_t sampleRate, uint32_t channels, bool hasADTS);
 
-	uint32_t _sampleRate = 44100;   // 采样频率
-	uint32_t _channels = 2;         // 通道数
-	bool _hasADTS = true;
+    uint32_t _sampleRate = 44100;   // 采样频率
+    uint32_t _channels = 2;         // 通道数
+    bool _hasADTS = true;
 };
-	
+
 }
 
 #endif
-
-

@@ -46,13 +46,12 @@ public:
     { return _clockRate; }
 
 protected:
-	MediaType _mediaType = NONE;
-	uint32_t _payload = 0;
-	uint32_t _clockRate = 0;
-	SendFrameCallback _sendFrameCallback;
+    MediaType _mediaType = NONE;
+    uint32_t _payload = 0;
+    uint32_t _clockRate = 0;
+    SendFrameCallback _sendFrameCallback;
 };
-	
+
 }
 
 #endif
-

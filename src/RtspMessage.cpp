@@ -1,7 +1,7 @@
 // PHZ
 // 2018-5-16
 
-#if defined(WIN32) || defined(_WIN32) 
+#if defined(WIN32) || defined(_WIN32)
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
@@ -48,18 +48,18 @@ bool RtspRequest::parseRequest(BufferReader *buffer)
     }
 
     return ret;
-} 
+}
 
 bool RtspRequest::parseRequestLine(const char* begin, const char* end)
 {
     string message(begin, end);
-    char method[64] = {0}; 
-    char url[512] = {0}; 
+    char method[64] = {0};
+    char url[512] = {0};
     char version[64] = {0};
-    
-    if(sscanf(message.c_str(), "%s %s %s", method, url, version) != 3) 
-    {		
-        return true; // 		  
+
+    if(sscanf(message.c_str(), "%s %s %s", method, url, version) != 3)
+    {
+        return true; //
     }
 
     string methodString(method);
@@ -87,7 +87,7 @@ bool RtspRequest::parseRequestLine(const char* begin, const char* end)
     {
         _method = GET_PARAMETER;
     }
-    else 
+    else
     {
         _method = NONE;
         return false;
@@ -96,7 +96,7 @@ bool RtspRequest::parseRequestLine(const char* begin, const char* end)
     if(strncmp(url, "rtsp://", 7) != 0)
     {
         return false;
-    }		
+    }
 
     // parse url
     uint16_t port = 0;
@@ -105,14 +105,14 @@ bool RtspRequest::parseRequestLine(const char* begin, const char* end)
 
     if(sscanf(url+7, "%[^:]:%hu/%s", ip, &port, suffix) == 3)
     {
-        
+
     }
     else if(sscanf(url+7, "%[^/]/%s", ip, suffix) == 2)
     {
         port = 554;
-    }	
+    }
     else
-    {		
+    {
         return false;
     }
 
@@ -143,12 +143,12 @@ bool RtspRequest::parseHeadersLine(const char* begin, const char* end)
         return true;
     }
 
-    if(_method == DESCRIBE) 
+    if(_method == DESCRIBE)
     {
         if(parseAccept(message))
         {
             _state = kGotAll;
-        }	
+        }
         return true;
     }
 
@@ -159,7 +159,7 @@ bool RtspRequest::parseHeadersLine(const char* begin, const char* end)
             parseMediaChannel(message);
             _state = kGotAll;
         }
-        
+
         return true;
     }
 
@@ -183,7 +183,7 @@ bool RtspRequest::parseHeadersLine(const char* begin, const char* end)
         _state = kGotAll;
         return true;
     }
-    
+
     return true;
 }
 
@@ -209,7 +209,7 @@ bool RtspRequest::parseAccept(std::string& message)
     {
         return false;
     }
-        
+
     return true;
 }
 
@@ -220,46 +220,46 @@ bool RtspRequest::parseTransport(std::string& message)
     if(pos != std::string::npos)
     {
         if((pos=message.find("RTP/AVP/TCP")) != std::string::npos)
-        {		
+        {
             _transport = RTP_OVER_TCP;
             uint16_t rtpChannel = 0, rtcpChannel = 0;
-            if(sscanf(message.c_str()+pos, "%*[^;];%*[^;];%*[^=]=%hu-%hu", 
+            if(sscanf(message.c_str()+pos, "%*[^;];%*[^;];%*[^=]=%hu-%hu",
                      &rtpChannel, &rtcpChannel) != 2)
                 return false;
             _headerLineParma.emplace("rtp_channel", make_pair("", rtpChannel));
             _headerLineParma.emplace("rtcp_channel", make_pair("", rtcpChannel));
-        }		
+        }
         else if((pos=message.find("RTP/AVP")) != std::string::npos)
-        {           
-            uint16_t rtpPort = 0, rtcpPort = 0;	
+        {
+            uint16_t rtpPort = 0, rtcpPort = 0;
             if(((message.find("unicast", pos)) != std::string::npos))
             {
                 _transport = RTP_OVER_UDP;
-                if(sscanf(message.c_str()+pos, "%*[^;];%*[^;];%*[^=]=%hu-%hu", 
+                if(sscanf(message.c_str()+pos, "%*[^;];%*[^;];%*[^=]=%hu-%hu",
                      &rtpPort, &rtcpPort) != 2)
                 {
                     return false;
                 }
-                    
+
             }
             else if((message.find("multicast", pos)) != std::string::npos)
             {
-                _transport = RTP_OVER_MULTICAST;                        
+                _transport = RTP_OVER_MULTICAST;
             }
             else
-                return false;						
-                    
+                return false;
+
             _headerLineParma.emplace("rtp_port", make_pair("", rtpPort));
             _headerLineParma.emplace("rtcp_port", make_pair("", rtcpPort));
-        }		
+        }
         else
         {
             return false;
         }
-        
+
         return true;
     }
-        
+
     return false;
 }
 

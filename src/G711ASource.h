@@ -23,24 +23,22 @@ public:
     { return _channels; }
 
     // SDP媒体描述 m=
-    virtual std::string getMediaDescription(uint16_t port=0); 
+    virtual std::string getMediaDescription(uint16_t port=0);
 
     // SDP属性 a=
-    virtual std::string getAttribute(); 
+    virtual std::string getAttribute();
 
     bool handleFrame(MediaChannelId channelId, AVFrame& frame);
 
     static uint32_t getTimeStamp();
-	
+
 private:
     G711ASource();
 
-	uint32_t _sampleRate = 8000;   // 采样频率
-	uint32_t _channels = 1;        // 通道数
+    uint32_t _sampleRate = 8000;   // 采样频率
+    uint32_t _channels = 1;        // 通道数
 };
-	
+
 }
 
 #endif
-
-

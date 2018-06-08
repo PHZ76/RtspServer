@@ -21,7 +21,7 @@
 
 namespace xop
 {
-    
+
 class MediaSession
 {
 public:
@@ -34,7 +34,7 @@ public:
     bool removeMediaSource(MediaChannelId channelId);
 
     // 启动组播, IP端口随机生成
-    bool startMulticast(); 
+    bool startMulticast();
 
     // 新的客户端加入, 会触发回调函数通知客户端
     void setNotifyCallback(const NotifyCallback& cb)
@@ -43,10 +43,10 @@ public:
     std::string getRtspUrlSuffix() const
     { return _suffix; }
 
-    void setRtspUrlSuffix(std::string& suffix) 
+    void setRtspUrlSuffix(std::string& suffix)
     { _suffix = suffix; }
 
-    std::string getSdpMessage(std::string sessionName=""); 
+    std::string getSdpMessage(std::string sessionName="");
 
     MediaSource* getMediaSource(MediaChannelId channelId);
 
@@ -63,33 +63,33 @@ public:
     uint32_t getClientNum() const
     { return _clients.size(); }
 
-    bool isMulticast() const 
+    bool isMulticast() const
     { return _isMulticast; }
 
-    std::string getMulticastIp() const 
+    std::string getMulticastIp() const
     { return _multicastIp; }
 
-    uint16_t getMulticastPort(MediaChannelId channelId) const 
-    { 
+    uint16_t getMulticastPort(MediaChannelId channelId) const
+    {
         if(channelId >= MAX_MEDIA_CHANNEL)
             return 0;
-        return _multicastPort[channelId]; 
+        return _multicastPort[channelId];
     }
 
-    uint16_t getMulticastSockfd(MediaChannelId channelId) const 
-    { 
+    uint16_t getMulticastSockfd(MediaChannelId channelId) const
+    {
         if(channelId >= MAX_MEDIA_CHANNEL)
             return 0;
-        return _multicastSockfd[channelId]; 
+        return _multicastSockfd[channelId];
     }
-	
+
 private:
     friend class MediaSource;
     friend class RtspServer;
     MediaSession(std::string rtspUrlSuffxx);
 
     MediaSessionId _sessionId = 0;
-    std::string _suffix; 
+    std::string _suffix;
     std::string _sdp;
 
     std::vector<std::shared_ptr<MediaSource>> _mediaSources;
@@ -98,18 +98,17 @@ private:
     NotifyCallback _notifyCallback;
     std::map<SOCKET, std::shared_ptr<RtpConnection>> _clients;
 
-    // 
+    //
     bool _isMulticast = false;
-    uint16_t _multicastPort[MAX_MEDIA_CHANNEL]; 
+    uint16_t _multicastPort[MAX_MEDIA_CHANNEL];
     std::string _multicastIp;
     int _multicastSockfd[MAX_MEDIA_CHANNEL];
 
-	static std::atomic_uint _lastMediaSessionId;
-};	
+    static std::atomic_uint _lastMediaSessionId;
+};
 
 typedef std::shared_ptr<MediaSession> MediaSessionPtr;
 
 }
 
 #endif
-
