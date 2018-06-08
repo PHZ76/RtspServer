@@ -1,12 +1,12 @@
 // PHZ
-// 2018-5-16
+// 2018-6-7
 
 #if defined(WIN32) || defined(_WIN32) 
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
 #include "H265Source.h"
-#include "RtpConnection.h"
+//#include "RtpConnection.h"
 #include <cstdio>
 #include <chrono>
 #if defined(__linux) || defined(__linux__) 
@@ -57,7 +57,8 @@ bool H265Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
 
     if (frameSize <= MAX_RTP_PAYLOAD_SIZE) 
     {
-        RtpPacketPtr rtpPkt(new char[1600]);
+		//RtpPacketPtr rtpPkt((char*)xop::Alloc(1500), xop::Free);
+        RtpPacketPtr rtpPkt(new char[1500]);
         memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize); // 预留 4字节TCP Header, 12字节 RTP Header 
         
         if(_sendFrameCallback)
@@ -77,7 +78,8 @@ bool H265Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
         
         while (frameSize + 3 > MAX_RTP_PAYLOAD_SIZE) 
         {
-            RtpPacketPtr rtpPkt(new char[1600]);			    
+			//RtpPacketPtr rtpPkt((char*)xop::Alloc(1500), xop::Free);
+            RtpPacketPtr rtpPkt(new char[1500]);
             rtpPkt.get()[RTP_HEADER_SIZE+4] = FU[0];
             rtpPkt.get()[RTP_HEADER_SIZE+5] = FU[1];
             rtpPkt.get()[RTP_HEADER_SIZE+6] = FU[2];
@@ -93,7 +95,8 @@ bool H265Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
         }
         
         {
-            RtpPacketPtr rtpPkt(new char[1600]);			
+			//RtpPacketPtr rtpPkt((char*)xop::Alloc(1500), xop::Free);
+            RtpPacketPtr rtpPkt(new char[1500]);
             FU[2] |= 0x40;
             rtpPkt.get()[RTP_HEADER_SIZE+4] = FU[0];
             rtpPkt.get()[RTP_HEADER_SIZE+5] = FU[1];
@@ -119,7 +122,7 @@ uint32_t H265Source::getTimeStamp()
 #else */
 	//auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now());
 	//auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::steady_clock::now());
-    auto timePoint = chrono::time_point_cast<chrono::microseconds>(chrono::high_resolution_clock::now());
-    return (uint32_t)(timePoint.time_since_epoch().count()/1000*90);
+	auto timePoint = chrono::time_point_cast<chrono::microseconds>(chrono::high_resolution_clock::now());
+	return (uint32_t)((timePoint.time_since_epoch().count() + 500) / 1000 * 90);
 //#endif 
 }

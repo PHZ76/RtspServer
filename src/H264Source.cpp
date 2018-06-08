@@ -6,7 +6,7 @@
 #endif
 
 #include "H264Source.h"
-#include "RtpConnection.h"
+//#include "RtpConnection.h"
 #include <cstdio>
 #include <chrono>
 #if defined(__linux) || defined(__linux__) 
@@ -37,14 +37,14 @@ H264Source::~H264Source()
 string H264Source::getMediaDescription(uint16_t port)
 {
     char buf[100] = {0};
-    sprintf(buf, "m=video %hu RTP/AVP 96", port);
+    sprintf(buf, "m=video %hu RTP/AVP 96", port); // \r\nb=AS:2000
 
     return string(buf);
 }
 	
 string H264Source::getAttribute()
 {
-    return string("a=rtpmap:96 H264/90000\r\na=AvgBitRate:integer;5000000\r\na=MaxBitRate:integer;5000000");
+    return string("a=rtpmap:96 H264/90000");
 }
 
 bool H264Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
@@ -57,7 +57,8 @@ bool H264Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
 
     if (frameSize <= MAX_RTP_PAYLOAD_SIZE) 
     {
-        RtpPacketPtr rtpPkt(new char[1600]);
+		//RtpPacketPtr rtpPkt((char*)xop::Alloc(1500), xop::Free);
+        RtpPacketPtr rtpPkt(new char[1500]);
         memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize); // 预留12字节 rtp header 
         
         if(_sendFrameCallback)
@@ -76,7 +77,8 @@ bool H264Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
         
         while (frameSize + 2 > MAX_RTP_PAYLOAD_SIZE) 
         {
-            RtpPacketPtr rtpPkt(new char[1600]);			    
+			//RtpPacketPtr rtpPkt((char*)xop::Alloc(1500), xop::Free);
+            RtpPacketPtr rtpPkt(new char[1500]);
             rtpPkt.get()[RTP_HEADER_SIZE+4] = FU_A[0];
             rtpPkt.get()[RTP_HEADER_SIZE+5] = FU_A[1];
             memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE+2, frameBuf, MAX_RTP_PAYLOAD_SIZE-2);
@@ -91,7 +93,8 @@ bool H264Source::handleFrame(MediaChannelId channelId, AVFrame& frame)
         }
         
         {
-            RtpPacketPtr rtpPkt(new char[1600]);			
+			//RtpPacketPtr rtpPkt((char*)xop::Alloc(1500), xop::Free);
+            RtpPacketPtr rtpPkt(new char[1500]);
             FU_A[1] |= 0x40;
             rtpPkt.get()[RTP_HEADER_SIZE+4] = FU_A[0];
             rtpPkt.get()[RTP_HEADER_SIZE+5] = FU_A[1];
@@ -120,7 +123,7 @@ uint32_t H264Source::getTimeStamp()
     //return (uint32_t)(timePoint.time_since_epoch().count()*90);
 
 	auto timePoint = chrono::time_point_cast<chrono::microseconds>(chrono::high_resolution_clock::now());
-	return (uint32_t)((timePoint.time_since_epoch().count()+500) / 1000* 90 );	
+	return (uint32_t)((timePoint.time_since_epoch().count() + 500) / 1000 * 90 );
 //#endif 
 }
 

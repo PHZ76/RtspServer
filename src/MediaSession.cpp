@@ -1,5 +1,5 @@
 // PHZ
-// 2018-5-16
+// 2018-6-7
 
 #include "MediaSession.h"
 #include "RtpConnection.h"
@@ -14,11 +14,15 @@
 using namespace xop;
 using namespace std;
 
+std::atomic_uint MediaSession::_lastMediaSessionId(1);
+
 MediaSession::MediaSession(std::string rtspUrlSuffxx)
     : _suffix(rtspUrlSuffxx)
     , _mediaSources(2)
     , _buffer(2)
 {
+	_sessionId = ++_lastMediaSessionId;
+
     for(int n=0; n<MAX_MEDIA_CHANNEL; n++)
     {
         _multicastSockfd[n] = 0;
@@ -117,14 +121,15 @@ std::string MediaSession::getSdpMessage(std::string sessionName)
             
     std::string ip = NetInterface::getLocalIPAddress();
     char buf[2048] = {0};
+
+
     snprintf(buf, sizeof(buf),
             "v=0\r\n"
-            "o=- 9%ld 1 IN IP4 %s\r\n"
-            //"s=%s\r\n" 
-            "t=0 0\r\n" 
-            "a=control:*\r\n" , 
-            (long)std::time(NULL), ip.c_str());
-    
+			"o=- 9%ld 1 IN IP4 %s\r\n"
+            "t=0 0\r\n"
+            "a=control:*\r\n" ,
+            (long)std::time(NULL), ip.c_str()); 
+
     if(sessionName != "")
     {
         snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
@@ -170,7 +175,6 @@ std::string MediaSession::getSdpMessage(std::string sessionName)
     }
 
     _sdp = buf;
-
     return _sdp;
 }
 

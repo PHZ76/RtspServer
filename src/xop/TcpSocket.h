@@ -14,9 +14,10 @@ namespace xop
 class TcpSocket
 {
 public:
-    TcpSocket(SOCKET sockfd);
+    TcpSocket(SOCKET sockfd=-1);
     virtual ~TcpSocket();
-
+    
+    SOCKET create();
     bool bind(std::string ip, uint16_t port);
     bool listen(int backlog);
     SOCKET accept();

@@ -1,5 +1,5 @@
 // PHZ
-// 2018-5-16
+// 2018-6-8
 
 #ifndef XOP_MEDIA_SESSION_H
 #define XOP_MEDIA_SESSION_H
@@ -8,8 +8,13 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <atomic>
 #include <cstdint>
 #include "media.h"
+#include "H264Source.h"
+#include "H265Source.h"
+#include "G711ASource.h"
+#include "AACSource.h"
 #include "MediaSource.h"
 #include "xop/Socket.h"
 #include "xop/RingBuffer.h"
@@ -22,7 +27,7 @@ class MediaSession
 public:
     typedef std::function<void (MediaSessionId sessionId, uint32_t numClients)> NotifyCallback;
 
-    static MediaSession* createNew(std::string rtspUrlSuffxx);
+    static MediaSession* createNew(std::string rtspUrlSuffxx=" ");
     ~MediaSession();
 
     bool addMediaSource(MediaChannelId channelId, MediaSource* source);
@@ -51,9 +56,6 @@ public:
 
     bool addClient(SOCKET sockfd, std::shared_ptr<RtpConnection> rtpConnPtr);
     void removeClient(SOCKET sockfd);
-
-    void setMediaSessionId(MediaSessionId sessionId)
-    { _sessionId = sessionId; }
 
     MediaSessionId getMediaSessionId()
     { return _sessionId; }
@@ -101,6 +103,8 @@ private:
     uint16_t _multicastPort[MAX_MEDIA_CHANNEL]; 
     std::string _multicastIp;
     int _multicastSockfd[MAX_MEDIA_CHANNEL];
+
+	static std::atomic_uint _lastMediaSessionId;
 };	
 
 typedef std::shared_ptr<MediaSession> MediaSessionPtr;

@@ -1,5 +1,5 @@
 // PHZ
-// 2018-5-16
+// 2018-6-8
 
 #ifndef XOP_RTP_CONNECTION_H
 #define XOP_RTP_CONNECTION_H
@@ -30,7 +30,6 @@ public:
     void setPayloadType(MediaChannelId channelId, uint32_t payload) 	
     { _mediaChannelInfo[channelId].rtpHeader.payload = payload; }
 
-    void setFrameType();
     bool setupRtpOverTcp(MediaChannelId channelId, uint16_t rtpChannel, uint16_t rtcpChannel);
     bool setupRtpOverUdp(MediaChannelId channelId, uint16_t rtpPort, uint16_t rtcpPort);
     bool setupRtpOverMulticast(MediaChannelId channelId, int sockfd, std::string ip, uint16_t port);
@@ -50,9 +49,13 @@ public:
     bool isMulticast() const 
     { return _isMulticast; }
     
+	bool isSetup(MediaChannelId channelId) const
+ 	{ return _mediaChannelInfo[channelId].isSetup; }
+
     std::string getMulticastIp(MediaChannelId channelId) const;
 
     void play();
+	void record();
     void teardown();
     
     std::string getRtpInfo(const std::string& rtspUrl);
@@ -78,6 +81,7 @@ private:
     
     // server
     bool _isClosed = false, _isIDRFrame = false;
+	
     uint8_t _frameType = 0;
     uint16_t _localRtpPort[MAX_MEDIA_CHANNEL];	
     uint16_t _localRtcpPort[MAX_MEDIA_CHANNEL];		

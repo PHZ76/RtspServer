@@ -5,7 +5,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "RtspRequest.h"
+#include "RtspMessage.h"
 #include "media.h"
 #include "xop/log.h"
 
@@ -381,4 +381,27 @@ uint16_t RtspRequest::getRtcpPort() const
     return 0;
 }
 
+bool RtspResponse::parseResponse(xop::BufferReader *buffer)
+{
+	// 暂时不做解析, 只判断报文是否完整
+	if (strstr(buffer->peek(), "\r\n\r\n") != NULL)
+	{
+		if (strstr(buffer->peek(), "OK") == NULL)
+		{
+			return false;
+		}
 
+		char* ptr = strstr(buffer->peek(), "Session");
+		if (ptr != NULL)
+		{
+			char sessionId[50] = {0};
+			if (sscanf(ptr, "%*[^:]: %s", sessionId) == 1)
+				_session = sessionId;
+		}
+
+		_cseq++;
+		buffer->retrieveUntil("\r\n\r\n");
+	}
+
+	return true;
+}

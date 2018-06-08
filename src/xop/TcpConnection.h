@@ -26,7 +26,7 @@ public:
     virtual ~TcpConnection();
 
     int fd() const { return _channel->fd(); }
-
+    
     void setCloseCallback(const CloseCallback& cb)
     { _closeCallback = cb; }
 

@@ -35,8 +35,8 @@ public:
 private:
     G711ASource();
 
-    uint32_t _sampleRate = 8000;   // 采样频率
-    uint32_t _channels = 1;        // 通道数
+	uint32_t _sampleRate = 8000;   // 采样频率
+	uint32_t _channels = 1;        // 通道数
 };
 	
 }

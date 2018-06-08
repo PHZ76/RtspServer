@@ -5,6 +5,7 @@
 #define XOP_MEDIA_H
 
 #include <memory>
+//#include "xop/MemoryManager.h" // 内存池
 
 namespace xop
 {
@@ -28,8 +29,15 @@ typedef enum __MediaType
 
 typedef struct __AVFrame
 {	
-	__AVFrame(uint32_t size = 1000)
-		: buffer(new char[size+1000])
+	__AVFrame() 
+	{
+		size = 0;
+		type = 0;
+		timestamp = 0;
+	}
+
+	__AVFrame(uint32_t size)
+		:buffer(new char[size])//: buffer((char*)xop::Alloc(size), xop::Free)
 	{
 		this->size = size;
 		type = 0;

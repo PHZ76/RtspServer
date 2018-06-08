@@ -1,3 +1,6 @@
+// PHZ
+// 2018-6-8
+
 #ifndef XOP_RTP_H
 #define XOP_RTP_H
 
@@ -43,7 +46,8 @@ typedef struct _RTP_header
 struct MediaChannelInfo
 {
     bool isSetup;
-    bool isPlay;
+    bool isPlay;   //客户端拉流
+	bool isRecord; //推流到服务器
 
     // tcp
 	uint16_t rtpChannel;

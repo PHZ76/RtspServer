@@ -35,8 +35,8 @@ public:
 private:
     AACSource(uint32_t sampleRate, uint32_t channels, bool hasADTS);
 
-    uint32_t _sampleRate = 44100;   // 采样频率
-    uint32_t _channels = 2;         // 通道数
+	uint32_t _sampleRate = 44100;   // 采样频率
+	uint32_t _channels = 2;         // 通道数
 	bool _hasADTS = true;
 };
 	

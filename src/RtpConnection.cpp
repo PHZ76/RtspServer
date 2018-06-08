@@ -4,6 +4,7 @@
 #include "RtpConnection.h"
 #include "RtspConnection.h"
 #include "xop/SocketUtil.h"
+
 #ifdef HISI
 #include "hi3516a_comm.h"
 #endif	
@@ -55,7 +56,6 @@ bool RtpConnection::setupRtpOverTcp(MediaChannelId channelId, uint16_t rtpChanne
     _rtpfd[channelId] = _rtspConnection->fd();
     _rtcpfd[channelId] = _rtspConnection->fd();
     _mediaChannelInfo[channelId].isSetup = true;
-
     _transportMode = RTP_OVER_TCP;
         
     return true;
@@ -139,6 +139,15 @@ void RtpConnection::play()
     }
 }
 
+void RtpConnection::record()
+{
+	for (int chn = 0; chn<MAX_MEDIA_CHANNEL; chn++)
+	{
+		if (_mediaChannelInfo[chn].isSetup)
+			_mediaChannelInfo[chn].isRecord = true;
+	}
+}
+
 void RtpConnection::teardown()
 {
     if(!_isClosed)
@@ -147,6 +156,7 @@ void RtpConnection::teardown()
         for(int chn=0; chn<MAX_MEDIA_CHANNEL; chn++)
         {
             _mediaChannelInfo[chn].isPlay = false;
+			_mediaChannelInfo[chn].isRecord = false;
         }
     }
 }
@@ -185,7 +195,29 @@ string RtpConnection::getRtpInfo(const std::string& rtspUrl)
 
     return std::string(buf);
 #else
-    return " ";
+	char buf[2048] = { 0 };
+	snprintf(buf, 1024, "RTP-Info: ");
+
+	int numChannel = 0;
+
+	auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::high_resolution_clock::now());
+	auto ts = timePoint.time_since_epoch().count();
+	for (int chn = 0; chn<MAX_MEDIA_CHANNEL; chn++)
+	{
+		uint32_t rtpTime = (uint32_t)(ts*_mediaChannelInfo[chn].clockRate / 1000);
+		if (_mediaChannelInfo[chn].isSetup)
+		{
+			if (numChannel != 0)
+				snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), ",");
+
+			snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
+					"url=%s/track%d;seq=0;rtptime=%u",
+					rtspUrl.c_str(), chn, rtpTime);
+			numChannel++;
+		}
+	}
+
+	return std::string(buf);
 #endif    
 }
 
@@ -200,7 +232,7 @@ void RtpConnection::setFrameType(uint8_t frameType)
 
 void RtpConnection::setRtpHeader(MediaChannelId channelId, RtpPacketPtr& rtpPkt, uint8_t last, uint32_t ts)
 {
-    if(_mediaChannelInfo[channelId].isPlay  &&  _isIDRFrame ) //第一帧发送I帧
+    if((_mediaChannelInfo[channelId].isPlay || _mediaChannelInfo[channelId].isRecord)  &&  _isIDRFrame ) //第一帧发送I帧
     {
         _mediaChannelInfo[channelId].rtpHeader.marker = last;	
         _mediaChannelInfo[channelId].rtpHeader.ts = htonl(ts);
@@ -214,7 +246,7 @@ void RtpConnection::sendRtpPacket(MediaChannelId channelId, RtpPacketPtr& rtpPkt
     if(_isClosed)
         return ;
     
-    if(_mediaChannelInfo[channelId].isPlay && _isIDRFrame) //第一帧发送I帧
+    if((_mediaChannelInfo[channelId].isPlay || _mediaChannelInfo[channelId].isRecord) && _isIDRFrame) //第一帧发送I帧
     {	
         if(_transportMode == RTP_OVER_TCP)
         {		
@@ -233,44 +265,9 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr rtpPkt,
     char* rtpPktPtr = rtpPkt.get();
     rtpPktPtr[0] = '$';
     rtpPktPtr[1] = (uint8_t)_mediaChannelInfo[channelId].rtpChannel;
-    rtpPktPtr[2] = (uint8_t)(((pktSize-4)&0xFF00)>>8);
+	rtpPktPtr[2] = (uint8_t)(((pktSize-4)&0xFF00)>>8);
     rtpPktPtr[3] = (uint8_t)((pktSize-4)&0xFF);	
 
-    if(_rtspConnection->_writeBuffer->isEmpty())	// 缓冲区没有数据, 直接发送
-    {
-        bytesSend = ::send(_rtpfd[channelId], rtpPktPtr, pktSize, 0);
-        if(bytesSend < 0)
-        {
-#if defined(__linux) || defined(__linux__) 
-            if(errno==EINTR || errno == EAGAIN)		
-#else 		         
-            int error = WSAGetLastError();
-			if (error == WSAEWOULDBLOCK || error == WSAEINPROGRESS || error == 0)
-#endif
-                bytesSend = 0;
-            else
-            {				
-                teardown();
-                return -1;
-            }			
-        }
-		
-        //_mediaChannelInfo[channelId].octetCount += bytesSend;
-        
-        if(bytesSend == pktSize)
-        {
-            //_mediaChannelInfo[channelId].packetCount += 1;		
-            return pktSize;
-        }
-    }   
-	
-    // 缓冲区溢出
-    if(_rtspConnection->_writeBuffer->isFull())
-    {
-         teardown();
-         return -1;
-    }
-    
     // 添加到缓冲区再发送
     _rtspConnection->_writeBuffer->append(rtpPkt, pktSize, bytesSend);
     int ret = 0;
@@ -292,14 +289,14 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr rtpPkt,
         _rtspConnection->_channel->setEvents(EVENT_IN|EVENT_OUT);
         _rtspConnection->_loop->updateChannel(_rtspConnection->_channel);	
     }  
-	
+
     return bytesSend;
 }
 
 int RtpConnection::sendRtpOverUdp(MediaChannelId channelId, RtpPacketPtr& rtpPkt, uint32_t pktSize)
 {	
-    _mediaChannelInfo[channelId].octetCount  += pktSize;
-    _mediaChannelInfo[channelId].packetCount += 1;		
+    //_mediaChannelInfo[channelId].octetCount  += pktSize;
+    //_mediaChannelInfo[channelId].packetCount += 1;		
 
     // 去掉RTP-OVER-TCP传输的4字节header
     int ret = sendto(_rtpfd[channelId], rtpPkt.get()+4, 

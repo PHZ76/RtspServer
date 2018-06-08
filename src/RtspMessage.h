@@ -1,8 +1,8 @@
 // PHZ
-// 2018-5-16
+// 2018-6-8
 
-#ifndef XOP_RTSP_REQUEST_H
-#define XOP_RTSP_REQUEST_H
+#ifndef XOP_RTSP_MESSAGE_H
+#define XOP_RTSP_MESSAGE_H
 
 #include <utility> 
 #include <unordered_map>
@@ -84,6 +84,36 @@ private:
     RtspRequestParseState _state = kParseRequestLine;
 };	
 	
+// RtspResponse没有对RTSP做全面解析, 后续补充
+class RtspResponse
+{
+public:
+	enum Method
+	{
+		OPTIONS, ANNOUNCE, SETUP, RECORD, RTCP,
+		NONE, // 自定义
+	};
+
+	bool parseResponse(xop::BufferReader *buffer);
+
+	void setMethod(Method method)
+	{ _method = method; }
+
+	Method getMethod() const
+	{ return _method; }
+
+	uint32_t getCSeq() const
+	{ return _cseq;  }
+
+	std::string getSession() const
+	{ return _session; }
+
+private:
+	Method _method;
+	uint32_t _cseq = 0;
+	std::string _session;
+};
+
 }
 
 #endif

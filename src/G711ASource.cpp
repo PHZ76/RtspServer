@@ -6,7 +6,7 @@
 #endif
 
 #include "G711ASource.h"
-#include "RtpConnection.h"
+//#include "RtpConnection.h"
 #include <cstdio>
 #include <chrono>
 #if defined(__linux) || defined(__linux__) 
@@ -56,6 +56,7 @@ bool G711ASource::handleFrame(MediaChannelId channelId, AVFrame& frame)
     char *frameBuf  = frame.buffer.get();
     uint32_t frameSize = frame.size;
 
+	//RtpPacketPtr rtpPkt((char*)xop::Alloc(1500), xop::Free);
     RtpPacketPtr rtpPkt(new char[1500]);
     memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize);
 
@@ -68,6 +69,6 @@ bool G711ASource::handleFrame(MediaChannelId channelId, AVFrame& frame)
 uint32_t G711ASource::getTimeStamp()
 {
     auto timePoint = chrono::time_point_cast<chrono::microseconds>(chrono::high_resolution_clock::now());
-    return (uint32_t)(timePoint.time_since_epoch().count()/1000*8);
+    return (uint32_t)((timePoint.time_since_epoch().count()+500)/1000*8);
 }
 

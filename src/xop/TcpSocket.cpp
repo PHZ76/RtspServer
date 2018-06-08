@@ -10,12 +10,18 @@ using namespace xop;
 TcpSocket::TcpSocket(SOCKET sockfd)
     : _sockfd(sockfd)
 {
-	
+    
 }
 
 TcpSocket::~TcpSocket()
 {
 	
+}
+
+SOCKET TcpSocket::create()
+{
+    _sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    return _sockfd;
 }
 
 bool TcpSocket::bind(std::string ip, uint16_t port)
@@ -57,7 +63,7 @@ SOCKET TcpSocket::accept()
 }
 
 bool TcpSocket::connect(std::string ip, uint16_t port)
-{
+{ 
     struct sockaddr_in addr = {0};  		
     socklen_t addrlen = sizeof(addr);
     addr.sin_family = AF_INET;
@@ -67,6 +73,7 @@ bool TcpSocket::connect(std::string ip, uint16_t port)
     if(::connect(_sockfd, (struct sockaddr*)&addr, addrlen) == SOCKET_ERROR)
     {
         LOG("<socket=%d> connect failed.\n", _sockfd);
+        perror("connect()");
         return false;
     }
 
@@ -82,9 +89,11 @@ void TcpSocket::close()
 #else
 	
 #endif
+    _sockfd = 0;
 }
 
 void TcpSocket::shutdownWrite()
 {
     shutdown(_sockfd, SHUT_WR);
+    _sockfd = 0;
 }

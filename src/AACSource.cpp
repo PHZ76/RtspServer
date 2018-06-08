@@ -4,9 +4,9 @@
 #if defined(WIN32) || defined(_WIN32) 
 #define _CRT_SECURE_NO_WARNINGS
 #endif
-
 #include "AACSource.h"
-#include "RtpConnection.h"
+//#include "RtpConnection.h"
+//#include "xop/MemoryManager.h"
 #include <cstdio>
 #include <chrono>
 #if defined(__linux) || defined(__linux__) 
@@ -39,7 +39,7 @@ AACSource::~AACSource()
 string AACSource::getMediaDescription(uint16_t port)
 {
     char buf[100] = { 0 };
-    sprintf(buf, "m=audio %hu RTP/AVP 97", port);
+    sprintf(buf, "m=audio %hu RTP/AVP 97", port); // \r\nb=AS:64
 
     return string(buf);
 }
@@ -74,7 +74,7 @@ string AACSource::getAttribute()  // RFC 3640
             "a=fmtp:97 profile-level-id=1;"
             "mode=AAC-hbr;"    
             "sizelength=13;indexlength=3;indexdeltalength=3;"              
-            "config=%04u;",            
+            "config=%04u",            
              atoi(configStr));
 
     return string(buf);
@@ -104,13 +104,15 @@ bool AACSource::handleFrame(MediaChannelId channelId, AVFrame& frame)
     AU[2] = (frameSize & 0x1fe0) >> 5;
     AU[3] = (frameSize & 0x1f) << 3; 
 
-    RtpPacketPtr rtpPkt(new char[1500]);
-    rtpPkt.get()[4 + RTP_HEADER_SIZE + 0] = AU[0];
-    rtpPkt.get()[4 + RTP_HEADER_SIZE + 1] = AU[1];
-    rtpPkt.get()[4 + RTP_HEADER_SIZE + 2] = AU[2];
-    rtpPkt.get()[4 + RTP_HEADER_SIZE + 3] = AU[3];
+    //RtpPacketPtr rtpPkt((char*)xop::Alloc(1500), xop::Free);
+    RtpPacketPtr rtpPkt(new char[1600]);
+	char *rtpPktPtr = rtpPkt.get();
+	rtpPktPtr[4 + RTP_HEADER_SIZE + 0] = AU[0];
+	rtpPktPtr[4 + RTP_HEADER_SIZE + 1] = AU[1];
+	rtpPktPtr[4 + RTP_HEADER_SIZE + 2] = AU[2];
+	rtpPktPtr[4 + RTP_HEADER_SIZE + 3] = AU[3];
 
-    memcpy(rtpPkt.get()+4+RTP_HEADER_SIZE+AU_SIZE, frameBuf, frameSize);
+    memcpy(rtpPktPtr+4+RTP_HEADER_SIZE+AU_SIZE, frameBuf, frameSize);
 
     if(_sendFrameCallback)
         _sendFrameCallback(channelId, frame.type, rtpPkt, frameSize+4+RTP_HEADER_SIZE+AU_SIZE, 1, frame.timestamp);
@@ -124,7 +126,7 @@ uint32_t AACSource::getTimeStamp(uint32_t sampleRate)
 	//return (uint32_t)(timePoint.time_since_epoch().count() * sampleRate / 1000);
 
     auto timePoint = chrono::time_point_cast<chrono::microseconds>(chrono::high_resolution_clock::now());
-	return (uint32_t)((timePoint.time_since_epoch().count() + 500) / 1000 * sampleRate / 1000);
+	return (uint32_t)((timePoint.time_since_epoch().count()+500) / 1000 * sampleRate / 1000);
 }
 
 

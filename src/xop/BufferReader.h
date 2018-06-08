@@ -15,7 +15,7 @@ namespace xop
 class BufferReader
 {
 public:	
-    static const uint32_t kInitialSize = 5000;
+    static const uint32_t kInitialSize = 2048;
     BufferReader(uint32_t initialSize = kInitialSize);
     ~BufferReader();
 
@@ -94,8 +94,8 @@ private:
     size_t _writerIndex = 0;
 
     static const char kCRLF[];
-    static const uint32_t MAX_BYTES_PER_READ = 4096;
-    static const uint32_t MAX_BUFFER_SIZE = 20480;
+    static const uint32_t MAX_BYTES_PER_READ = 2048;
+    static const uint32_t MAX_BUFFER_SIZE = 10240;
 };
 
 }

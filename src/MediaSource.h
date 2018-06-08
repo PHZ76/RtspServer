@@ -1,3 +1,6 @@
+// PHZ
+// 2018-6-8
+
 #ifndef XOP_MEDIA_SOURCE_H
 #define XOP_MEDIA_SOURCE_H
 
@@ -43,11 +46,10 @@ public:
     { return _clockRate; }
 
 protected:
-    MediaType _mediaType = NONE;
-    uint32_t _payload = 0;
-    uint32_t _clockRate = 0;
-
-    SendFrameCallback _sendFrameCallback;
+	MediaType _mediaType = NONE;
+	uint32_t _payload = 0;
+	uint32_t _clockRate = 0;
+	SendFrameCallback _sendFrameCallback;
 };
 	
 }

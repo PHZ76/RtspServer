@@ -12,7 +12,6 @@ using namespace std;
 RtspServer::RtspServer(EventLoop* loop, std::string ip, uint16_t port)
     : _loop(loop)
     , _acceptor(new Acceptor(loop, ip, port))
-    , _lastMediaSessionId(1)
 {
     _acceptor->setNewConnectionCallback([this](SOCKET sockfd) { this->newConnection(sockfd); });
     _acceptor->listen();
@@ -47,14 +46,8 @@ MediaSessionId RtspServer::addMeidaSession(MediaSession* session)
     if(_rtspSuffixMap.find(session->getRtspUrlSuffix()) != _rtspSuffixMap.end())
         return 0;
 
-    MediaSessionId sessionId = _lastMediaSessionId++;
-    while(_mediaSessions.find(sessionId) != _mediaSessions.end())
-    {
-        sessionId = _lastMediaSessionId++;
-    }
-
     std::shared_ptr<MediaSession> mediaSession(session); 
-    mediaSession->setMediaSessionId(sessionId);
+	MediaSessionId sessionId = mediaSession->getMediaSessionId();
     _rtspSuffixMap.emplace(std::move(mediaSession->getRtspUrlSuffix()), sessionId);
     _mediaSessions.emplace(sessionId, std::move(mediaSession));
 
@@ -120,7 +113,7 @@ bool RtspServer::pushFrame(MediaSessionId sessionId, MediaChannelId channelId, A
 
 void RtspServer::newConnection(SOCKET sockfd)
 {
-    std::shared_ptr<RtspConnection> rtspConn(new RtspConnection(this, sockfd));
+    std::shared_ptr<RtspConnection> rtspConn(new RtspConnection(this, _loop, sockfd));
     rtspConn->setCloseCallback([this](SOCKET sockfd) { this->removeConnection(sockfd); });
     _connections.emplace(sockfd, rtspConn);   
 }
