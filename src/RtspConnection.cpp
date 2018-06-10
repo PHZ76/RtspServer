@@ -1,5 +1,5 @@
 // PHZ
-// 2018-6-8
+// 2018-6-10
 
 #include "RtspConnection.h"
 #include "RtspServer.h"
@@ -250,7 +250,7 @@ void RtspConnection::sendMessage(std::shared_ptr<char> buf, uint32_t size)
 	cout << buf.get() << endl;
 #endif
 
-	_writeBuffer->append(std::move(buf), size);
+	_writeBuffer->append(buf, size);
 	int ret = 0;
 	do
 	{
@@ -546,7 +546,7 @@ void RtspConnection::sendOptions()
 			_rtsp->getRtspUrl().c_str(), _rtspResponse->getCSeq()+1, USER_AGENT);
 
 	_rtspResponse->setMethod(RtspResponse::OPTIONS);
-	return sendMessage(std::move(buf), strlen(buf.get()));
+	return sendMessage(buf, strlen(buf.get()));
 }
 
 void RtspConnection::sendAnnounce()
@@ -600,7 +600,7 @@ void RtspConnection::sendAnnounce()
 			sdp.c_str());
 
     _rtspResponse->setMethod(RtspResponse::ANNOUNCE);
-    return sendMessage(std::move(buf), strlen(buf.get()));
+    return sendMessage(buf, strlen(buf.get()));
 }
 
 void RtspConnection::sendSetup()
@@ -655,7 +655,7 @@ void RtspConnection::sendSetup()
 				USER_AGENT, _rtspResponse->getSession().c_str());
 	}
 
-	return sendMessage(std::move(buf), strlen(buf.get()));
+	return sendMessage(buf, strlen(buf.get()));
 }
 
 void RtspConnection::handleRecord()
