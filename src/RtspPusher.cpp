@@ -50,7 +50,7 @@ bool RtspPusher::openUrl(std::string url)
 
         TcpSocket tcpSocket;
         tcpSocket.create();
-        if (!tcpSocket.connect(_rtspInfo.ip, _rtspInfo.port))
+        if (!tcpSocket.connect(_rtspInfo.ip, _rtspInfo.port, 3000)) // 3s timeout
         {
             tcpSocket.close();
             return false;
