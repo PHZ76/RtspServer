@@ -29,20 +29,20 @@ typedef enum __MediaType
 
 typedef struct __AVFrame
 {	
-	__AVFrame() 
-	{
-		size = 0;
-		type = 0;
-		timestamp = 0;
-	}
+    __AVFrame() 
+    {
+        size = 0;
+        type = 0;
+        timestamp = 0;
+    }
 
-	__AVFrame(uint32_t size)
-		:buffer(new char[size])//: buffer((char*)xop::Alloc(size), xop::Free)
-	{
-		this->size = size;
-		type = 0;
-		timestamp = 0;
-	}
+    __AVFrame(uint32_t size)
+        :buffer(new char[size])//: buffer((char*)xop::Alloc(size), xop::Free)
+    {
+        this->size = size;
+        type = 0;
+        timestamp = 0;
+    }
 
     std::shared_ptr<char> buffer; /* 帧数据 */
     uint32_t size;				  /* 帧大小 */

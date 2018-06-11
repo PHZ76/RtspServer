@@ -18,29 +18,29 @@ namespace xop
 class RTSP
 {
 public:
-	virtual ~RTSP() {};
+    virtual ~RTSP() {};
 
-	virtual MediaSessionId addMeidaSession(MediaSession* session) = 0;
-	virtual void removeMeidaSession(MediaSessionId sessionId) = 0;
+    virtual MediaSessionId addMeidaSession(MediaSession* session) = 0;
+    virtual void removeMeidaSession(MediaSessionId sessionId) = 0;
 
-	virtual bool pushFrame(MediaSessionId sessionId, MediaChannelId channelId, AVFrame frame) = 0;
+    virtual bool pushFrame(MediaSessionId sessionId, MediaChannelId channelId, AVFrame frame) = 0;
 
-	virtual void setVersion(std::string version) // SDP Session Name
-	{ _version = std::move(version); }
+    virtual void setVersion(std::string version) // SDP Session Name
+    { _version = std::move(version); }
 
-	virtual std::string getVersion()
-	{ return _version; }
+    virtual std::string getVersion()
+    { return _version; }
 
-	virtual std::string getRtspUrl()
-	{ return _rtspUrl; }
+    virtual std::string getRtspUrl()
+    { return _rtspUrl; }
 
 protected:
-	friend class RtspConnection;
-	virtual MediaSessionPtr lookMediaSession(const std::string& suffix) = 0;
-	virtual MediaSessionPtr lookMediaSession(MediaSessionId sessionId) = 0;
+    friend class RtspConnection;
+    virtual MediaSessionPtr lookMediaSession(const std::string& suffix) = 0;
+    virtual MediaSessionPtr lookMediaSession(MediaSessionId sessionId) = 0;
 
-	std::string _version;
-	std::string _rtspUrl;
+    std::string _version;
+    std::string _rtspUrl;
 };
 
 }

@@ -23,7 +23,7 @@ RtspConnection::RtspConnection(RTSP* rtsp, EventLoop* loop, int sockfd)
     , _readBuffer(new BufferReader)
     , _writeBuffer(new BufferWriter(300))
     , _rtspRequest(new RtspRequest)
-	, _rtspResponse(new RtspResponse)
+    , _rtspResponse(new RtspResponse)
     , _rtpConnection(new RtpConnection(this))
 {
     _channel->setReadCallback([this]() { this->handleRead(); });
@@ -77,16 +77,16 @@ void RtspConnection::handleRead()
         }
     }
 
-	if (ret <= 0)
-	{
-		handleClose();
-	}
+    if (ret <= 0)
+    {
+        handleClose();
+    }
 
-	if (_readBuffer->readableBytes() > MAX_RTSP_MESSAGE_SIZE)
-	{
-		_readBuffer->retrieveAll(); // rtcp
-		//handleClose();
-	}
+    if (_readBuffer->readableBytes() > MAX_RTSP_MESSAGE_SIZE)
+    {
+        _readBuffer->retrieveAll(); // rtcp
+        //handleClose();
+    }
 }
 
 void RtspConnection::handleWrite()

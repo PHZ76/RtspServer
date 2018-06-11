@@ -41,7 +41,7 @@ private:
     mutable std::mutex _mutex;
     std::unordered_map<MediaSessionId, std::shared_ptr<MediaSession>> _mediaSessions; 
     std::unordered_map<std::string, MediaSessionId> _rtspSuffixMap;
-    
+
     TimerId _timerId;  
 };
 

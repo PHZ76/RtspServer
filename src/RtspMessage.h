@@ -88,30 +88,30 @@ private:
 class RtspResponse
 {
 public:
-  enum Method
-  {
-  	OPTIONS, ANNOUNCE, SETUP, RECORD, RTCP,
-  	NONE, // 自定义
-  };
+    enum Method
+    {
+        OPTIONS, ANNOUNCE, SETUP, RECORD, RTCP,
+        NONE, // 自定义
+    };
 
-  bool parseResponse(xop::BufferReader *buffer);
+    bool parseResponse(xop::BufferReader *buffer);
 
-  void setMethod(Method method)
-  { _method = method; }
+    void setMethod(Method method)
+    { _method = method; }
 
-	Method getMethod() const
-	{ return _method; }
+    Method getMethod() const
+    { return _method; }
 
-	uint32_t getCSeq() const
-	{ return _cseq;  }
+    uint32_t getCSeq() const
+    { return _cseq;  }
 
-	std::string getSession() const
-	{ return _session; }
+    std::string getSession() const
+    { return _session; }
 
 private:
-	Method _method;
-	uint32_t _cseq = 0;
-	std::string _session;
+    Method _method;
+    uint32_t _cseq = 0;
+    std::string _session;
 };
 
 }

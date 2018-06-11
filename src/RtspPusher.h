@@ -13,10 +13,10 @@ namespace xop
 
 struct RtspInfo
 {
-	std::string url;
-	std::string ip;
-	uint16_t port;
-	std::string suffix;
+    std::string url;
+    std::string ip;
+    uint16_t port;
+    std::string suffix;
 };
 
 class RtspConnection;

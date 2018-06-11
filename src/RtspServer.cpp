@@ -47,7 +47,7 @@ MediaSessionId RtspServer::addMeidaSession(MediaSession* session)
         return 0;
 
     std::shared_ptr<MediaSession> mediaSession(session); 
-	MediaSessionId sessionId = mediaSession->getMediaSessionId();
+    MediaSessionId sessionId = mediaSession->getMediaSessionId();
     _rtspSuffixMap.emplace(std::move(mediaSession->getRtspUrlSuffix()), sessionId);
     _mediaSessions.emplace(sessionId, std::move(mediaSession));
 

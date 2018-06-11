@@ -46,17 +46,17 @@ public:
     SOCKET getRtcpfd(MediaChannelId channelId)
     { return _rtcpfd[channelId]; }
 
-		bool isMulticast() const
-		{ return _isMulticast; }
+    bool isMulticast() const
+    { return _isMulticast; }
 
-		bool isSetup(MediaChannelId channelId) const
-		{ return _mediaChannelInfo[channelId].isSetup; }
+    bool isSetup(MediaChannelId channelId) const
+    { return _mediaChannelInfo[channelId].isSetup; }
 
     std::string getMulticastIp(MediaChannelId channelId) const;
 
-		void play();
-		void record();
-		void teardown();
+    void play();
+    void record();
+    void teardown();
 
     std::string getRtpInfo(const std::string& rtspUrl);
 
