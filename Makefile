@@ -34,11 +34,11 @@ $(TARGET) : $(OBJS1) $(OBJS2) $(OBJS3)
 	$(CXX) $^ -o $@ $(CFLAGS) $(LD_FLAGS) $(CXX_FLAGS)
 
 $(OBJS_PATH)/%.o : ./example/%.cpp
-	$(CXX) -c  $< -o  $@  $(INC)
+	$(CXX) -c  $< -o  $@  $(CXX_FLAGS) $(INC)
 $(OBJS_PATH)/%.o : ./src/%.cpp
-	$(CXX) -c  $< -o  $@  $(INC)
+	$(CXX) -c  $< -o  $@  $(CXX_FLAGS) $(INC)
 $(OBJS_PATH)/%.o : ./src/xop/%.cpp
-	$(CXX) -c  $< -o  $@  $(INC)
+	$(CXX) -c  $< -o  $@  $(CXX_FLAGS) $(INC)
 
 clean:
 	-rm -rf $(OBJS_PATH) $(TARGET)
