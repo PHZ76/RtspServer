@@ -3,6 +3,7 @@
 
 #include "SocketUtil.h"
 #include "Socket.h"
+#include <iostream>
 
 using namespace xop;
 
@@ -143,5 +144,41 @@ void SocketUtil::close(SOCKET sockfd)
 #endif
 }
 
+bool SocketUtil::connect(SOCKET sockfd, std::string ip, uint16_t port, int timeout)
+{
+	bool isConnected = true;
+	if (timeout > 0)
+	{
+		SocketUtil::setNonBlock(sockfd);
+	}
 
+	struct sockaddr_in addr = { 0 };
+	socklen_t addrlen = sizeof(addr);
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = inet_addr(ip.c_str());
+	if (::connect(sockfd, (struct sockaddr*)&addr, addrlen) == SOCKET_ERROR)
+	{		
+		if (timeout > 0)
+		{
+			isConnected = false;
+			fd_set fdWrite;
+			FD_ZERO(&fdWrite);
+			FD_SET(sockfd, &fdWrite);
+			struct timeval tv = { timeout / 1000, timeout % 1000 * 1000 };
+			select(sockfd + 1, NULL, &fdWrite, NULL, &tv);
+			if (FD_ISSET(sockfd, &fdWrite))
+			{
+				isConnected = true;
+			}
+			SocketUtil::setBlock(sockfd);
+		}
+		else
+		{
+			isConnected = false;
+		}		
+	}
+	
+	return isConnected;
+}
 

@@ -64,17 +64,7 @@ SOCKET TcpSocket::accept()
 
 bool TcpSocket::connect(std::string ip, uint16_t port, int timeout)
 { 
-	if (timeout > 0)
-	{
-		SocketUtil::setBlock(_sockfd, timeout);
-	}
-
-    struct sockaddr_in addr = {0};  		
-    socklen_t addrlen = sizeof(addr);
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = inet_addr(ip.c_str());
-    if(::connect(_sockfd, (struct sockaddr*)&addr, addrlen) == SOCKET_ERROR)
+    if(!SocketUtil::connect(_sockfd, ip, port, timeout))
     {
         LOG("<socket=%d> connect failed.\n", _sockfd);
         return false;
