@@ -5,6 +5,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 #include "AACSource.h"
+#include <stdlib.h>
 //#include "RtpConnection.h"
 //#include "xop/MemoryManager.h"
 #include <cstdio>

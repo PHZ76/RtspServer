@@ -100,7 +100,7 @@ private:
 
     int _sockfd = -1;
     int _aliveCount = 0;
-    bool _isClosed=false, _isPlay=false, _isRecord=false;
+    bool _isClosed=false;
 
     RTSP* _rtsp;
     xop::EventLoop* _loop;

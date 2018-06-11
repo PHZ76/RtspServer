@@ -264,9 +264,9 @@ int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacketPtr rtpPkt,
     int bytesSend = 0;
     char* rtpPktPtr = rtpPkt.get();
     rtpPktPtr[0] = '$';
-    rtpPktPtr[1] = (uint8_t)_mediaChannelInfo[channelId].rtpChannel;
-    rtpPktPtr[2] = (uint8_t)(((pktSize-4)&0xFF00)>>8);
-    rtpPktPtr[3] = (uint8_t)((pktSize-4)&0xFF);	
+    rtpPktPtr[1] = (char)_mediaChannelInfo[channelId].rtpChannel;
+    rtpPktPtr[2] = (char)(((pktSize-4)&0xFF00)>>8);
+    rtpPktPtr[3] = (char)((pktSize-4)&0xFF);
 
     // 添加到缓冲区再发送
     _rtspConnection->_writeBuffer->append(rtpPkt, pktSize, bytesSend);

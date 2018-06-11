@@ -5,6 +5,7 @@
 #define XOP_RTP_H
 
 #include <memory>
+#include <cstdint>
 
 #define RTP_HEADER_SIZE   	   12
 #define MAX_RTP_PAYLOAD_SIZE   1420//1460  1500-20-12-8
@@ -23,31 +24,29 @@ enum TransportMode
 
 typedef struct _RTP_header
 {
-#ifdef BIGENDIAN//defined(sun) || defined(__BIG_ENDIAN) || defined(NET_ENDIAN)
-    unsigned char version:2;
-    unsigned char padding:1;
-    unsigned char extension:1;
-    unsigned char csrc:4;
-    unsigned char marker:1;
-    unsigned char payload:7;
-#else
-    unsigned char csrc:4;
-    unsigned char extension:1;
-    unsigned char padding:1;
-    unsigned char version:2;
-    unsigned char payload:7;
-    unsigned char marker:1;
-#endif
-    unsigned short seq;
-    unsigned int   ts;
-    unsigned int   ssrc;
+	/* ´ó¶ËÐò
+	uint8_t version : 2;
+	uint8_t padding : 1;
+	uint8_t extension : 1;
+	uint8_t csrc : 4;
+	uint8_t marker : 1;
+	uint8_t payload : 7;*/
+
+	uint8_t csrc : 4;
+	uint8_t extension : 1;
+	uint8_t padding : 1;
+	uint8_t version : 2;
+	uint8_t payload : 7;
+	uint8_t marker : 1;
+
+	uint16_t seq;
+	uint32_t ts;
+	uint32_t ssrc;
 } RtpHeader;
 
 struct MediaChannelInfo
 {
-    bool isSetup;
-    bool isPlay;   //ï¿½Í»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-    bool isRecord; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	RtpHeader rtpHeader;
 
     // tcp
     uint16_t rtpChannel;
@@ -58,13 +57,14 @@ struct MediaChannelInfo
     uint16_t rtcpPort;
 
     uint16_t packetSeq;
-    uint64_t packetCount;
-    uint64_t octetCount;
-    uint64_t lastRtcpNtpTime;
-
+    //uint64_t packetCount;
+    //uint64_t octetCount;
+    //uint64_t lastRtcpNtpTime;
     uint32_t clockRate;
 
-    RtpHeader rtpHeader;
+	bool isSetup;
+	bool isPlay;
+	bool isRecord;
 };
 
 typedef std::shared_ptr<char> RtpPacketPtr;

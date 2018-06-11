@@ -60,7 +60,7 @@ void RtspConnection::handleRead()
     keepAlive(); // 心跳计数, 未加入RTCP解析
 
     int ret = _readBuffer->readFd(_sockfd);
-    if (ret > 0 && _connMode == RTSP_SERVER && !_isPlay)
+    if (ret > 0 && _connMode == RTSP_SERVER)
     {
         if (!handleRtspRequest())
         {
@@ -68,7 +68,7 @@ void RtspConnection::handleRead()
             return;
         }
     }
-    else if (ret > 0 && _connMode == RTSP_CLIENT && !_isRecord)
+    else if (ret > 0 && _connMode == RTSP_CLIENT)
     {
         if (!handleRtspResponse())
         {
@@ -76,11 +76,6 @@ void RtspConnection::handleRead()
             return;
         }
     }
-
-	if (_isRecord)
-	{
-		sendAnnounce();
-	}
 
 	if (ret <= 0)
 	{
@@ -480,7 +475,6 @@ server_error:
 void RtspConnection::handleCmdPlay()
 {
     _rtpConnection->play();
-    _isPlay = true;
 
     std::shared_ptr<char> response(new char[2048]);
     snprintf(response.get(), 2048,
@@ -491,8 +485,8 @@ void RtspConnection::handleCmdPlay()
             _rtspRequest->getCSeq(),
             _rtpConnection->getRtpSessionId());
 
-#ifdef HISI
-    snprintf(response+strlen(response), sizeof(response)-strlen(response),
+#if 1//def HISI
+    snprintf(response.get()+strlen(response.get()), sizeof(response)-strlen(response.get()),
             "%s\r\n",
             _rtpConnection->getRtpInfo(_rtspRequest->getRtspUrl()).c_str());
 #endif

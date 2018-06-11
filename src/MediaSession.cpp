@@ -58,7 +58,7 @@ bool MediaSession::addMediaSource(MediaChannelId channelId, MediaSource* source)
 
                 if(_isMulticast) // 组播只发送一次
                     break;
-            }
+            }           
         }
     });
     _mediaSources[channelId].reset(source);
@@ -74,8 +74,8 @@ bool MediaSession::removeMediaSource(MediaChannelId channelId)
 
 bool MediaSession::startMulticast()
 {
-    struct sockaddr_in addr = {0};
-    addr.sin_family = AF_INET;
+    struct sockaddr_in addr = {0}; 
+    addr.sin_family = AF_INET;  
     _multicastSockfd[channel_0] = socket(AF_INET, SOCK_DGRAM, 0);
     _multicastSockfd[channel_1] = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -84,12 +84,12 @@ bool MediaSession::startMulticast()
 
     for(int n=0; n<=10; n++)
     {
-        addr.sin_addr.s_addr = ntohl(0xE8000100 + (rd())%range);
-        addr.sin_port = htons(rd() & 0xfffe);
+        addr.sin_addr.s_addr = ntohl(0xE8000100 + (rd())%range); 
+        addr.sin_port = htons(rd() & 0xfffe); 
         if(::bind(_multicastSockfd[channel_0], (struct sockaddr*)&addr, sizeof(addr)) == 0)
         {
             _multicastPort[channel_0] = ntohs(addr.sin_port);
-            addr.sin_port = htons(rd() & 0xfffe);
+            addr.sin_port = htons(rd() & 0xfffe); 
             if(::bind(_multicastSockfd[channel_1], (struct sockaddr*)&addr, sizeof(addr)) == 0)
             {
                 _multicastPort[channel_1] = ntohs(addr.sin_port);
@@ -97,7 +97,7 @@ bool MediaSession::startMulticast()
                 break;
             }
         }
-
+        
         if(n == 10)
         {
             SocketUtil::close(_multicastSockfd[channel_0]);
@@ -118,59 +118,59 @@ std::string MediaSession::getSdpMessage(std::string sessionName)
 
     if(_mediaSources.empty())
         return "";
-
+            
     std::string ip = NetInterface::getLocalIPAddress();
     char buf[2048] = {0};
 
 
     snprintf(buf, sizeof(buf),
             "v=0\r\n"
-            "o=- 9%ld 1 IN IP4 %s\r\n"
+			"o=- 9%ld 1 IN IP4 %s\r\n"
             "t=0 0\r\n"
             "a=control:*\r\n" ,
-            (long)std::time(NULL), ip.c_str());
+            (long)std::time(NULL), ip.c_str()); 
 
     if(sessionName != "")
     {
-        snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf),
+        snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
                 "s=%s\r\n",
                 sessionName.c_str());
     }
-
+    
     if(_isMulticast)
     {
         snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf),
                  "a=type:broadcast\r\n"
                  "a=rtcp-unicast: reflection\r\n");
     }
-
+		
     for (uint32_t chn=0; chn<_mediaSources.size(); chn++)
     {
         if(_mediaSources[chn])
-        {
-            if(_isMulticast)
+        {	
+            if(_isMulticast)		 
             {
-                snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf),
+                snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
                         "%s\r\n",
-                        _mediaSources[chn]->getMediaDescription(_multicastPort[chn]).c_str());
-
-                snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf),
+                        _mediaSources[chn]->getMediaDescription(_multicastPort[chn]).c_str()); 
+                     
+                snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
                         "c=IN IP4 %s/255\r\n",
-                        _multicastIp.c_str());
+                        _multicastIp.c_str()); 
             }
-            else
+            else 
             {
-                snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf),
+                snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
                         "%s\r\n",
                         _mediaSources[chn]->getMediaDescription(0).c_str());
             }
-
-            snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf),
+            
+            snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
                     "%s\r\n",
                     _mediaSources[chn]->getAttribute().c_str());
-
-            snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf),
-                    "a=control:track%d\r\n", chn);
+                     
+            snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf),											
+                    "a=control:track%d\r\n", chn);	
         }
     }
 
@@ -221,19 +221,20 @@ bool MediaSession::addClient(SOCKET sockfd, std::shared_ptr<RtpConnection> rtpCo
     if(iter == _clients.end())
     {
         _clients.emplace(sockfd, rtpConnPtr);
-
+        
         if(_notifyCallback)
             _notifyCallback(_sessionId, _clients.size()); //回调通知当前客户端数量
-
+        
         return true;
     }
-
+            
     return false;
 }
 
 void MediaSession::removeClient(SOCKET sockfd)
-{
+{  
     _clients.erase(sockfd);
-    if(_notifyCallback)
+    if(_notifyCallback)        
         _notifyCallback(_sessionId, _clients.size());  //回调通知当前客户端数量
 }
+
