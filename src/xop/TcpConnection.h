@@ -1,4 +1,4 @@
-#ifndef XOP_TCP_CONNECTION_H
+﻿#ifndef XOP_TCP_CONNECTION_H
 #define XOP_TCP_CONNECTION_H
 
 #include <iostream>

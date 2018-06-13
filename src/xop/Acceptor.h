@@ -1,4 +1,4 @@
-#ifndef XOP_ACCEPTOR_H
+﻿#ifndef XOP_ACCEPTOR_H
 #define XOP_ACCEPTOR_H
 
 #include <functional>

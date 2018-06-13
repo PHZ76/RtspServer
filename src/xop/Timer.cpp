@@ -1,4 +1,4 @@
-#include "Timer.h"
+﻿#include "Timer.h"
 #include <iostream>
 
 using namespace xop;

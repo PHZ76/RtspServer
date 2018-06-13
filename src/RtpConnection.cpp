@@ -1,4 +1,4 @@
-// PHZ
+﻿// PHZ
 // 2018-5-16
 
 #include "RtpConnection.h"
@@ -256,6 +256,10 @@ void RtpConnection::sendRtpPacket(MediaChannelId channelId, RtpPacketPtr& rtpPkt
         {
             sendRtpOverUdp(channelId, rtpPkt, pktSize);
         }
+        
+        // 发送统计
+        _mediaChannelInfo[channelId].octetCount  += pktSize;
+        _mediaChannelInfo[channelId].packetCount += 1;
     }
 }
 

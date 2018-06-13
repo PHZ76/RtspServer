@@ -1,4 +1,4 @@
-#include "MemoryManager.h"
+﻿#include "MemoryManager.h"
 
 using namespace xop;
 
@@ -37,7 +37,7 @@ void MemoryPool::Init(uint32_t size, uint32_t n)
 	_head->_next = nullptr;
 
 	MemoryBlock* current = _head;
-	for (int n = 1; n < _numBlocks; n++)
+	for (uint32_t n = 1; n < _numBlocks; n++)
 	{
 		MemoryBlock* next = (MemoryBlock*)(_memory + (n * (_blockSize + sizeof(MemoryBlock))));
 		next->_blockId = n + 1;

@@ -1,6 +1,6 @@
-// PHZ
+ï»¿// PHZ
 // 2018-6-8
-// RTSPÄ£°å, ÓÃÓÚÊµÏÖRtspServerºÍRtspPusher
+// RTSPæ¨¡æ¿, ç”¨äºå®ç°RtspServerå’ŒRtspPusher
 
 #ifndef XOP_RTSP_H
 #define XOP_RTSP_H

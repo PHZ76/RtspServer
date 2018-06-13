@@ -1,4 +1,4 @@
-// PHZ
+﻿// PHZ
 // 2018-5-16
 
 #ifndef XOP_AAC_SOURCE_H

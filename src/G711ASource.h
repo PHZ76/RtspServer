@@ -1,4 +1,4 @@
-// PHZ
+﻿// PHZ
 // 2018-5-16
 
 #ifndef XOP_G711A_SOURCE_H

@@ -1,4 +1,4 @@
-#ifndef XOP_MEMMORY_MANAGER_H
+﻿#ifndef XOP_MEMMORY_MANAGER_H
 #define XOP_MEMMORY_MANAGER_H
 
 #include <stdio.h>

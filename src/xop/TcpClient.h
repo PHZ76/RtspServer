@@ -1,4 +1,4 @@
-#ifndef XOP_TCP_CLIENT_H
+﻿#ifndef XOP_TCP_CLIENT_H
 #define XOP_TCP_CLIENT_H
 
 namespace xop

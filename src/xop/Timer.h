@@ -1,4 +1,4 @@
-// PHZ
+﻿// PHZ
 // 2018-5-15
 
 #ifndef _XOP_TIMER_H

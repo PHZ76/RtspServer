@@ -1,4 +1,4 @@
-// PHZ
+﻿// PHZ
 // 2018-6-11
 
 #ifndef XOP_RTP_H
@@ -57,10 +57,12 @@ struct MediaChannelInfo
     uint16_t rtcpPort;
 
     uint16_t packetSeq;
-    //uint64_t packetCount;
-    //uint64_t octetCount;
-    //uint64_t lastRtcpNtpTime;
     uint32_t clockRate;
+
+    // rtcp
+    uint64_t packetCount;
+    uint64_t octetCount;
+    uint64_t lastRtcpNtpTime;
 
     bool isSetup;
     bool isPlay;

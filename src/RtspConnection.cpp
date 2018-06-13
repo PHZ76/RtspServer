@@ -1,4 +1,4 @@
-// PHZ
+﻿// PHZ
 // 2018-6-10
 
 #include "RtspConnection.h"
@@ -9,7 +9,7 @@
 
 #define USER_AGENT "-_-"
 
-#define RTSP_DEBUG 1
+#define RTSP_DEBUG 0
 #define MAX_RTSP_MESSAGE_SIZE 2048
 
 using namespace xop;
