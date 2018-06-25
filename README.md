@@ -7,12 +7,12 @@
 
 目前情况<br>
 -
-* 支持 Windows 和 Linux平台。<br>
-* 支持 H264, H265, G711A, AAC 四种音视频格式的转发。<br>
-* 支持同时传输音视频。<br>
-* 支持单播(RTP_OVER_UDP, RTP_OVER_RTSP), 组播。<br>
-* 单播支持心跳检测。组播暂未支持。<br>
-* 2018-6-8: 支持RTSP推流(测试中)。<br>
+* 支持 Windows 和 Linux平台。
+* 支持 H264, H265, G711A, AAC 四种音视频格式的转发。
+* 支持同时传输音视频。
+* 支持单播(RTP_OVER_UDP, RTP_OVER_RTSP), 组播。
+* 单播支持心跳检测。组播暂未支持。
+* 支持RTSP推流(TCP)。
 
 编译环境<br>
 -
