@@ -2,7 +2,7 @@
 
 项目介绍
 -
-* C++11实现的RTSP服务器和推流器, 依赖网络框架[xop](https://github.com/PHZ76/xop)。
+* C++11实现的RTSP服务器和推流器, 依赖网络框架 [xop](https://github.com/PHZ76/xop)。
 * 设计目的是为了替代项目中使用的live555模块, live555在嵌入式平台上性能一般。
 * 不考虑多线程的实现, 项目模块的定位是轻量级的RTSP服务器和推流器。
 
