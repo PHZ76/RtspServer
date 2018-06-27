@@ -1,10 +1,11 @@
 ﻿// PHZ
-// 2018-6-8
+// 2018-6-27
 
 #ifndef _RTSP_PUSHER_H
 #define _RTSP_PUSHER_H
 
 #include <mutex>
+#include <map>
 #include <cstdint>
 #include "rtsp.h"
 
@@ -27,25 +28,27 @@ public:
 	~RtspPusher();
 
 	MediaSessionId addMeidaSession(MediaSession* session);
-	void removeMeidaSession(MediaSessionId sessionId);
+	void removeMeidaSession(MediaSessionId sessionId=0);
 
 	bool openUrl(std::string url);
 	void close();
 
 	bool pushFrame(MediaSessionId sessionId, MediaChannelId channelId, AVFrame frame);
 
-	bool isConnected();
+	bool isConnected() const
+    { return (_connections.size() > 0); }
 
 	std::string getRtspUrl() 
 	{ return _rtspInfo.url; }
 
 private:
 	friend class RtspConnection;
+    
 	bool parseRtspUrl(std::string& url);
 	virtual MediaSessionPtr lookMediaSession(const std::string& suffix);
 	virtual MediaSessionPtr lookMediaSession(MediaSessionId sessionId);
 
-	void newConnection(SOCKET sockfd);
+	std::shared_ptr<RtspConnection> newConnection(SOCKET sockfd);
 	void removeConnection(SOCKET sockfd);
 
 	xop::EventLoop* _loop = nullptr;
@@ -53,7 +56,7 @@ private:
 	std::shared_ptr<MediaSession> _mediaSessions;
 
 	RtspInfo _rtspInfo;
-	std::shared_ptr<RtspConnection> _rtspConnection;
+	std::map<SOCKET, std::shared_ptr<RtspConnection>> _connections;
 };
 
 }
