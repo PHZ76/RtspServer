@@ -11,25 +11,25 @@
 
 #define PUSH_TEST "rtsp://192.168.43.213:554/test" //流媒体转发服务器地址
 
-using namespace xop;
+//using namespace xop;
 
 // 负责音视频数据转发的线程函数
-void snedFrame(RtspPusher* rtspPusher);
+void snedFrame(xop::RtspPusher* rtspPusher, xop::MediaSessionId sessionId);
 
 int main(int agrc, char **argv)
 {	
     XOP_Init(); //WSAStartup
 
-    std::shared_ptr<EventLoop> eventLoop(new EventLoop());  
-    RtspPusher rtspPusher(eventLoop.get());  //创建一个RTSP推流器
+    std::shared_ptr<xop::EventLoop> eventLoop(new xop::EventLoop());  
+    xop::RtspPusher rtspPusher(eventLoop.get());  //创建一个RTSP推流器
 
-    MediaSession *session = MediaSession::createNew("live"); //创建一个媒体会话, url: rtsp://ip/live
+    xop::MediaSession *session = xop::MediaSession::createNew(); 
     
     // 添加音视频流到媒体会话, track0:h264, track1:aac
-    session->addMediaSource(xop::channel_0, H264Source::createNew()); 
-    session->addMediaSource(xop::channel_1, AACSource::createNew(44100,2));
+    session->addMediaSource(xop::channel_0, xop::H264Source::createNew()); 
+    session->addMediaSource(xop::channel_1, xop::AACSource::createNew(44100,2));
     
-    rtspPusher.addMeidaSession(session); //添加session到RtspServer后, session会失效
+    xop::MediaSessionId sessionId = rtspPusher.addMeidaSession(session); //添加session到RtspServer后, session会失效
     
     if (!rtspPusher.openUrl(PUSH_TEST))
     {
@@ -39,7 +39,7 @@ int main(int agrc, char **argv)
     
     std::cout << "Push stream to " << PUSH_TEST << " ..." << std::endl; 
         
-    std::thread t1(snedFrame, &rtspPusher); //开启负责音视频数据转发的线程
+    std::thread t1(snedFrame, &rtspPusher, sessionId); //开启负责音视频数据转发的线程
     t1.detach(); 
    
     eventLoop->loop(); //主线程运行 rtspPusher 
@@ -49,37 +49,35 @@ int main(int agrc, char **argv)
 }
 
 // 负责音视频数据转发的线程函数
-void snedFrame(RtspPusher* rtspPusher)
+void snedFrame(xop::RtspPusher* rtspPusher, xop::MediaSessionId sessionId)
 {       
     while(1)
     {      
         {
-            {
-                /*                     
-                    //获取一帧 H264, 打包
-                    xop::AVFrame videoFrame = {0};
-                    videoFrame.size = 100000;  // 视频帧大小 
-                    videoFrame.timestamp = H264Source::getTimeStamp(); // 时间戳, 建议使用编码器提供的时间戳
-                    videoFrame.buffer.reset(new char[videoFrame.size]);
-                    memcpy(videoFrame.buffer.get(), 视频帧数据, videoFrame.size);					
-                   
-                    rtspPusher->pushFrame(0, xop::channel_0, videoFrame); //推流到服务器, 接口线程安全
-                */
-            }
-                    
-            {				
-                /*
-                    //获取一帧 AAC, 打包
-                    xop::AVFrame audioFrame = {0};
-                    audioFrame.size = 500;  // 音频帧大小 
-                    audioFrame.timestamp = AACSource::getTimeStamp(44100); // 时间戳
-                    audioFrame.buffer.reset(new char[audioFrame.size]);
-                    memcpy(audioFrame.buffer.get(), 音频帧数据, audioFrame.size);
-
-                    rtspPusher->pushFrame(0, xop::channel_1, audioFrame); //推流到服务器, 接口线程安全
-                */
-            }		
+            /*                     
+                //获取一帧 H264, 打包
+                xop::AVFrame videoFrame = {0};
+                videoFrame.size = 100000;  // 视频帧大小 
+                videoFrame.timestamp = H264Source::getTimeStamp(); // 时间戳, 建议使用编码器提供的时间戳
+                videoFrame.buffer.reset(new char[videoFrame.size]);
+                memcpy(videoFrame.buffer.get(), 视频帧数据, videoFrame.size);					
+               
+                rtspPusher->pushFrame(0, xop::channel_0, videoFrame); //推流到服务器, 接口线程安全
+            */
         }
+                
+        {				
+            /*
+                //获取一帧 AAC, 打包
+                xop::AVFrame audioFrame = {0};
+                audioFrame.size = 500;  // 音频帧大小 
+                audioFrame.timestamp = AACSource::getTimeStamp(44100); // 时间戳
+                audioFrame.buffer.reset(new char[audioFrame.size]);
+                memcpy(audioFrame.buffer.get(), 音频帧数据, audioFrame.size);
+
+                rtspPusher->pushFrame(0, xop::channel_1, audioFrame); //推流到服务器, 接口线程安全
+            */
+        }		
 
         xop::Timer::sleep(1000); // 实际使用需要根据帧率计算延时!
     }
