@@ -35,11 +35,11 @@ public:
 
 	bool pushFrame(MediaSessionId sessionId, MediaChannelId channelId, AVFrame frame);
 
-	bool isConnected() const
+    bool isConnected() const
     { return (_connections.size() > 0); }
 
-	std::string getRtspUrl() 
-	{ return _rtspInfo.url; }
+    std::string getRtspUrl() 
+    { return _rtspInfo.url; }
 
 private:
 	friend class RtspConnection;
@@ -62,3 +62,4 @@ private:
 }
 
 #endif
+
