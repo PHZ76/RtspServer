@@ -24,16 +24,16 @@ class RtspConnection;
 class RtspPusher : public RTSP
 {
 public:
-	RtspPusher(EventLoop* loop);
-	~RtspPusher();
+    RtspPusher(EventLoop* loop);
+    ~RtspPusher();
 
-	MediaSessionId addMeidaSession(MediaSession* session);
-	void removeMeidaSession(MediaSessionId sessionId=0);
+    MediaSessionId addMeidaSession(MediaSession* session);
+    void removeMeidaSession(MediaSessionId sessionId=0);
 
-	bool openUrl(std::string url);
-	void close();
+    bool openUrl(std::string url);
+    void close();
 
-	bool pushFrame(MediaSessionId sessionId, MediaChannelId channelId, AVFrame frame);
+    bool pushFrame(MediaSessionId sessionId, MediaChannelId channelId, AVFrame frame);
 
     bool isConnected() const
     { return (_connections.size() > 0); }
@@ -42,21 +42,21 @@ public:
     { return _rtspInfo.url; }
 
 private:
-	friend class RtspConnection;
-    
-	bool parseRtspUrl(std::string& url);
-	virtual MediaSessionPtr lookMediaSession(const std::string& suffix);
-	virtual MediaSessionPtr lookMediaSession(MediaSessionId sessionId);
+    friend class RtspConnection;
 
-	std::shared_ptr<RtspConnection> newConnection(SOCKET sockfd);
-	void removeConnection(SOCKET sockfd);
+    bool parseRtspUrl(std::string& url);
+    virtual MediaSessionPtr lookMediaSession(const std::string& suffix);
+    virtual MediaSessionPtr lookMediaSession(MediaSessionId sessionId);
 
-	xop::EventLoop* _loop = nullptr;
-	std::mutex _mutex;
-	std::shared_ptr<MediaSession> _mediaSessions;
+    std::shared_ptr<RtspConnection> newConnection(SOCKET sockfd);
+    void removeConnection(SOCKET sockfd);
 
-	RtspInfo _rtspInfo;
-	std::map<SOCKET, std::shared_ptr<RtspConnection>> _connections;
+    xop::EventLoop* _loop = nullptr;
+    std::mutex _mutex;
+    std::shared_ptr<MediaSession> _mediaSessions;
+
+    RtspInfo _rtspInfo;
+    std::map<SOCKET, std::shared_ptr<RtspConnection>> _connections;
 };
 
 }

@@ -42,12 +42,10 @@ Nal H264Parser::findNal(const uint8_t *data, uint32_t size)
             {              
                 if(nal.first == nullptr)
                 {
-                    
                     if(size >= 1)
                     {
                         nal.first = const_cast<uint8_t*>(data) + 2;
-                    }
-                        
+                    }                       
                     else
                     {
                         break;  
