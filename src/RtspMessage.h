@@ -40,8 +40,8 @@ public:
     void reset()
     {
         _state = kParseRequestLine;
-        _requestLineParma.clear();
-        _headerLineParma.clear();
+        _requestLineParam.clear();
+        _headerLineParam.clear();
     }
 
     Method getMethod() const
@@ -78,8 +78,8 @@ private:
     Method _method;
     MediaChannelId _channelId;
     TransportMode _transport;
-    std::unordered_map<std::string, std::pair<std::string, uint32_t>> _requestLineParma;
-    std::unordered_map<std::string, std::pair<std::string, uint32_t>> _headerLineParma;
+    std::unordered_map<std::string, std::pair<std::string, uint32_t>> _requestLineParam;
+    std::unordered_map<std::string, std::pair<std::string, uint32_t>> _headerLineParam;
 
     RtspRequestParseState _state = kParseRequestLine;
 };

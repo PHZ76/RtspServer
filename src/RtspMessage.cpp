@@ -116,12 +116,12 @@ bool RtspRequest::parseRequestLine(const char* begin, const char* end)
         return false;
     }
 
-    _requestLineParma.emplace("url", make_pair(string(url), 0));
-    _requestLineParma.emplace("url_ip", make_pair(string(ip), 0));
-    _requestLineParma.emplace("url_port", make_pair("", (uint32_t)port));
-    _requestLineParma.emplace("url_suffix", make_pair(string(suffix), 0));
-    _requestLineParma.emplace("version", make_pair(string(version), 0));
-    _requestLineParma.emplace("method", make_pair(move(methodString), 0));
+    _requestLineParam.emplace("url", make_pair(string(url), 0));
+    _requestLineParam.emplace("url_ip", make_pair(string(ip), 0));
+    _requestLineParam.emplace("url_port", make_pair("", (uint32_t)port));
+    _requestLineParam.emplace("url_suffix", make_pair(string(suffix), 0));
+    _requestLineParam.emplace("version", make_pair(string(version), 0));
+    _requestLineParam.emplace("method", make_pair(move(methodString), 0));
 
     _state = kParseHeadersLine;
 
@@ -133,7 +133,7 @@ bool RtspRequest::parseHeadersLine(const char* begin, const char* end)
     string message(begin, end);
     if(!parseCSeq(message))
     {
-        if(_headerLineParma.find("cseq") == _headerLineParma.end())
+        if(_headerLineParam.find("cseq") == _headerLineParam.end())
             return false;
     }
 
@@ -194,7 +194,7 @@ bool RtspRequest::parseCSeq(std::string& message)
     {
         uint32_t cseq = 0;
         sscanf(message.c_str()+pos, "%*[^:]: %u", &cseq);
-        _headerLineParma.emplace("cseq", make_pair("", cseq));
+        _headerLineParam.emplace("cseq", make_pair("", cseq));
         return true;
     }
 
@@ -226,8 +226,8 @@ bool RtspRequest::parseTransport(std::string& message)
             if(sscanf(message.c_str()+pos, "%*[^;];%*[^;];%*[^=]=%hu-%hu",
                      &rtpChannel, &rtcpChannel) != 2)
                 return false;
-            _headerLineParma.emplace("rtp_channel", make_pair("", rtpChannel));
-            _headerLineParma.emplace("rtcp_channel", make_pair("", rtcpChannel));
+            _headerLineParam.emplace("rtp_channel", make_pair("", rtpChannel));
+            _headerLineParam.emplace("rtcp_channel", make_pair("", rtcpChannel));
         }
         else if((pos=message.find("RTP/AVP")) != std::string::npos)
         {
@@ -249,8 +249,8 @@ bool RtspRequest::parseTransport(std::string& message)
             else
                 return false;
 
-            _headerLineParma.emplace("rtp_port", make_pair("", rtpPort));
-            _headerLineParma.emplace("rtcp_port", make_pair("", rtcpPort));
+            _headerLineParam.emplace("rtp_port", make_pair("", rtpPort));
+            _headerLineParam.emplace("rtcp_port", make_pair("", rtcpPort));
         }
         else
         {
@@ -281,8 +281,8 @@ bool RtspRequest::parseMediaChannel(std::string& message)
 {
     _channelId = channel_0;
 
-    auto iter = _requestLineParma.find("url");
-    if(iter != _requestLineParma.end())
+    auto iter = _requestLineParam.find("url");
+    if(iter != _requestLineParam.end())
     {
         std::size_t pos = iter->second.first.find("track1");
         if(pos != std::string::npos)
@@ -295,8 +295,8 @@ bool RtspRequest::parseMediaChannel(std::string& message)
 uint32_t RtspRequest::getCSeq() const
 {
     uint32_t cseq = 0;
-    auto iter = _headerLineParma.find("cseq");
-    if(iter != _headerLineParma.end())
+    auto iter = _headerLineParam.find("cseq");
+    if(iter != _headerLineParam.end())
     {
         cseq = iter->second.second;
     }
@@ -306,8 +306,8 @@ uint32_t RtspRequest::getCSeq() const
 
 std::string RtspRequest::getIp() const
 {
-    auto iter = _requestLineParma.find("url_ip");
-    if(iter != _requestLineParma.end())
+    auto iter = _requestLineParam.find("url_ip");
+    if(iter != _requestLineParam.end())
     {
         return iter->second.first;
     }
@@ -317,8 +317,8 @@ std::string RtspRequest::getIp() const
 
 std::string RtspRequest::getRtspUrl() const
 {
-    auto iter = _requestLineParma.find("url");
-    if(iter != _requestLineParma.end())
+    auto iter = _requestLineParam.find("url");
+    if(iter != _requestLineParam.end())
     {
         return iter->second.first;
     }
@@ -328,8 +328,8 @@ std::string RtspRequest::getRtspUrl() const
 
 std::string RtspRequest::getRtspUrlSuffix() const
 {
-    auto iter = _requestLineParma.find("url_suffix");
-    if(iter != _requestLineParma.end())
+    auto iter = _requestLineParam.find("url_suffix");
+    if(iter != _requestLineParam.end())
     {
         return iter->second.first;
     }
@@ -339,8 +339,8 @@ std::string RtspRequest::getRtspUrlSuffix() const
 
 uint8_t RtspRequest::getRtpChannel() const
 {
-    auto iter = _headerLineParma.find("rtp_channel");
-    if(iter != _headerLineParma.end())
+    auto iter = _headerLineParam.find("rtp_channel");
+    if(iter != _headerLineParam.end())
     {
         return iter->second.second;
     }
@@ -350,8 +350,8 @@ uint8_t RtspRequest::getRtpChannel() const
 
 uint8_t RtspRequest::getRtcpChannel() const
 {
-    auto iter = _headerLineParma.find("rtcp_channel");
-    if(iter != _headerLineParma.end())
+    auto iter = _headerLineParam.find("rtcp_channel");
+    if(iter != _headerLineParam.end())
     {
         return iter->second.second;
     }
@@ -361,8 +361,8 @@ uint8_t RtspRequest::getRtcpChannel() const
 
 uint16_t RtspRequest::getRtpPort() const
 {
-    auto iter = _headerLineParma.find("rtp_port");
-    if(iter != _headerLineParma.end())
+    auto iter = _headerLineParam.find("rtp_port");
+    if(iter != _headerLineParam.end())
     {
         return iter->second.second;
     }
@@ -372,8 +372,8 @@ uint16_t RtspRequest::getRtpPort() const
 
 uint16_t RtspRequest::getRtcpPort() const
 {
-    auto iter = _headerLineParma.find("rtcp_port");
-    if(iter != _headerLineParma.end())
+    auto iter = _headerLineParam.find("rtcp_port");
+    if(iter != _headerLineParam.end())
     {
         return iter->second.second;
     }

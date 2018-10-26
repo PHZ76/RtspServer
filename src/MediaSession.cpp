@@ -86,11 +86,11 @@ bool MediaSession::startMulticast()
     {
         addr.sin_addr.s_addr = ntohl(0xE8000100 + (rd())%range); 
         addr.sin_port = htons(rd() & 0xfffe); 
-        if(::bind(_multicastSockfd[channel_0], (struct sockaddr*)&addr, sizeof(addr)) == 0)
+        if(::bind(_multicastSockfd[channel_0], (struct sockaddr*)&addr, sizeof(addr)) != SOCKET_ERROR)
         {
             _multicastPort[channel_0] = ntohs(addr.sin_port);
             addr.sin_port = htons(rd() & 0xfffe); 
-            if(::bind(_multicastSockfd[channel_1], (struct sockaddr*)&addr, sizeof(addr)) == 0)
+            if(::bind(_multicastSockfd[channel_1], (struct sockaddr*)&addr, sizeof(addr)) != SOCKET_ERROR)
             {
                 _multicastPort[channel_1] = ntohs(addr.sin_port);
                 _multicastIp = inet_ntoa(addr.sin_addr);

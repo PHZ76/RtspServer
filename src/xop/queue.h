@@ -84,8 +84,9 @@ public:
 
     void clear()
     {		
-        T value;
-        while(this->try_pop(value));
+        std::lock_guard<std::mutex> lock(_mutex);
+        std::queue<T> empty;
+        std::swap(empty, _dataQueue);
     } 
     
 private:	
