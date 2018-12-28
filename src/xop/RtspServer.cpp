@@ -6,7 +6,7 @@
 #include "net/SocketUtil.h"
 #include "net/Logger.h"
 
-#define KEEP_ALIVE_ON 1
+#define KEEP_ALIVE_ON 0
 
 using namespace xop;
 using namespace std;
