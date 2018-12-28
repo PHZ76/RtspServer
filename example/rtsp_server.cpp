@@ -1,25 +1,18 @@
-﻿// PHZ
-// RTSP服务器Demo
+﻿// RTSP服务器Demo
 
-#include "RtspServer.h"
-#include "xop.h"
-#include "xop/NetInterface.h"
+#include "xop/RtspServer.h"
+#include "net/NetInterface.h"
 #include <thread>
 #include <memory>
 #include <iostream>
 #include <string>
 
-//using namespace xop;
-
-// 负责音视频数据转发的线程函数
-void snedFrame(xop::RtspServer* rtspServer, xop::MediaSessionId sessionId, int& clients);
+void snedFrameThread(xop::RtspServer* rtspServer, xop::MediaSessionId sessionId, int& clients);
 
 int main(int agrc, char **argv)
 {	
-    XOP_Init(); //WSAStartup
-
     int clients = 0; // 记录当前客户端数量
-    std::string ip = xop::NetInterface::getLocalIPAddress(); //获取网卡ip地址
+    std::string ip = "0.0.0.0";//xop::NetInterface::getLocalIPAddress(); //获取网卡ip地址
     std::string rtspUrl;
     
     std::shared_ptr<xop::EventLoop> eventLoop(new xop::EventLoop());  
@@ -39,12 +32,12 @@ int main(int agrc, char **argv)
         std::cout << "[" << rtspUrl << "]" << " Online: " << clients << std::endl;
     });
 
-    std::cout << rtspUrl << std::endl;
+    std::cout << "URL: " <<rtspUrl << std::endl;
         
     xop::MediaSessionId sessionId = server.addMeidaSession(session); //添加session到RtspServer后, session会失效
     //server.removeMeidaSession(sessionId); //取消会话, 接口线程安全
          
-    std::thread t1(snedFrame, &server, sessionId, std::ref(clients)); //开启负责音视频数据转发的线程
+    std::thread t1(snedFrameThread, &server, sessionId, std::ref(clients)); //开启负责音视频数据转发的线程
     t1.detach(); 
    
     eventLoop->loop(); //主线程运行 RtspServer 
@@ -54,7 +47,7 @@ int main(int agrc, char **argv)
 }
 
 // 负责音视频数据转发的线程函数
-void snedFrame(xop::RtspServer* rtspServer, xop::MediaSessionId sessionId, int& clients)
+void snedFrameThread(xop::RtspServer* rtspServer, xop::MediaSessionId sessionId, int& clients)
 {       
     while(1)
     {
@@ -64,10 +57,10 @@ void snedFrame(xop::RtspServer* rtspServer, xop::MediaSessionId sessionId, int& 
                 /*                     
                     //获取一帧 H264, 打包
                     xop::AVFrame videoFrame = {0};
-                    videoFrame.size = 100000;  // 视频帧大小 
+                    videoFrame.size = video frame size;  // 视频帧大小 
                     videoFrame.timestamp = H264Source::getTimeStamp(); // 时间戳, 建议使用编码器提供的时间戳
                     videoFrame.buffer.reset(new char[videoFrame.size]);
-                    memcpy(videoFrame.buffer.get(), 视频帧数据, videoFrame.size);					
+                    memcpy(videoFrame.buffer.get(), video frame data, videoFrame.size);					
                    
                     rtspServer->pushFrame(sessionId, xop::channel_0, videoFrame); //送到服务器进行转发, 接口线程安全
                 */
@@ -77,10 +70,10 @@ void snedFrame(xop::RtspServer* rtspServer, xop::MediaSessionId sessionId, int& 
                 /*
                     //获取一帧 AAC, 打包
                     xop::AVFrame audioFrame = {0};
-                    audioFrame.size = 500;  // 音频帧大小 
+                    audioFrame.size = audio frame size;  // 音频帧大小 
                     audioFrame.timestamp = AACSource::getTimeStamp(44100); // 时间戳
                     audioFrame.buffer.reset(new char[audioFrame.size]);
-                    memcpy(audioFrame.buffer.get(), 音频帧数据, audioFrame.size);
+                    memcpy(audioFrame.buffer.get(), audio frame data, audioFrame.size);
 
                     rtspServer->pushFrame(sessionId, xop::channel_1, audioFrame); //送到服务器进行转发, 接口线程安全
                 */
