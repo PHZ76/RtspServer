@@ -25,14 +25,14 @@ Acceptor::~Acceptor()
 
 int Acceptor::listen()
 {
-	if (!_tcpSocket->listen(1024))
-	{
-		return -1;
-	}
+    if (!_tcpSocket->listen(1024))
+    {
+        return -1;
+    }
     _acceptChannel->setReadCallback([this]() { this->handleAccept(); });
     _acceptChannel->enableReading();
     _eventLoop->updateChannel(_acceptChannel);
-	return 0;
+    return 0;
 }
 
 void Acceptor::handleAccept()

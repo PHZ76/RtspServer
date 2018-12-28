@@ -49,36 +49,36 @@ EventLoop::EventLoop(int nThreads)
 
 EventLoop::~EventLoop()
 {
-	for (auto iter : _taskSchedulers)
-	{
-		iter->stop();
-	}
+    for (auto iter : _taskSchedulers)
+    {
+        iter->stop();
+    }
 
-	for (auto iter : _threads)
-	{
-		iter->join();
-	}
+    for (auto iter : _threads)
+    {
+        iter->join();
+    }
 }
 
 std::shared_ptr<TaskScheduler> EventLoop::getTaskScheduler()
 {
-	std::lock_guard<std::mutex> locker(_mutex);
-	if (_taskSchedulers.size() == 1)
-	{
-		return _taskSchedulers.at(0);
-	}
-	else
-	{
-		auto taskSchedulers = _taskSchedulers.at(_index);
-		_index++;
-		if (_index >= _taskSchedulers.size())
-		{
-			_index = 1;
-		}		
-		return taskSchedulers;
-	}
-	
-	return nullptr;
+    std::lock_guard<std::mutex> locker(_mutex);
+    if (_taskSchedulers.size() == 1)
+    {
+        return _taskSchedulers.at(0);
+    }
+    else
+    {
+        auto taskSchedulers = _taskSchedulers.at(_index);
+        _index++;
+        if (_index >= _taskSchedulers.size())
+        {
+            _index = 1;
+        }		
+        return taskSchedulers;
+    }
+
+    return nullptr;
 }
 
 void EventLoop::loop()

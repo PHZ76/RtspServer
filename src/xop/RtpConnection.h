@@ -64,19 +64,19 @@ public:
     bool isClosed() const
     { return _isClosed; }
 
-	int getId() const;
+    int getId() const;
 
-	bool hasGOPFrame() const 
-	{ return _hasGOPFrame; }
-	
-	bool hasIDRFrame() const
-	{ return _hasIDRFrame; }
+    bool hasGOPFrame() const 
+    { return _hasGOPFrame; }
+
+    bool hasIDRFrame() const
+    { return _hasIDRFrame; }
 
 private:
     friend class RtspConnection;
     friend class MediaSession;
-	void setFrameType(uint8_t frameType = 0);
-	void setRtpHeader(MediaChannelId channelId, RtpPacket pkt);
+    void setFrameType(uint8_t frameType = 0);
+    void setRtpHeader(MediaChannelId channelId, RtpPacket pkt);
     int sendRtpOverTcp(MediaChannelId channelId, RtpPacket pkt);
     int sendRtpOverUdp(MediaChannelId channelId, RtpPacket pkt);
 
@@ -99,7 +99,7 @@ private:
     struct sockaddr_in _peerRtcpAddr[MAX_MEDIA_CHANNEL];
     MediaChannelInfo _mediaChannelInfo[MAX_MEDIA_CHANNEL];
 
-	const uint8_t kGOPCache = 200;
+    const uint8_t kGOPCache = 200;
 };
 
 }

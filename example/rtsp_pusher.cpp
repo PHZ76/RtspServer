@@ -16,24 +16,24 @@ int main(int agrc, char **argv)
     xop::RtspPusher rtspPusher(eventLoop.get());  //创建一个RTSP推流器
 
     xop::MediaSession *session = xop::MediaSession::createNew(); 
-    
+
     // 添加音视频流到媒体会话, track0:h264, track1:aac
     session->addMediaSource(xop::channel_0, xop::H264Source::createNew()); 
     session->addMediaSource(xop::channel_1, xop::AACSource::createNew(44100,2));
-    
+
     xop::MediaSessionId sessionId = rtspPusher.addMeidaSession(session); //添加session到RtspServer后, session会失效
-    
+
     if (!rtspPusher.openUrl(PUSH_TEST))
     {
         std::cout << "Open " << PUSH_TEST << " failed." << std::endl; // 连接服务器超时
         return 0;
     }
-    
+
     std::cout << "Push stream to " << PUSH_TEST << " ..." << std::endl; 
         
     std::thread t1(snedFrameThread, &rtspPusher, sessionId); //开启负责音视频数据转发的线程
     t1.detach(); 
-   
+
     eventLoop->loop(); //主线程运行 rtspPusher 
 
     getchar();

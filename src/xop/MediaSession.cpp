@@ -11,7 +11,7 @@
 #include "net/NetInterface.h"
 #include "net/SocketUtil.h"
 
-#define GOP_CACHE_ON 1; //缓存
+#define GOP_CACHE_ON 1
 
 using namespace xop;
 using namespace std;
@@ -23,9 +23,9 @@ MediaSession::MediaSession(std::string rtspUrlSuffxx)
     , _mediaSources(2)
     , _buffer(2)
 {
-	_gopCacheEnabled = false;
-	_hasNewClient = false;
-	_sessionId = ++_lastMediaSessionId;
+    _gopCacheEnabled = false;
+    _hasNewClient = false;
+    _sessionId = ++_lastMediaSessionId;
 
     for(int n=0; n<MAX_MEDIA_CHANNEL; n++)
     {
@@ -49,69 +49,69 @@ MediaSession::~MediaSession()
 bool MediaSession::addMediaSource(MediaChannelId channelId, MediaSource* source)
 {
     source->setSendFrameCallback([this](MediaChannelId channelId, RtpPacket pkt) {
-		std::forward_list<std::shared_ptr<RtpConnection>> clients;
-		std::map<int, RtpPacket> packets;
-		{
-			std::lock_guard<std::mutex> lock(_mtxMap);
-			for (auto iter = _clients.begin(); iter != _clients.end();)
-			{
-				auto conn = iter->second.lock();
-				if (conn == nullptr)
-				{
-					_clients.erase(iter++);
-				}
-				else
-				{				
-					int id = conn->getId();
-					if (packets.find(id) == packets.end())
-					{
-						RtpPacket tmpPkt;
-						if (packets.size() != 0)
-						{
-							memcpy(tmpPkt.data.get(), pkt.data.get(), pkt.size);
-						}
-						else
-						{
-							tmpPkt.data = pkt.data;
-						}
-							
-						tmpPkt.size = pkt.size;
-						tmpPkt.last = pkt.last;
-						tmpPkt.timestamp = pkt.timestamp;
-						tmpPkt.type = pkt.type;
-						packets.emplace(id, tmpPkt);
-					}
-					clients.emplace_front(conn);
-					iter++;
-				}
-			}
-		}
-		
-		int count = 0;
-		for(auto iter : clients)
+        std::forward_list<std::shared_ptr<RtpConnection>> clients;
+        std::map<int, RtpPacket> packets;
         {
-			int ret = 0;
-			int id = iter->getId();
-			auto iter2 = packets.find(id);
-			if (iter2 != packets.end())
-			{
-				if (_gopCacheEnabled)
-				{
-					if (iter->hasGOPFrame() || iter->hasIDRFrame())
-						continue;
-				}
+            std::lock_guard<std::mutex> lock(_mtxMap);
+            for (auto iter = _clients.begin(); iter != _clients.end();)
+            {
+                auto conn = iter->second.lock();
+                if (conn == nullptr)
+                {
+                    _clients.erase(iter++);
+                }
+                else
+                {				
+                    int id = conn->getId();
+                    if (packets.find(id) == packets.end())
+                    {
+                        RtpPacket tmpPkt;
+                        if (packets.size() != 0)
+                        {
+                            memcpy(tmpPkt.data.get(), pkt.data.get(), pkt.size);
+                        }
+                        else
+                        {
+                            tmpPkt.data = pkt.data;
+                        }
+                            
+                        tmpPkt.size = pkt.size;
+                        tmpPkt.last = pkt.last;
+                        tmpPkt.timestamp = pkt.timestamp;
+                        tmpPkt.type = pkt.type;
+                        packets.emplace(id, tmpPkt);
+                    }
+                    clients.emplace_front(conn);
+                    iter++;
+                }
+            }
+        }
+        
+        int count = 0;
+        for(auto iter : clients)
+        {
+            int ret = 0;
+            int id = iter->getId();
+            auto iter2 = packets.find(id);
+            if (iter2 != packets.end())
+            {
+                if (_gopCacheEnabled)
+                {
+                    if (iter->hasGOPFrame() || iter->hasIDRFrame())
+                        continue;
+                }
 
-				count++;
-				ret = iter->sendRtpPacket(channelId, iter2->second, _gopCacheEnabled);
-				if (_isMulticast && ret==0)
-					break; 
-			}						
+                count++;
+                ret = iter->sendRtpPacket(channelId, iter2->second, _gopCacheEnabled);
+                if (_isMulticast && ret==0)
+                    break; 
+            }						
         }
 
-		if (_gopCacheEnabled && count==0)
-			return false; 
+        if (_gopCacheEnabled && count==0)
+            return false; 
 
-		return true;
+        return true;
     });
 
     _mediaSources[channelId].reset(source);
@@ -126,20 +126,20 @@ bool MediaSession::removeMediaSource(MediaChannelId channelId)
 
 bool MediaSession::startMulticast()
 {  
-	if (_isMulticast)
-	{
-		return true;
-	}
+    if (_isMulticast)
+    {
+        return true;
+    }
 
-	_multicastIp = MulticastAddr::instance().getAddr();
-	if (_multicastIp == "")
-	{
-		return false;
-	}
+    _multicastIp = MulticastAddr::instance().getAddr();
+    if (_multicastIp == "")
+    {
+        return false;
+    }
 
-	std::random_device rd;
-	_multicastPort[channel_0] = htons(rd() & 0xfffe);
-	_multicastPort[channel_1] = htons(rd() & 0xfffe);
+    std::random_device rd;
+    _multicastPort[channel_0] = htons(rd() & 0xfffe);
+    _multicastPort[channel_1] = htons(rd() & 0xfffe);
 
     _isMulticast = true;
     return true;
@@ -223,56 +223,56 @@ MediaSource* MediaSession::getMediaSource(MediaChannelId channelId)
 
 bool MediaSession::handleFrame(MediaChannelId channelId, AVFrame frame)
 {
-	std::lock_guard<std::mutex> lock(_mutex);
+    std::lock_guard<std::mutex> lock(_mutex);
     if(_mediaSources[channelId])
     {
         _mediaSources[channelId]->handleFrame(channelId, frame);
 #if GOP_CACHE_ON
-		if (!_isMulticast)
-		{
-			uint32_t mediaType = _mediaSources[channelId]->getMediaType();
-			if (mediaType == H264 || mediaType == H265)
-			{
-				if (frame.type == VIDEO_FRAME_I)
-				{					
-					_gopCache = frame;
-					_gopCache.type = kGOP;
-				}
+        if (!_isMulticast)
+        {
+            uint32_t mediaType = _mediaSources[channelId]->getMediaType();
+            if (mediaType == H264 || mediaType == H265)
+            {
+                if (frame.type == VIDEO_FRAME_I)
+                {					
+                    _gopCache = frame;
+                    _gopCache.type = kGOP;
+                }
 
-				if (_hasNewClient  && _gopCache.size>0)
-				{
-					_hasNewClient = false;
-					_gopCacheEnabled = true;
-					_gopCache.timestamp = H264Source::getTimeStamp();
-					_mediaSources[channelId]->handleFrame(channelId, _gopCache);
-					_gopCacheEnabled = false;
-				}
-			}
-		}
+                if (_hasNewClient  && _gopCache.size>0)
+                {
+                    _hasNewClient = false;
+                    _gopCacheEnabled = true;
+                    _gopCache.timestamp = H264Source::getTimeStamp();
+                    _mediaSources[channelId]->handleFrame(channelId, _gopCache);
+                    _gopCacheEnabled = false;
+                }
+            }
+        }
 #endif
     }
-	else
-	{
-		return false;
-	}
+    else
+    {
+        return false;
+    }
 
     return true;
 }
 
 bool MediaSession::addClient(SOCKET rtspfd, std::shared_ptr<RtpConnection> rtpConnPtr)
 {
-	std::lock_guard<std::mutex> lock(_mtxMap);
+    std::lock_guard<std::mutex> lock(_mtxMap);
     auto iter = _clients.find (rtspfd);
     if(iter == _clients.end())
     {
-		std::weak_ptr<RtpConnection> rtpConnWeakPtr = rtpConnPtr;
+        std::weak_ptr<RtpConnection> rtpConnWeakPtr = rtpConnPtr;
         _clients.emplace(rtspfd, rtpConnWeakPtr);
-		if (_notifyCallback)
-		{
-			_notifyCallback(_sessionId, _clients.size()); //回调通知当前客户端数量
-		}
+        if (_notifyCallback)
+        {
+            _notifyCallback(_sessionId, _clients.size()); //回调通知当前客户端数量
+        }
         
-		_hasNewClient = true;
+        _hasNewClient = true;
         return true;
     }
             
@@ -281,14 +281,14 @@ bool MediaSession::addClient(SOCKET rtspfd, std::shared_ptr<RtpConnection> rtpCo
 
 void MediaSession::removeClient(SOCKET rtspfd)
 {  
-	std::lock_guard<std::mutex> lock(_mtxMap);
-	if (_clients.find(rtspfd) != _clients.end())
-	{
-		_clients.erase(rtspfd);
-		if (_notifyCallback)
-		{
-			_notifyCallback(_sessionId, _clients.size());  //回调通知当前客户端数量
-		}
-	}
+    std::lock_guard<std::mutex> lock(_mtxMap);
+    if (_clients.find(rtspfd) != _clients.end())
+    {
+        _clients.erase(rtspfd);
+        if (_notifyCallback)
+        {
+            _notifyCallback(_sessionId, _clients.size());  //回调通知当前客户端数量
+        }
+    }
 }
 

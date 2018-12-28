@@ -17,10 +17,10 @@ namespace xop
 
 struct RtspUrlInfo
 {
-	std::string url;
-	std::string ip;
-	uint16_t port;
-	std::string suffix;
+    std::string url;
+    std::string ip;
+    uint16_t port;
+    std::string suffix;
 };
 
 class Rtsp
@@ -28,14 +28,14 @@ class Rtsp
 public:
     virtual ~Rtsp() {};
 
-	virtual MediaSessionId addMeidaSession(MediaSession* session)
-	{ return 0; }
+    virtual MediaSessionId addMeidaSession(MediaSession* session)
+    { return 0; }
 
-	virtual void removeMeidaSession(MediaSessionId sessionId)
-	{ return; }
+    virtual void removeMeidaSession(MediaSessionId sessionId)
+    { return; }
 
-	virtual bool pushFrame(MediaSessionId sessionId, MediaChannelId channelId, AVFrame frame)
-	{ return false;}
+    virtual bool pushFrame(MediaSessionId sessionId, MediaChannelId channelId, AVFrame frame)
+    { return false;}
 
     virtual void setVersion(std::string version) // SDP Session Name
     { _version = std::move(version); }
@@ -81,15 +81,15 @@ public:
 
 protected:
     friend class RtspConnection;
-	virtual MediaSessionPtr lookMediaSession(const std::string& suffix)
-	{ return nullptr; }
+    virtual MediaSessionPtr lookMediaSession(const std::string& suffix)
+    { return nullptr; }
 
     virtual MediaSessionPtr lookMediaSession(MediaSessionId sessionId)
-	{ return nullptr; }
+    { return nullptr; }
 
     std::string _version;
     //std::string _rtspUrl;
-	struct RtspUrlInfo _rtspUrlInfo;
+    struct RtspUrlInfo _rtspUrlInfo;
 };
 
 }

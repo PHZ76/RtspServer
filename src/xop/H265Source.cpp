@@ -48,7 +48,7 @@ string H265Source::getAttribute()
 
 bool H265Source::handleFrame(MediaChannelId channelId, AVFrame frame)
 {
-	uint8_t *frameBuf  = frame.buffer.get();
+    uint8_t *frameBuf  = frame.buffer.get();
     uint32_t frameSize = frame.size;
 
     if(frame.timestamp == 0)
@@ -56,19 +56,19 @@ bool H265Source::handleFrame(MediaChannelId channelId, AVFrame frame)
 
     if (frameSize <= MAX_RTP_PAYLOAD_SIZE) 
     {
-		RtpPacket rtpPkt;
-		rtpPkt.type = frame.type;
-		rtpPkt.timestamp = frame.timestamp;
-		rtpPkt.size = frameSize + 4 + RTP_HEADER_SIZE;
-		rtpPkt.last = 1;
+        RtpPacket rtpPkt;
+        rtpPkt.type = frame.type;
+        rtpPkt.timestamp = frame.timestamp;
+        rtpPkt.size = frameSize + 4 + RTP_HEADER_SIZE;
+        rtpPkt.last = 1;
 
         memcpy(rtpPkt.data.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize); // 预留 4字节TCP Header, 12字节 RTP Header 
         
-		if (_sendFrameCallback)
-		{
-			if (!_sendFrameCallback(channelId, rtpPkt))
-				return false;
-		}
+        if (_sendFrameCallback)
+        {
+            if (!_sendFrameCallback(channelId, rtpPkt))
+                return false;
+        }
     }	
     else
     {	
@@ -84,22 +84,22 @@ bool H265Source::handleFrame(MediaChannelId channelId, AVFrame frame)
         
         while (frameSize + 3 > MAX_RTP_PAYLOAD_SIZE) 
         {
-			RtpPacket rtpPkt;
-			rtpPkt.type = frame.type;
-			rtpPkt.timestamp = frame.timestamp;
-			rtpPkt.size = 4 + RTP_HEADER_SIZE + MAX_RTP_PAYLOAD_SIZE;
-			rtpPkt.last = 0;
+            RtpPacket rtpPkt;
+            rtpPkt.type = frame.type;
+            rtpPkt.timestamp = frame.timestamp;
+            rtpPkt.size = 4 + RTP_HEADER_SIZE + MAX_RTP_PAYLOAD_SIZE;
+            rtpPkt.last = 0;
 
             rtpPkt.data.get()[RTP_HEADER_SIZE+4] = FU[0];
             rtpPkt.data.get()[RTP_HEADER_SIZE+5] = FU[1];
             rtpPkt.data.get()[RTP_HEADER_SIZE+6] = FU[2];
             memcpy(rtpPkt.data.get()+4+RTP_HEADER_SIZE+3, frameBuf, MAX_RTP_PAYLOAD_SIZE-3);
             
-			if (_sendFrameCallback)
-			{
-				if (!_sendFrameCallback(channelId, rtpPkt))
-					return false;
-			}
+            if (_sendFrameCallback)
+            {
+                if (!_sendFrameCallback(channelId, rtpPkt))
+                    return false;
+            }
             
             frameBuf  += (MAX_RTP_PAYLOAD_SIZE - 3);
             frameSize -= (MAX_RTP_PAYLOAD_SIZE - 3);
@@ -108,11 +108,11 @@ bool H265Source::handleFrame(MediaChannelId channelId, AVFrame frame)
         }
         
         {
-			RtpPacket rtpPkt;
-			rtpPkt.type = frame.type;
-			rtpPkt.timestamp = frame.timestamp;
-			rtpPkt.size = 4 + RTP_HEADER_SIZE + 3 + frameSize;
-			rtpPkt.last = 1;
+            RtpPacket rtpPkt;
+            rtpPkt.type = frame.type;
+            rtpPkt.timestamp = frame.timestamp;
+            rtpPkt.size = 4 + RTP_HEADER_SIZE + 3 + frameSize;
+            rtpPkt.last = 1;
 
             FU[2] |= 0x40;
             rtpPkt.data.get()[RTP_HEADER_SIZE+4] = FU[0];
@@ -120,11 +120,11 @@ bool H265Source::handleFrame(MediaChannelId channelId, AVFrame frame)
             rtpPkt.data.get()[RTP_HEADER_SIZE+6] = FU[2];
             memcpy(rtpPkt.data.get()+4+RTP_HEADER_SIZE+3, frameBuf, frameSize);
             
-			if (_sendFrameCallback)
-			{
-				if (!_sendFrameCallback(channelId, rtpPkt))
-					return false;
-			}
+            if (_sendFrameCallback)
+            {
+                if (!_sendFrameCallback(channelId, rtpPkt))
+                    return false;
+            }
         }            
     }
 

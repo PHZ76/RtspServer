@@ -20,7 +20,7 @@ SelectTaskScheduler::SelectTaskScheduler(int id)
     FD_ZERO(&_fdWriteBackup);
     FD_ZERO(&_fdExpBackup);
 
-	this->updateChannel(_wakeupChannel);
+    this->updateChannel(_wakeupChannel);
 }
 
 SelectTaskScheduler::~SelectTaskScheduler()

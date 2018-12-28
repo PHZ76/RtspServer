@@ -13,7 +13,7 @@ Nal H264Parser::findNal(const uint8_t *data, uint32_t size)
     }
 
     nal.second = const_cast<uint8_t*>(data) + (size-1);
-    
+
     uint32_t startCode = 0;
     uint32_t pos = 0;
     uint8_t prefix[3] = {0};
@@ -65,7 +65,7 @@ Nal H264Parser::findNal(const uint8_t *data, uint32_t size)
         
     if(nal.first == nullptr)
         nal.second = nullptr;
-    
+
     return nal;
 }
 

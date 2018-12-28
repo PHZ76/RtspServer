@@ -14,13 +14,13 @@ int main(int agrc, char **argv)
     int clients = 0; // 记录当前客户端数量
     std::string ip = "0.0.0.0";//xop::NetInterface::getLocalIPAddress(); //获取网卡ip地址
     std::string rtspUrl;
-    
+
     std::shared_ptr<xop::EventLoop> eventLoop(new xop::EventLoop());  
     xop::RtspServer server(eventLoop.get(), ip, 554);  //创建一个RTSP服务器
 
     xop::MediaSession *session = xop::MediaSession::createNew("live"); //创建一个媒体会话, url: rtsp://ip/live
     rtspUrl = "rtsp://" + ip + "/" + session->getRtspUrlSuffix();
-    
+
     // 添加音视频流到媒体会话, track0:h264, track1:aac
     session->addMediaSource(xop::channel_0, xop::H264Source::createNew()); 
     session->addMediaSource(xop::channel_1, xop::AACSource::createNew(44100,2));
@@ -39,14 +39,13 @@ int main(int agrc, char **argv)
          
     std::thread t1(snedFrameThread, &server, sessionId, std::ref(clients)); //开启负责音视频数据转发的线程
     t1.detach(); 
-   
+
     eventLoop->loop(); //主线程运行 RtspServer 
 
     getchar();
     return 0;
 }
 
-// 负责音视频数据转发的线程函数
 void snedFrameThread(xop::RtspServer* rtspServer, xop::MediaSessionId sessionId, int& clients)
 {       
     while(1)

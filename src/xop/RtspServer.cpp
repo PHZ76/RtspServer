@@ -6,31 +6,35 @@
 #include "net/SocketUtil.h"
 #include "net/Logger.h"
 
+#define KEEP_ALIVE_ON 1
+
 using namespace xop;
 using namespace std;
 
 RtspServer::RtspServer(EventLoop* loop, std::string ip, uint16_t port)
 	: TcpServer(loop, ip, port)
 {
-	loop->addTimer([this]() {
-		std::lock_guard<std::mutex> locker(_conn_mutex);
-		for (auto iter : _connections)
-		{
-			auto rtspConn = dynamic_pointer_cast<RtspConnection>(iter.second);
-			if (!rtspConn->isAlive())
-			{
-				rtspConn->handleClose();
-				continue;
-			}
-			rtspConn->resetAliveCount();
-		}
-		return true;
-	}, 30 * 1000);
+#if KEEP_ALIVE_ON    
+    loop->addTimer([this]() {
+        std::lock_guard<std::mutex> locker(_conn_mutex);
+        for (auto iter : _connections)
+        {
+            auto rtspConn = dynamic_pointer_cast<RtspConnection>(iter.second);
+            if (!rtspConn->isAlive())
+            {
+                rtspConn->handleClose();
+                continue;
+            }
+            rtspConn->resetAliveCount();
+        }
+        return true;
+    }, 30 * 1000);
+#endif
 
-	if (this->start() != 0)
-	{
-		LOG_INFO("RTSP Server listening on %d failed.", port);
-	}
+    if (this->start() != 0)
+    {
+        LOG_INFO("RTSP Server listening on %d failed.", port);
+    }
 }
 
 RtspServer::~RtspServer()
@@ -42,10 +46,10 @@ MediaSessionId RtspServer::addMeidaSession(MediaSession* session)
 {
     std::lock_guard<std::mutex> locker(_mtxSessionMap);
 
-	if (_rtspSuffixMap.find(session->getRtspUrlSuffix()) != _rtspSuffixMap.end())
-	{
-		return 0;
-	}
+    if (_rtspSuffixMap.find(session->getRtspUrlSuffix()) != _rtspSuffixMap.end())
+    {
+        return 0;
+    }
 
     std::shared_ptr<MediaSession> mediaSession(session); 
     MediaSessionId sessionId = mediaSession->getMediaSessionId();
@@ -96,26 +100,26 @@ MediaSessionPtr RtspServer::lookMediaSession(MediaSessionId sessionId)
 
 bool RtspServer::pushFrame(MediaSessionId sessionId, MediaChannelId channelId, AVFrame frame)
 {
-	std::shared_ptr<MediaSession> sessionPtr = nullptr;
+    std::shared_ptr<MediaSession> sessionPtr = nullptr;
 
-	{
-		std::lock_guard<std::mutex> locker(_mtxSessionMap);
-		auto iter = _mediaSessions.find(sessionId);
-		if (iter != _mediaSessions.end())
-		{
-			sessionPtr = iter->second;
-		}
-		else
-		{
-			return false;
-		}
-	}
-    
-	if (sessionPtr!=nullptr && sessionPtr->getNumClient()!=0)
-	{
-		return sessionPtr->handleFrame(channelId, frame);
-	}
-    
+    {
+        std::lock_guard<std::mutex> locker(_mtxSessionMap);
+        auto iter = _mediaSessions.find(sessionId);
+        if (iter != _mediaSessions.end())
+        {
+            sessionPtr = iter->second;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    if (sessionPtr!=nullptr && sessionPtr->getNumClient()!=0)
+    {
+        return sessionPtr->handleFrame(channelId, frame);
+    }
+
     return false;
 }
 

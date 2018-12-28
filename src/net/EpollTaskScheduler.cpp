@@ -56,7 +56,7 @@ void EpollTaskScheduler::update(int operation, ChannelPtr& channel)
 {
 #if defined(__linux) || defined(__linux__) 
     struct epoll_event event = {0};
-    
+
     if(operation != EPOLL_CTL_DEL)
     {
         event.data.ptr = channel.get();

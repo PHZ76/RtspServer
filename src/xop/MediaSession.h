@@ -88,20 +88,20 @@ private:
     std::vector<RingBuffer<AVFrame>> _buffer;
 
     NotifyCallback _notifyCallback;
-	std::mutex _mutex;
-	std::mutex _mtxMap;
+    std::mutex _mutex;
+    std::mutex _mtxMap;
     std::map<SOCKET, std::weak_ptr<RtpConnection>> _clients;
 
     bool _isMulticast = false;
     uint16_t _multicastPort[MAX_MEDIA_CHANNEL];
     std::string _multicastIp;
 
-	std::atomic_bool _gopCacheEnabled, _hasNewClient;
-	AVFrame _gopCache;
+    std::atomic_bool _gopCacheEnabled, _hasNewClient;
+    AVFrame _gopCache;
 
     static std::atomic_uint _lastMediaSessionId;
 
-	const uint8_t kGOP = 200;
+    const uint8_t kGOP = 200;
 };
 
 typedef std::shared_ptr<MediaSession> MediaSessionPtr;

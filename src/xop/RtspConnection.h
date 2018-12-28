@@ -26,12 +26,12 @@ class RtspConnection : public TcpConnection
 public:
     typedef std::function<void (SOCKET sockfd)> CloseCallback;
 
-	enum ConnectionMode
-	{
-		RTSP_SERVER, // RTSP服务器
-		RTSP_PUSHER, // RTSP推流器
-		//RTSP_CLIENT, // RTSP客户端
-	};
+    enum ConnectionMode
+    {
+        RTSP_SERVER, // RTSP服务器
+        RTSP_PUSHER, // RTSP推流器
+        //RTSP_CLIENT, // RTSP客户端
+    };
 
     RtspConnection() = delete;
     RtspConnection(Rtsp *rtspServer, TaskScheduler *taskScheduler, int sockfd);
@@ -40,18 +40,18 @@ public:
     MediaSessionId getMediaSessionId()
     { return _sessionId; }
 
-	TaskScheduler *getTaskScheduler() const 
-	{ return _pTaskScheduler; }
+    TaskScheduler *getTaskScheduler() const 
+    { return _pTaskScheduler; }
 
     void keepAlive()
     { _aliveCount++; }
 
     bool isAlive() const
     {
-		if (isClosed())
-		{
-			return false;
-		}
+        if (isClosed())
+        {
+            return false;
+        }
 
         if(_rtpConnPtr != nullptr)
         {
@@ -66,8 +66,8 @@ public:
     void resetAliveCount()
     { _aliveCount = 0; }
 
-	int getId() const
-	{ return _pTaskScheduler->getId(); }
+    int getId() const
+    { return _pTaskScheduler->getId(); }
 
 private:
     friend class RtpConnection;
@@ -75,8 +75,8 @@ private:
     friend class RtspServer;
     friend class RtspPusher;
 
-	bool onRead(BufferReader& buffer);
-	void onClose();
+    bool onRead(BufferReader& buffer);
+    void onClose();
     void handleRtcp(SOCKET sockfd);
 
     void sendMessage(std::shared_ptr<char> buf, uint32_t size);
@@ -91,12 +91,12 @@ private:
     void handleCmdGetParamter();
 
     void sendOptions(ConnectionMode mode= RTSP_SERVER);
-	void sendDescribe();
+    void sendDescribe();
     void sendAnnounce();
     void sendSetup();
     void handleRecord();
 
-	std::atomic_int _aliveCount;
+    std::atomic_int _aliveCount;
 
     Rtsp* _pRtsp = nullptr;
     xop::TaskScheduler *_pTaskScheduler = nullptr;

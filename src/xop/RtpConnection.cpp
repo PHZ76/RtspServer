@@ -20,7 +20,7 @@ RtpConnection::RtpConnection(RtspConnection* rtspConnection)
         memset(&_mediaChannelInfo[chn], 0, sizeof(_mediaChannelInfo[chn]));
         _mediaChannelInfo[chn].rtpHeader.version = RTP_VERSION;
         _mediaChannelInfo[chn].packetSeq = rd()&0xffff;
-		_mediaChannelInfo[chn].rtpHeader.seq = 0;//htons(1);
+        _mediaChannelInfo[chn].rtpHeader.seq = 0;//htons(1);
         _mediaChannelInfo[chn].rtpHeader.ts = htonl(rd());
         _mediaChannelInfo[chn].rtpHeader.ssrc = htonl(rd());
     }
@@ -114,22 +114,22 @@ bool RtpConnection::setupRtpOverUdp(MediaChannelId channelId, uint16_t rtpPort, 
 
 bool RtpConnection::setupRtpOverMulticast(MediaChannelId channelId, std::string ip, uint16_t port)
 {
-	std::random_device rd;
-	for (int n = 0; n <= 10; n++)
-	{
-		if (n == 10)
-			return false;
+    std::random_device rd;
+    for (int n = 0; n <= 10; n++)
+    {
+        if (n == 10)
+            return false;
 
-		_localRtpPort[channelId] = rd() & 0xfffe;
-		_rtpfd[channelId] = ::socket(AF_INET, SOCK_DGRAM, 0);
-		if (!SocketUtil::bind(_rtpfd[channelId], "0.0.0.0", _localRtpPort[channelId]))
-		{
-			SocketUtil::close(_rtpfd[channelId]);
-			continue;
-		}
+        _localRtpPort[channelId] = rd() & 0xfffe;
+        _rtpfd[channelId] = ::socket(AF_INET, SOCK_DGRAM, 0);
+        if (!SocketUtil::bind(_rtpfd[channelId], "0.0.0.0", _localRtpPort[channelId]))
+        {
+            SocketUtil::close(_rtpfd[channelId]);
+            continue;
+        }
 
-		break;
-	}
+        break;
+    }
 
     _mediaChannelInfo[channelId].rtpPort = port;
 
@@ -186,29 +186,29 @@ string RtpConnection::getMulticastIp(MediaChannelId channelId) const
 
 string RtpConnection::getRtpInfo(const std::string& rtspUrl)
 {
-	char buf[2048] = { 0 };
-	snprintf(buf, 1024, "RTP-Info: ");
+    char buf[2048] = { 0 };
+    snprintf(buf, 1024, "RTP-Info: ");
 
-	int numChannel = 0;
+    int numChannel = 0;
 
-	auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::steady_clock::now());
-	auto ts = timePoint.time_since_epoch().count();
-	for (int chn = 0; chn<MAX_MEDIA_CHANNEL; chn++)
-	{
-		uint32_t rtpTime = (uint32_t)(ts*_mediaChannelInfo[chn].clockRate / 1000);
-		if (_mediaChannelInfo[chn].isSetup)
-		{
-			if (numChannel != 0)
-				snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), ",");
+    auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::steady_clock::now());
+    auto ts = timePoint.time_since_epoch().count();
+    for (int chn = 0; chn<MAX_MEDIA_CHANNEL; chn++)
+    {
+        uint32_t rtpTime = (uint32_t)(ts*_mediaChannelInfo[chn].clockRate / 1000);
+        if (_mediaChannelInfo[chn].isSetup)
+        {
+            if (numChannel != 0)
+                snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), ",");
 
-			snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
-					"url=%s/track%d;seq=0;rtptime=%u",
-					rtspUrl.c_str(), chn, rtpTime);
-			numChannel++;
-		}
-	}
+            snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
+                    "url=%s/track%d;seq=0;rtptime=%u",
+                    rtspUrl.c_str(), chn, rtpTime);
+            numChannel++;
+        }
+    }
 
-	return std::string(buf);
+    return std::string(buf);
 }
 
 void RtpConnection::setFrameType(uint8_t frameType)
@@ -223,7 +223,7 @@ void RtpConnection::setFrameType(uint8_t frameType)
 void RtpConnection::setRtpHeader(MediaChannelId channelId, RtpPacket pkt)
 {
     if((_mediaChannelInfo[channelId].isPlay || _mediaChannelInfo[channelId].isRecord) 
-		&& (_hasIDRFrame || _frameType == kGOPCache))
+        && (_hasIDRFrame || _frameType == kGOPCache))
     {
         _mediaChannelInfo[channelId].rtpHeader.marker = pkt.last;
         _mediaChannelInfo[channelId].rtpHeader.ts = htonl(pkt.timestamp);
@@ -234,48 +234,48 @@ void RtpConnection::setRtpHeader(MediaChannelId channelId, RtpPacket pkt)
 
 int RtpConnection::sendRtpPacket(MediaChannelId channelId, RtpPacket pkt, bool isGOPCache)
 {    
-	if (_isClosed)
-	{
-		return -1;
-	}
-	
-	if (isGOPCache)
-	{
-		if (_hasGOPFrame || _hasIDRFrame)
-		{
-			return 0;
-		}
-		else
-		{
-			if (pkt.last)
-			{		              
-				_hasGOPFrame = true;
-				//_hasIDRFrame = true;
-			}
-		}
-	}
+    if (_isClosed)
+    {
+        return -1;
+    }
+
+    if (isGOPCache)
+    {
+        if (_hasGOPFrame || _hasIDRFrame)
+        {
+            return 0;
+        }
+        else
+        {
+            if (pkt.last)
+            {		              
+                _hasGOPFrame = true;
+                //_hasIDRFrame = true;
+            }
+        }
+    }
         
-	bool ret = _rtspConnection->_pTaskScheduler->addTriggerEvent([this, channelId, pkt] {        
-		this->setFrameType(pkt.type);
-		this->setRtpHeader(channelId, pkt);
-		if((_mediaChannelInfo[channelId].isPlay 
-			|| _mediaChannelInfo[channelId].isRecord)
-			&& (_hasIDRFrame || _frameType==kGOPCache))
-		{            
-			if(_transportMode == RTP_OVER_TCP)
-			{
-				sendRtpOverTcp(channelId, pkt);
-			}
-			else //if(_transportMode == RTP_OVER_UDP || _transportMode==RTP_OVER_MULTICAST)
-			{
-				sendRtpOverUdp(channelId, pkt);
-			}
+    bool ret = _rtspConnection->_pTaskScheduler->addTriggerEvent([this, channelId, pkt] {        
+        this->setFrameType(pkt.type);
+        this->setRtpHeader(channelId, pkt);
+        if((_mediaChannelInfo[channelId].isPlay 
+            || _mediaChannelInfo[channelId].isRecord)
+            && (_hasIDRFrame || _frameType==kGOPCache))
+        {            
+            if(_transportMode == RTP_OVER_TCP)
+            {
+                sendRtpOverTcp(channelId, pkt);
+            }
+            else //if(_transportMode == RTP_OVER_UDP || _transportMode==RTP_OVER_MULTICAST)
+            {
+                sendRtpOverUdp(channelId, pkt);
+            }
         
-			// 发送统计
-			//_mediaChannelInfo[channelId].octetCount  += pkt.size;
-			//_mediaChannelInfo[channelId].packetCount += 1;
-		}
-	});
+            // 发送统计
+            //_mediaChannelInfo[channelId].octetCount  += pkt.size;
+            //_mediaChannelInfo[channelId].packetCount += 1;
+        }
+    });
 
 	return ret ? 0 : -1;
 }

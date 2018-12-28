@@ -13,7 +13,7 @@ namespace xop
 enum MediaType
 {
     //PCMU = 0,	 
-	PCMA = 8,
+    PCMA = 8,
     H264 = 96,
     AAC  = 37,
     H265 = 265,   
@@ -30,7 +30,7 @@ enum FrameType
 
 struct AVFrame
 {	
-	AVFrame(uint32_t size = 0)
+    AVFrame(uint32_t size = 0)
         :buffer(new uint8_t[size + 1])
     {
         this->size = size;
@@ -39,9 +39,9 @@ struct AVFrame
     }
 
     std::shared_ptr<uint8_t> buffer; /* 帧数据 */
-    uint32_t size;				  /* 帧大小 */
-    uint8_t  type;				  /* 帧类型 */	
-    uint32_t timestamp;		  	  /* 时间戳 */
+    uint32_t size;				    /* 帧大小 */
+    uint8_t  type;				    /* 帧类型 */	
+    uint32_t timestamp;		  	    /* 时间戳 */
 };
 
 #define MAX_MEDIA_CHANNEL 2

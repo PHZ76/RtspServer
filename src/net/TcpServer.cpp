@@ -14,24 +14,24 @@ TcpServer::TcpServer(EventLoop* eventLoop, std::string ip, uint16_t port)
     : _eventLoop(eventLoop),
       _acceptor(new Acceptor(eventLoop, ip, port))
 {
-	_ip = ip;
-	_port = port;
+    _ip = ip;
+    _port = port;
 
     _acceptor->setNewConnectionCallback([this](SOCKET sockfd) { 
-		TcpConnection::Ptr tcpConn = this->newConnection(sockfd);
-		if (tcpConn)
-		{
-			this->addConnection(sockfd, tcpConn);
-			tcpConn->setDisconnectCallback([this] (TcpConnection::Ptr conn){ 
-					auto taskScheduler = conn->getTaskScheduler();
-					int sockfd = conn->fd();
-					if (!taskScheduler->addTriggerEvent([this, sockfd] {this->removeConnection(sockfd); }))
-					{
-						taskScheduler->addTimer([this, sockfd]() {this->removeConnection(sockfd); return false;}, 1);
-					}
-			});
-		}
-	});
+        TcpConnection::Ptr tcpConn = this->newConnection(sockfd);
+        if (tcpConn)
+        {
+            this->addConnection(sockfd, tcpConn);
+            tcpConn->setDisconnectCallback([this] (TcpConnection::Ptr conn){ 
+                    auto taskScheduler = conn->getTaskScheduler();
+                    int sockfd = conn->fd();
+                    if (!taskScheduler->addTriggerEvent([this, sockfd] {this->removeConnection(sockfd); }))
+                    {
+                        taskScheduler->addTimer([this, sockfd]() {this->removeConnection(sockfd); return false;}, 1);
+                    }
+            });
+        }
+    });
 }
 
 TcpServer::~TcpServer()

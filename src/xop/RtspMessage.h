@@ -66,17 +66,17 @@ public:
     uint16_t getRtpPort() const;
     uint16_t getRtcpPort() const;
 
-	int buildOptionRes(const char* buf, int bufSize);
-	int buildDescribeRes(const char* buf, int bufSize, const char* strSdp);
-	int buildSetupMulticastRes(const char* buf, int bufSize, const char* strMulticastIp, uint16_t port, uint32_t sessionId);
-	int buildSetupTcpRes(const char* buf, int bufSize, uint16_t rtpChn, uint16_t rtcpChn, uint32_t sessionId);
-	int buildSetupUdpRes(const char* buf, int bufSize, uint16_t serRtpChn, uint16_t serRtcpChn, uint32_t sessionId);
-	int buildPlayRes(const char* buf, int bufSize, const char* rtpInfo, uint32_t sessionId);
-	int buildTeardownRes(const char* buf, int bufSize, uint32_t sessionId);
-	int buildGetParamterRes(const char* buf, int bufSize, uint32_t sessionId);
-	int buildNotFoundRes(const char* buf, int bufSize);
-	int buildServerErrorRes(const char* buf, int bufSize);
-	int buildUnsupportedRes(const char* buf, int bufSize);
+    int buildOptionRes(const char* buf, int bufSize);
+    int buildDescribeRes(const char* buf, int bufSize, const char* strSdp);
+    int buildSetupMulticastRes(const char* buf, int bufSize, const char* strMulticastIp, uint16_t port, uint32_t sessionId);
+    int buildSetupTcpRes(const char* buf, int bufSize, uint16_t rtpChn, uint16_t rtcpChn, uint32_t sessionId);
+    int buildSetupUdpRes(const char* buf, int bufSize, uint16_t serRtpChn, uint16_t serRtcpChn, uint32_t sessionId);
+    int buildPlayRes(const char* buf, int bufSize, const char* rtpInfo, uint32_t sessionId);
+    int buildTeardownRes(const char* buf, int bufSize, uint32_t sessionId);
+    int buildGetParamterRes(const char* buf, int bufSize, uint32_t sessionId);
+    int buildNotFoundRes(const char* buf, int bufSize);
+    int buildServerErrorRes(const char* buf, int bufSize);
+    int buildUnsupportedRes(const char* buf, int bufSize);
 
 private:
     bool parseRequestLine(const char* begin, const char* end);
@@ -116,23 +116,23 @@ public:
     std::string getSession() const
     { return _session; }
 
-	void setUserAgent(const char *userAgent) 
-	{ _userAgent = std::string(userAgent); }
+    void setUserAgent(const char *userAgent) 
+    { _userAgent = std::string(userAgent); }
 
-	void setRtspUrl(const char *url)
-	{ _rtspUrl = std::string(url); }
+    void setRtspUrl(const char *url)
+    { _rtspUrl = std::string(url); }
 
-	int buildOptionReq(const char* buf, int bufSize);
-	int buildDescribeReq(const char* buf, int bufSize);
-	int buildAnnounceReq(const char* buf, int bufSize, const char *strSdp);
-	int buildSetupTcpReq(const char* buf, int bufSize, int channel);
-	int buildRecordReq(const char* buf, int bufSize);
+    int buildOptionReq(const char* buf, int bufSize);
+    int buildDescribeReq(const char* buf, int bufSize);
+    int buildAnnounceReq(const char* buf, int bufSize, const char *strSdp);
+    int buildSetupTcpReq(const char* buf, int bufSize, int channel);
+    int buildRecordReq(const char* buf, int bufSize);
 
 private:
     Method _method;
     uint32_t _cseq = 0;
-	std::string _userAgent;
-	std::string _rtspUrl;
+    std::string _userAgent;
+    std::string _rtspUrl;
     std::string _session;
 };
 

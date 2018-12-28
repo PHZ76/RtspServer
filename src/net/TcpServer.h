@@ -22,25 +22,25 @@ class TcpServer
 public:	
     TcpServer(EventLoop* loop, std::string ip, uint16_t port);
     virtual ~TcpServer();  
-	int start();
+    int start();
 
-	std::string getIPAddress() const
-	{ return _ip; }
+    std::string getIPAddress() const
+    { return _ip; }
 
-	uint16_t getPort() const 
-	{ return _port; }
+    uint16_t getPort() const 
+    { return _port; }
 
 protected:
-	virtual TcpConnection::Ptr newConnection(SOCKET sockfd);
-	void addConnection(SOCKET sockfd, TcpConnection::Ptr tcpConn);
-	void removeConnection(SOCKET sockfd);
+    virtual TcpConnection::Ptr newConnection(SOCKET sockfd);
+    void addConnection(SOCKET sockfd, TcpConnection::Ptr tcpConn);
+    void removeConnection(SOCKET sockfd);
 
     EventLoop* _eventLoop; 
-	uint16_t _port;
-	std::string _ip;
+    uint16_t _port;
+    std::string _ip;
     std::shared_ptr<Acceptor> _acceptor; 
-	std::mutex _conn_mutex;
-	std::unordered_map<SOCKET, std::shared_ptr<TcpConnection>> _connections;
+    std::mutex _conn_mutex;
+    std::unordered_map<SOCKET, std::shared_ptr<TcpConnection>> _connections;
 };
 
 }

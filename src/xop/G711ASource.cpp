@@ -51,14 +51,14 @@ bool G711ASource::handleFrame(MediaChannelId channelId, AVFrame frame)
         return false;
     }
 
-	uint8_t *frameBuf  = frame.buffer.get();
+    uint8_t *frameBuf  = frame.buffer.get();
     uint32_t frameSize = frame.size;
 
-	RtpPacket rtpPkt;
-	rtpPkt.type = frame.type;
-	rtpPkt.timestamp = frame.timestamp;
-	rtpPkt.size = frameSize + 4 + RTP_HEADER_SIZE;
-	rtpPkt.last = 1;
+    RtpPacket rtpPkt;
+    rtpPkt.type = frame.type;
+    rtpPkt.timestamp = frame.timestamp;
+    rtpPkt.size = frameSize + 4 + RTP_HEADER_SIZE;
+    rtpPkt.last = 1;
 
     memcpy(rtpPkt.data.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize);
 

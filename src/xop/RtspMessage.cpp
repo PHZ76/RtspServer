@@ -42,7 +42,7 @@ bool RtspRequest::parseRequest(BufferReader *buffer)
         }
         else if(_state == kGotAll)
         {
-			buffer->retrieveAll();
+            buffer->retrieveAll();
             return true;
         }
     }
@@ -381,169 +381,169 @@ uint16_t RtspRequest::getRtcpPort() const
 
 int RtspRequest::buildOptionRes(const char* buf, int bufSize)
 {
-	memset((void*)buf, 0, bufSize);
-	snprintf((char*)buf, bufSize,
-			"RTSP/1.0 200 OK\r\n"
-			"CSeq: %u\r\n"
-			"Public: OPTIONS, DESCRIBE, SETUP, TEARDOWN, PLAY\r\n"
-			"\r\n",
-			this->getCSeq());
+    memset((void*)buf, 0, bufSize);
+    snprintf((char*)buf, bufSize,
+            "RTSP/1.0 200 OK\r\n"
+            "CSeq: %u\r\n"
+            "Public: OPTIONS, DESCRIBE, SETUP, TEARDOWN, PLAY\r\n"
+            "\r\n",
+            this->getCSeq());
 
-	return strlen(buf);
+    return strlen(buf);
 }
 
 int RtspRequest::buildDescribeRes(const char* buf, int bufSize, const char* strSdp)
 {
-	memset((void*)buf, 0, bufSize);
-	snprintf((char*)buf, bufSize,
-		"RTSP/1.0 200 OK\r\n"
-		"CSeq: %u\r\n"
-		"Content-Length: %lu\r\n"
-		"Content-Type: application/sdp\r\n"
-		"\r\n"
-		"%s",
-		this->getCSeq(), 
-		strlen(strSdp), 
-		strSdp);
+    memset((void*)buf, 0, bufSize);
+    snprintf((char*)buf, bufSize,
+            "RTSP/1.0 200 OK\r\n"
+            "CSeq: %u\r\n"
+            "Content-Length: %lu\r\n"
+            "Content-Type: application/sdp\r\n"
+            "\r\n"
+            "%s",
+            this->getCSeq(), 
+            strlen(strSdp), 
+            strSdp);
 
-	return strlen(buf);
+    return strlen(buf);
 }
 
 int RtspRequest::buildSetupMulticastRes(const char* buf, int bufSize, const char* strMulticastIp, uint16_t port, uint32_t sessionId)
 {	
-	memset((void*)buf, 0, bufSize);
-	snprintf((char*)buf, bufSize,
-			"RTSP/1.0 200 OK\r\n"
-			"CSeq: %u\r\n"
-			"Transport: RTP/AVP;multicast;destination=%s;source=%s;port=%u-0;ttl=255\r\n"
-			"Session: %u\r\n"
-			"\r\n",
-			this->getCSeq(),
-			strMulticastIp,
-			this->getIp().c_str(),
-			port,
-			sessionId);
+    memset((void*)buf, 0, bufSize);
+    snprintf((char*)buf, bufSize,
+            "RTSP/1.0 200 OK\r\n"
+            "CSeq: %u\r\n"
+            "Transport: RTP/AVP;multicast;destination=%s;source=%s;port=%u-0;ttl=255\r\n"
+            "Session: %u\r\n"
+            "\r\n",
+            this->getCSeq(),
+            strMulticastIp,
+            this->getIp().c_str(),
+            port,
+            sessionId);
 
-	return strlen(buf);
+    return strlen(buf);
 }
 
 int RtspRequest::buildSetupUdpRes(const char* buf, int bufSize, uint16_t rtpChn, uint16_t rtcpChn,uint32_t sessionId)
 {
-	memset((void*)buf, 0, bufSize);
-	snprintf((char*)buf, bufSize,
-			"RTSP/1.0 200 OK\r\n"
-			"CSeq: %u\r\n"
-			"Transport: RTP/AVP;unicast;client_port=%hu-%hu;server_port=%hu-%hu\r\n"
-			"Session: %u\r\n"
-			"\r\n",
-			this->getCSeq(),
-			this->getRtpPort(),
-			this->getRtcpPort(),
-			rtpChn, 
-			rtcpChn,
-			sessionId);
+    memset((void*)buf, 0, bufSize);
+    snprintf((char*)buf, bufSize,
+            "RTSP/1.0 200 OK\r\n"
+            "CSeq: %u\r\n"
+            "Transport: RTP/AVP;unicast;client_port=%hu-%hu;server_port=%hu-%hu\r\n"
+            "Session: %u\r\n"
+            "\r\n",
+            this->getCSeq(),
+            this->getRtpPort(),
+            this->getRtcpPort(),
+            rtpChn, 
+            rtcpChn,
+            sessionId);
 
-	return strlen(buf);
+    return strlen(buf);
 }
 
 int RtspRequest::buildSetupTcpRes(const char* buf, int bufSize, uint16_t rtpChn, uint16_t rtcpChn, uint32_t sessionId)
 {
-	memset((void*)buf, 0, bufSize);
-	snprintf((char*)buf, bufSize,
-			"RTSP/1.0 200 OK\r\n"
-			"CSeq: %u\r\n"
-			"Transport: RTP/AVP/TCP;unicast;interleaved=%d-%d\r\n"
-			"Session: %u\r\n"
-			"\r\n",
-			this->getCSeq(),
-			rtpChn, rtcpChn,
-			sessionId);
+    memset((void*)buf, 0, bufSize);
+    snprintf((char*)buf, bufSize,
+            "RTSP/1.0 200 OK\r\n"
+            "CSeq: %u\r\n"
+            "Transport: RTP/AVP/TCP;unicast;interleaved=%d-%d\r\n"
+            "Session: %u\r\n"
+            "\r\n",
+            this->getCSeq(),
+            rtpChn, rtcpChn,
+            sessionId);
 
-	return strlen(buf);
+    return strlen(buf);
 }
 
 int RtspRequest::buildPlayRes(const char* buf, int bufSize, const char* rtpInfo, uint32_t sessionId)
 {
-	memset((void*)buf, 0, bufSize);
-	snprintf((char*)buf, bufSize,
-			"RTSP/1.0 200 OK\r\n"
-			"CSeq: %d\r\n"
-			"Range: npt=0.000-\r\n"
-			"Session: %u; timeout=60\r\n",
-			this->getCSeq(),
-			sessionId);
+    memset((void*)buf, 0, bufSize);
+    snprintf((char*)buf, bufSize,
+            "RTSP/1.0 200 OK\r\n"
+            "CSeq: %d\r\n"
+            "Range: npt=0.000-\r\n"
+            "Session: %u; timeout=60\r\n",
+            this->getCSeq(),
+            sessionId);
 
-	if (rtpInfo != nullptr)
-	{
-		snprintf((char*)buf + strlen(buf), bufSize - strlen(buf), "%s\r\n", rtpInfo);
-	}
-	
-	snprintf((char*)buf + strlen(buf), bufSize - strlen(buf), "\r\n");
-	return strlen(buf);
+    if (rtpInfo != nullptr)
+    {
+        snprintf((char*)buf + strlen(buf), bufSize - strlen(buf), "%s\r\n", rtpInfo);
+    }
+
+    snprintf((char*)buf + strlen(buf), bufSize - strlen(buf), "\r\n");
+    return strlen(buf);
 }
 
 int RtspRequest::buildTeardownRes(const char* buf, int bufSize, uint32_t sessionId)
 {
-	memset((void*)buf, 0, bufSize);
-	snprintf((char*)buf, bufSize,
-			"RTSP/1.0 200 OK\r\n"
-			"CSeq: %d\r\n"
-			"Session: %u\r\n"
-			"\r\n",
-			this->getCSeq(),
-			sessionId);
+    memset((void*)buf, 0, bufSize);
+    snprintf((char*)buf, bufSize,
+            "RTSP/1.0 200 OK\r\n"
+            "CSeq: %d\r\n"
+            "Session: %u\r\n"
+            "\r\n",
+            this->getCSeq(),
+            sessionId);
 
-	return strlen(buf);
+    return strlen(buf);
 }
 
 int RtspRequest::buildGetParamterRes(const char* buf, int bufSize, uint32_t sessionId)
 {
-	memset((void*)buf, 0, bufSize);
-	snprintf((char*)buf, bufSize,
-			"RTSP/1.0 200 OK\r\n"
-			"CSeq: %d\r\n"
-			"Session: %u\r\n"
-			"\r\n",
-			this->getCSeq(),
-			sessionId);
+    memset((void*)buf, 0, bufSize);
+    snprintf((char*)buf, bufSize,
+            "RTSP/1.0 200 OK\r\n"
+            "CSeq: %d\r\n"
+            "Session: %u\r\n"
+            "\r\n",
+            this->getCSeq(),
+            sessionId);
 
-	return strlen(buf);
+    return strlen(buf);
 }
 
 int RtspRequest::buildNotFoundRes(const char* buf, int bufSize)
 {
-	memset((void*)buf, 0, bufSize);
-	snprintf((char*)buf, bufSize,
-			"RTSP/1.0 404 Stream Not Found\r\n"
-			"CSeq: %u\r\n"
-			"\r\n",
-			this->getCSeq());
+    memset((void*)buf, 0, bufSize);
+    snprintf((char*)buf, bufSize,
+            "RTSP/1.0 404 Stream Not Found\r\n"
+            "CSeq: %u\r\n"
+            "\r\n",
+            this->getCSeq());
 
-	return strlen(buf);
+    return strlen(buf);
 }
 
 int RtspRequest::buildServerErrorRes(const char* buf, int bufSize)
 {
-	memset((void*)buf, 0, bufSize);
-	snprintf((char*)buf, bufSize,
-			"RTSP/1.0 500 Internal Server Error\r\n"
-			"CSeq: %u\r\n"
-			"\r\n",
-			this->getCSeq());
+    memset((void*)buf, 0, bufSize);
+    snprintf((char*)buf, bufSize,
+            "RTSP/1.0 500 Internal Server Error\r\n"
+            "CSeq: %u\r\n"
+            "\r\n",
+            this->getCSeq());
 
-	return strlen(buf);
+    return strlen(buf);
 }
 
 int RtspRequest::buildUnsupportedRes(const char* buf, int bufSize)
 {
-	memset((void*)buf, 0, bufSize);
-	snprintf((char*)buf, bufSize,
-			"RTSP/1.0 461 Unsupported transport\r\n"
-			"CSeq: %d\r\n"
-			"\r\n",
-			this->getCSeq());
+    memset((void*)buf, 0, bufSize);
+    snprintf((char*)buf, bufSize,
+            "RTSP/1.0 461 Unsupported transport\r\n"
+            "CSeq: %d\r\n"
+            "\r\n",
+            this->getCSeq());
 
-	return strlen(buf);
+    return strlen(buf);
 }
 
 bool RtspResponse::parseResponse(xop::BufferReader *buffer)
@@ -572,104 +572,104 @@ bool RtspResponse::parseResponse(xop::BufferReader *buffer)
 
 int RtspResponse::buildOptionReq(const char* buf, int bufSize)
 {
-	memset((void*)buf, 0, bufSize);
-	snprintf((char*)buf, bufSize,
-			"OPTIONS %s RTSP/1.0\r\n"
-			"CSeq: %u\r\n"
-			"User-Agent: %s\r\n"
-			"\r\n",
-			_rtspUrl.c_str(),
-			this->getCSeq() + 1,
-			_userAgent.c_str());
+    memset((void*)buf, 0, bufSize);
+    snprintf((char*)buf, bufSize,
+            "OPTIONS %s RTSP/1.0\r\n"
+            "CSeq: %u\r\n"
+            "User-Agent: %s\r\n"
+            "\r\n",
+            _rtspUrl.c_str(),
+            this->getCSeq() + 1,
+            _userAgent.c_str());
 
-	_method = OPTIONS;
-	return strlen(buf);
+    _method = OPTIONS;
+    return strlen(buf);
 }
 
 int RtspResponse::buildAnnounceReq(const char* buf, int bufSize, const char *strSdp)
 {
-	memset((void*)buf, 0, bufSize);
-	snprintf((char*)buf, bufSize,
-			"ANNOUNCE %s RTSP/1.0\r\n"
-			"Content-Type: application/sdp\r\n"
-			"CSeq: %u\r\n"
-			"User-Agent: %s\r\n"
-			"Session: %s\r\n"
-			"Content-Length: %lu\r\n"
-			"\r\n"
-			"%s",
-			_rtspUrl.c_str(),
-			this->getCSeq() + 1, 
-			_userAgent.c_str(),
-			this->getSession().c_str(),
-			strlen(strSdp),
-			strSdp);
+    memset((void*)buf, 0, bufSize);
+    snprintf((char*)buf, bufSize,
+            "ANNOUNCE %s RTSP/1.0\r\n"
+            "Content-Type: application/sdp\r\n"
+            "CSeq: %u\r\n"
+            "User-Agent: %s\r\n"
+            "Session: %s\r\n"
+            "Content-Length: %lu\r\n"
+            "\r\n"
+            "%s",
+            _rtspUrl.c_str(),
+            this->getCSeq() + 1, 
+            _userAgent.c_str(),
+            this->getSession().c_str(),
+            strlen(strSdp),
+            strSdp);
 
-	_method = ANNOUNCE;
-	return strlen(buf);
+    _method = ANNOUNCE;
+    return strlen(buf);
 }
 
 int RtspResponse::buildDescribeReq(const char* buf, int bufSize)
 {
-	memset((void*)buf, 0, bufSize);
-	snprintf((char*)buf, bufSize,
-			"DESCRIBE %s RTSP/1.0\r\n"
-			"CSeq: %u\r\n"
-			"Accept: application/sdp\r\n"
-			"User-Agent: %s\r\n"
-			"\r\n",
-			_rtspUrl.c_str(),
-			this->getCSeq() + 1,
-			_userAgent.c_str());
+    memset((void*)buf, 0, bufSize);
+    snprintf((char*)buf, bufSize,
+            "DESCRIBE %s RTSP/1.0\r\n"
+            "CSeq: %u\r\n"
+            "Accept: application/sdp\r\n"
+            "User-Agent: %s\r\n"
+            "\r\n",
+            _rtspUrl.c_str(),
+            this->getCSeq() + 1,
+            _userAgent.c_str());
 
-	_method = DESCRIBE;
-	return strlen(buf);
+    _method = DESCRIBE;
+    return strlen(buf);
 }
 
 int RtspResponse::buildSetupTcpReq(const char* buf, int bufSize, int trackId)
 {
-	int interleaved[2] = { 0, 1 };
-	if (trackId == 1)
-	{
-		interleaved[0] = 2;
-		interleaved[1] = 3;
-	}
+    int interleaved[2] = { 0, 1 };
+    if (trackId == 1)
+    {
+        interleaved[0] = 2;
+        interleaved[1] = 3;
+    }
 
-	memset((void*)buf, 0, bufSize);
-	snprintf((char*)buf, bufSize,
-			"SETUP %s/track%d RTSP/1.0\r\n"
-			"Transport: RTP/AVP/TCP;unicast;mode=record;interleaved=%d-%d\r\n"
-			"CSeq: %u\r\n"
-			"User-Agent: %s\r\n"
-			"Session: %s\r\n"
-			"\r\n",
-			_rtspUrl.c_str(), 
-			trackId,
-			interleaved[0],
-			interleaved[1],
-			this->getCSeq() + 1,
-			_userAgent.c_str(), 
-			this->getSession().c_str());
+    memset((void*)buf, 0, bufSize);
+    snprintf((char*)buf, bufSize,
+            "SETUP %s/track%d RTSP/1.0\r\n"
+            "Transport: RTP/AVP/TCP;unicast;mode=record;interleaved=%d-%d\r\n"
+            "CSeq: %u\r\n"
+            "User-Agent: %s\r\n"
+            "Session: %s\r\n"
+            "\r\n",
+            _rtspUrl.c_str(), 
+            trackId,
+            interleaved[0],
+            interleaved[1],
+            this->getCSeq() + 1,
+            _userAgent.c_str(), 
+            this->getSession().c_str());
 
-	_method = SETUP;
-	return strlen(buf);
+    _method = SETUP;
+    return strlen(buf);
 }
 
 int RtspResponse::buildRecordReq(const char* buf, int bufSize)
 {
-	memset((void*)buf, 0, bufSize);
-	snprintf((char*)buf, bufSize,
-			"RECORD %s RTSP/1.0\r\n"
-			"Range: npt=0.000-\r\n"
-			"CSeq: %u\r\n"
-			"User-Agent: %s\r\n"
-			"Session: %s\r\n"
-			"\r\n",
-			_rtspUrl.c_str(), 
-			this->getCSeq() + 1,
-			_userAgent.c_str(), 
-			this->getSession().c_str());
+    memset((void*)buf, 0, bufSize);
+    snprintf((char*)buf, bufSize,
+            "RECORD %s RTSP/1.0\r\n"
+            "Range: npt=0.000-\r\n"
+            "CSeq: %u\r\n"
+            "User-Agent: %s\r\n"
+            "Session: %s\r\n"
+            "\r\n",
+            _rtspUrl.c_str(), 
+            this->getCSeq() + 1,
+            _userAgent.c_str(), 
+            this->getSession().c_str());
 
-	_method = RECORD;
-	return strlen(buf);
+    _method = RECORD;
+    return strlen(buf);
 }

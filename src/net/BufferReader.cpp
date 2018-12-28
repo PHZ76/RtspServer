@@ -33,7 +33,7 @@ int BufferReader::readFd(int sockfd)
         
         _buffer->resize(bufferReaderSize + MAX_BYTES_PER_READ);
     }
-	
+
     int bytesRead = ::recv(sockfd, beginWrite(), MAX_BYTES_PER_READ, 0);
     if(bytesRead > 0)
     {
