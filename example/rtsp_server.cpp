@@ -51,15 +51,16 @@ void snedFrameThread(xop::RtspServer* rtspServer, xop::MediaSessionId sessionId,
 {       
     while(1)
     {
-        if(clients > 0) // 媒体会话有客户端在线, 发送音视频数据
+        if(clients > 0) // 会话有客户端在线, 发送音视频数据
         {
             {
                 /*                     
                     //获取一帧 H264, 打包
                     xop::AVFrame videoFrame = {0};
+                    videoFrame.type = 0; // 建议确定帧类型。I帧(xop::VIDEO_FRAME_I) P帧(xop::VIDEO_FRAME_P)
                     videoFrame.size = video frame size;  // 视频帧大小 
                     videoFrame.timestamp = H264Source::getTimeStamp(); // 时间戳, 建议使用编码器提供的时间戳
-                    videoFrame.buffer.reset(new char[videoFrame.size]);
+                    videoFrame.buffer.reset(new char[videoFrame.size]);                    
                     memcpy(videoFrame.buffer.get(), video frame data, videoFrame.size);					
                    
                     rtspServer->pushFrame(sessionId, xop::channel_0, videoFrame); //送到服务器进行转发, 接口线程安全
@@ -70,9 +71,10 @@ void snedFrameThread(xop::RtspServer* rtspServer, xop::MediaSessionId sessionId,
                 /*
                     //获取一帧 AAC, 打包
                     xop::AVFrame audioFrame = {0};
+                    audioFrame.type = xop::AUDIO_FRAME;
                     audioFrame.size = audio frame size;  // 音频帧大小 
                     audioFrame.timestamp = AACSource::getTimeStamp(44100); // 时间戳
-                    audioFrame.buffer.reset(new char[audioFrame.size]);
+                    audioFrame.buffer.reset(new char[audioFrame.size]);                    
                     memcpy(audioFrame.buffer.get(), audio frame data, audioFrame.size);
 
                     rtspServer->pushFrame(sessionId, xop::channel_1, audioFrame); //送到服务器进行转发, 接口线程安全
