@@ -244,16 +244,16 @@ void RtspConnection::handleCmdDescribe()
                 _rtpConnPtr->setPayloadType((MediaChannelId)chn, source->getPayloadType());
             }
         }
-    }
 
-    std::string sdp = mediaSessionPtr->getSdpMessage(_pRtsp->getVersion());
-    if(sdp == "")
-    {
-        size = _rtspRequestPtr->buildServerErrorRes(res.get(), 4096);
-    }
-    else
-    {
-        size = _rtspRequestPtr->buildDescribeRes(res.get(), 4096, sdp.c_str());		
+        std::string sdp = mediaSessionPtr->getSdpMessage(_pRtsp->getVersion());
+        if(sdp == "")
+        {
+            size = _rtspRequestPtr->buildServerErrorRes(res.get(), 4096);
+        }
+        else
+        {
+            size = _rtspRequestPtr->buildDescribeRes(res.get(), 4096, sdp.c_str());		
+        }
     }
 
     sendMessage(res, size);
@@ -323,7 +323,7 @@ void RtspConnection::handleCmdSetup()
 
             uint16_t serRtpPort = _rtpConnPtr->getRtpPort(channelId);
             uint16_t serRtcpPort = _rtpConnPtr->getRtcpPort(channelId);
-            size = _rtspRequestPtr->buildSetupTcpRes(res.get(), 4096, serRtpPort, serRtcpPort, sessionId);
+            size = _rtspRequestPtr->buildSetupUdpRes(res.get(), 4096, serRtpPort, serRtcpPort, sessionId);
         }
         else
         {          

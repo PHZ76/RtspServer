@@ -12,7 +12,7 @@ void snedFrameThread(xop::RtspServer* rtspServer, xop::MediaSessionId sessionId,
 int main(int agrc, char **argv)
 {	
     int clients = 0; // 记录当前客户端数量
-    std::string ip = "0.0.0.0";//xop::NetInterface::getLocalIPAddress(); //获取网卡ip地址
+    std::string ip = "127.0.0.1";//xop::NetInterface::getLocalIPAddress(); //获取网卡ip地址
     std::string rtspUrl;
 
     std::shared_ptr<xop::EventLoop> eventLoop(new xop::EventLoop());  
