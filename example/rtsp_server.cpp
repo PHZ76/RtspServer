@@ -9,7 +9,7 @@
 
 void snedFrameThread(xop::RtspServer* rtspServer, xop::MediaSessionId sessionId, int& clients);
 
-int main(int agrc, char **argv)
+int main(int argc, char **argv)
 {	
     int clients = 0; // 记录当前客户端数量
     std::string ip = "127.0.0.1";//xop::NetInterface::getLocalIPAddress(); //获取网卡ip地址
@@ -58,8 +58,8 @@ void snedFrameThread(xop::RtspServer* rtspServer, xop::MediaSessionId sessionId,
                     xop::AVFrame videoFrame = {0};
                     videoFrame.type = 0; // 建议确定帧类型。I帧(xop::VIDEO_FRAME_I) P帧(xop::VIDEO_FRAME_P)
                     videoFrame.size = video frame size;  // 视频帧大小 
-                    videoFrame.timestamp = H264Source::getTimeStamp(); // 时间戳, 建议使用编码器提供的时间戳
-                    videoFrame.buffer.reset(new char[videoFrame.size]);                    
+                    videoFrame.timestamp = xop::H264Source::getTimeStamp(); // 时间戳, 建议使用编码器提供的时间戳
+                    videoFrame.buffer.reset(new uint8_t[videoFrame.size]);                    
                     memcpy(videoFrame.buffer.get(), video frame data, videoFrame.size);					
                    
                     rtspServer->pushFrame(sessionId, xop::channel_0, videoFrame); //送到服务器进行转发, 接口线程安全
@@ -72,8 +72,8 @@ void snedFrameThread(xop::RtspServer* rtspServer, xop::MediaSessionId sessionId,
                     xop::AVFrame audioFrame = {0};
                     audioFrame.type = xop::AUDIO_FRAME;
                     audioFrame.size = audio frame size;  // 音频帧大小 
-                    audioFrame.timestamp = AACSource::getTimeStamp(44100); // 时间戳
-                    audioFrame.buffer.reset(new char[audioFrame.size]);                    
+                    audioFrame.timestamp = xop::AACSource::getTimeStamp(44100); // 时间戳
+                    audioFrame.buffer.reset(new uint8_t[audioFrame.size]);                    
                     memcpy(audioFrame.buffer.get(), audio frame data, audioFrame.size);
 
                     rtspServer->pushFrame(sessionId, xop::channel_1, audioFrame); //送到服务器进行转发, 接口线程安全

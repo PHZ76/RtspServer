@@ -39,9 +39,9 @@ struct AVFrame
     }
 
     std::shared_ptr<uint8_t> buffer; /* 帧数据 */
-    uint32_t size;				    /* 帧大小 */
-    uint8_t  type;				    /* 帧类型 */	
-    uint32_t timestamp;		  	    /* 时间戳 */
+    uint32_t size;				     /* 帧大小 */
+    uint8_t  type;				     /* 帧类型 */	
+    uint32_t timestamp;		  	     /* 时间戳 */
 };
 
 #define MAX_MEDIA_CHANNEL 2
