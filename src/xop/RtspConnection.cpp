@@ -69,8 +69,7 @@ bool RtspConnection::onRead(BufferReader& buffer)
     else if (_connMode == RTSP_PUSHER)
     {
         if (!handleRtspResponse(buffer))
-        {
-            printf("close 1 ...\n");
+        {           
             return false; //close
         }
     }
