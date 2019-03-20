@@ -13,6 +13,12 @@ using namespace xop;
 
 bool RtspRequest::parseRequest(BufferReader *buffer)
 {
+    if(buffer->peek()[0] == '$')
+    {
+        _method = RTCP;
+        return true;
+    }
+    
     bool ret = true;
     while(1)
     {
