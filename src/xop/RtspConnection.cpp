@@ -70,6 +70,7 @@ bool RtspConnection::onRead(BufferReader& buffer)
     {
         if (!handleRtspResponse(buffer))
         {
+            printf("close 1 ...\n");
             return false; //close
         }
     }
@@ -112,10 +113,17 @@ bool RtspConnection::handleRtspRequest(BufferReader& buffer)
 
     if (_rtspRequestPtr->parseRequest(&buffer))
     {
-        if (!_rtspRequestPtr->gotAll()) 
-            return true;
-
         RtspRequest::Method method = _rtspRequestPtr->getMethod();
+        if(method == RtspRequest::RTCP)
+        {
+            handleRtcp(buffer);
+            return true;
+        }
+        else if(!_rtspRequestPtr->gotAll()) 
+        {
+            return true;
+        }
+        
         switch (method)
         {
         case RtspRequest::OPTIONS:
@@ -180,8 +188,7 @@ bool RtspConnection::handleRtspResponse(BufferReader& buffer)
         case RtspResponse::RECORD:
             handleRecord();
             break;
-        default:
-            // RTCP
+        default:            
             break;
         }
     }
@@ -203,6 +210,19 @@ void RtspConnection::sendMessage(std::shared_ptr<char> buf, uint32_t size)
     return;
 }
 
+void RtspConnection::handleRtcp(BufferReader& buffer)
+{    
+    char *peek = buffer.peek();
+    if(peek[0] == '$' &&  buffer.readableBytes() > 4)
+    {
+        uint16_t pktSize = peek[2]<<8 | peek[3];
+        if(pktSize+4 >=  buffer.readableBytes())
+        {
+            buffer.retrieve(pktSize+4);  // 忽略RTCP包
+        }
+    }
+}
+ 
 void RtspConnection::handleRtcp(SOCKET sockfd)
 {
     char buf[1024] = {0};

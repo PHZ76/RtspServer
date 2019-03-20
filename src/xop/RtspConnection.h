@@ -78,7 +78,7 @@ private:
     bool onRead(BufferReader& buffer);
     void onClose();
     void handleRtcp(SOCKET sockfd);
-
+    void handleRtcp(BufferReader& buffer);
     void sendMessage(std::shared_ptr<char> buf, uint32_t size);
     bool handleRtspRequest(BufferReader& buffer);
     bool handleRtspResponse(BufferReader& buffer);
