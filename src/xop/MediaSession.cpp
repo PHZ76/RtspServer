@@ -65,21 +65,13 @@ bool MediaSession::addMediaSource(MediaChannelId channelId, MediaSource* source)
                     int id = conn->getId();
                     if (packets.find(id) == packets.end())
                     {
-                        RtpPacket tmpPkt;
-                        if (packets.size() != 0)
-                        {
-                            memcpy(tmpPkt.data.get(), pkt.data.get(), pkt.size);
-                        }
-                        else
-                        {
-                            tmpPkt.data = pkt.data;
-                        }
-                            
-                        tmpPkt.size = pkt.size;
-                        tmpPkt.last = pkt.last;
-                        tmpPkt.timestamp = pkt.timestamp;
-                        tmpPkt.type = pkt.type;
-                        packets.emplace(id, tmpPkt);
+						RtpPacket tmpPkt;
+						memcpy(tmpPkt.data.get(), pkt.data.get(), pkt.size);
+						tmpPkt.size = pkt.size;
+						tmpPkt.last = pkt.last;
+						tmpPkt.timestamp = pkt.timestamp;
+						tmpPkt.type = pkt.type;
+						packets.emplace(id, tmpPkt);
                     }
                     clients.emplace_front(conn);
                     iter++;
