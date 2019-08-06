@@ -37,7 +37,7 @@ int Acceptor::listen()
 
 void Acceptor::handleAccept()
 {
-    int connfd = _tcpSocket->accept();
+    SOCKET connfd = _tcpSocket->accept();
     if (connfd > 0)
     {
         if (_newConnectionCallback)		

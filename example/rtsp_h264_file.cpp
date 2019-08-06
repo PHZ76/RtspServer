@@ -55,7 +55,7 @@ int main(int argc, char **argv)
     xop::RtspServer server(eventLoop.get(), ip, 554);  
 
     xop::MediaSession *session = xop::MediaSession::createNew("live"); 
-    rtspUrl = "rtsp://" + ip + "/" + session->getRtspUrlSuffix();
+    rtspUrl = "rtsp://" + ip + ":554/" + session->getRtspUrlSuffix();
 
     session->addMediaSource(xop::channel_0, xop::H264Source::createNew()); 
     //session->startMulticast();  
@@ -64,9 +64,9 @@ int main(int argc, char **argv)
     std::thread t1(snedFrameThread, &server, sessionId, &h264File); 
     t1.detach(); 
 
-    std::cout << "URL: " <<rtspUrl << std::endl;
+    std::cout << "Play URL: " <<rtspUrl << std::endl;
 
-    eventLoop->loop(); //主线程运行 RtspServer 
+    eventLoop->loop(); 
 
     getchar();
     return 0;
@@ -142,13 +142,13 @@ int H264File::readFrame(char *inBuf, int inBufSize, bool *bEndOfFrame)
         return -1;
     }
 
-    int bytesRead = fread(m_buf, 1, m_bufSize, m_file);
+    int bytesRead = (int)fread(m_buf, 1, m_bufSize, m_file);
     if(bytesRead == 0)
     {
         fseek(m_file, 0, SEEK_SET); 
         m_count = 0;
         m_bytesUsed = 0;
-        bytesRead = fread(m_buf, 1, m_bufSize, m_file);
+        bytesRead = (int)fread(m_buf, 1, m_bufSize, m_file);
         if(bytesRead == 0)        
         {            
             this->close();

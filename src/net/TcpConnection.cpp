@@ -3,7 +3,7 @@
 
 using namespace xop;
 
-TcpConnection::TcpConnection(TaskScheduler *taskScheduler, int sockfd)
+TcpConnection::TcpConnection(TaskScheduler *taskScheduler, SOCKET sockfd)
 	: _taskScheduler(taskScheduler)
 	, _readBufferPtr(new BufferReader)
 	, _writeBufferPtr(new BufferWriter(500))
@@ -26,7 +26,7 @@ TcpConnection::TcpConnection(TaskScheduler *taskScheduler, int sockfd)
 
 TcpConnection::~TcpConnection()
 {
-    int fd = _channelPtr->fd();
+	SOCKET fd = _channelPtr->fd();
     if (fd > 0)
     {
         SocketUtil::close(fd);
@@ -66,7 +66,7 @@ void TcpConnection::handleRead()
     if (_isClosed)
         return;
 
-    int ret = _readBufferPtr->readFd(_channelPtr->fd());
+	int ret = _readBufferPtr->readFd(_channelPtr->fd());
     if (ret <= 0)
     {
         this->handleClose();

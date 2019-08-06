@@ -3,7 +3,6 @@
 
 #include "Pipe.h"
 #include "SocketUtil.h"
-#include "TcpSocket.h"
 #include <random>
 
 using namespace xop;

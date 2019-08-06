@@ -9,7 +9,7 @@
 namespace xop
 {
 
-typedef std::function<void(int)> NewConnectionCallback;
+typedef std::function<void(SOCKET)> NewConnectionCallback;
 
 class EventLoop;
 

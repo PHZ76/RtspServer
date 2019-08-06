@@ -34,7 +34,7 @@ public:
     };
 
     RtspConnection() = delete;
-    RtspConnection(Rtsp *rtspServer, TaskScheduler *taskScheduler, int sockfd);
+    RtspConnection(Rtsp *rtspServer, TaskScheduler *taskScheduler, SOCKET sockfd);
     ~RtspConnection();
 
     MediaSessionId getMediaSessionId()

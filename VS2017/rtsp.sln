@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.645
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rtsp", "rtsp.vcxproj", "{EC47BBA1-2E43-41D0-9120-DCCFF31BB8E3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EC47BBA1-2E43-41D0-9120-DCCFF31BB8E3}.Debug|x64.ActiveCfg = Debug|x64
+		{EC47BBA1-2E43-41D0-9120-DCCFF31BB8E3}.Debug|x64.Build.0 = Debug|x64
+		{EC47BBA1-2E43-41D0-9120-DCCFF31BB8E3}.Debug|x86.ActiveCfg = Debug|Win32
+		{EC47BBA1-2E43-41D0-9120-DCCFF31BB8E3}.Debug|x86.Build.0 = Debug|Win32
+		{EC47BBA1-2E43-41D0-9120-DCCFF31BB8E3}.Release|x64.ActiveCfg = Release|x64
+		{EC47BBA1-2E43-41D0-9120-DCCFF31BB8E3}.Release|x64.Build.0 = Release|x64
+		{EC47BBA1-2E43-41D0-9120-DCCFF31BB8E3}.Release|x86.ActiveCfg = Release|Win32
+		{EC47BBA1-2E43-41D0-9120-DCCFF31BB8E3}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6644BEFC-17EF-4D94-9620-AC36DCD57B40}
+	EndGlobalSection
+EndGlobal

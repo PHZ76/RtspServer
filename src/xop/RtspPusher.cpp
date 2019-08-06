@@ -75,7 +75,7 @@ std::shared_ptr<RtspConnection> RtspPusher::newConnection(SOCKET sockfd)
 {
     std::shared_ptr<RtspConnection> rtspConn(new RtspConnection(this, _eventLoop->getTaskScheduler().get(), sockfd));
     rtspConn->setCloseCallback([this](std::shared_ptr<TcpConnection> conn) {
-        int sockfd = conn->fd();
+        SOCKET sockfd = conn->fd();
         if (!_eventLoop->addTriggerEvent([sockfd, this]() {this->removeConnection(sockfd); }))
         {
             _eventLoop->addTimer([sockfd, this]() { this->removeConnection(sockfd); return false; }, 1);

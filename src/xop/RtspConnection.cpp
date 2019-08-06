@@ -14,7 +14,7 @@
 using namespace xop;
 using namespace std;
 
-RtspConnection::RtspConnection(Rtsp *rtsp, TaskScheduler *taskScheduler, int sockfd)
+RtspConnection::RtspConnection(Rtsp *rtsp, TaskScheduler *taskScheduler, SOCKET sockfd)
     : TcpConnection(taskScheduler, sockfd)
 	, _pTaskScheduler(taskScheduler)
     , _pRtsp(rtsp)
@@ -214,7 +214,7 @@ void RtspConnection::handleRtcp(BufferReader& buffer)
     char *peek = buffer.peek();
     if(peek[0] == '$' &&  buffer.readableBytes() > 4)
     {
-        uint16_t pktSize = peek[2]<<8 | peek[3];
+        uint32_t pktSize = peek[2]<<8 | peek[3];
         if(pktSize+4 >=  buffer.readableBytes())
         {
             buffer.retrieve(pktSize+4);  // 忽略RTCP包

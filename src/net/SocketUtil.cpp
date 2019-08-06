@@ -165,7 +165,7 @@ bool SocketUtil::connect(SOCKET sockfd, std::string ip, uint16_t port, int timeo
 			FD_ZERO(&fdWrite);
 			FD_SET(sockfd, &fdWrite);
 			struct timeval tv = { timeout / 1000, timeout % 1000 * 1000 };
-			select(sockfd + 1, NULL, &fdWrite, NULL, &tv);
+			select((int)sockfd + 1, NULL, &fdWrite, NULL, &tv);
 			if (FD_ISSET(sockfd, &fdWrite))
 			{
 				isConnected = true;

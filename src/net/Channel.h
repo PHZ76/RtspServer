@@ -28,7 +28,7 @@ public:
     typedef std::function<void()> EventCallback;
     
     Channel() = delete;
-    Channel(int fd) : _fd(fd) {};
+    Channel(SOCKET fd) : _fd(fd) {};
     ~Channel() {};
     
     void setReadCallback(const EventCallback& cb)

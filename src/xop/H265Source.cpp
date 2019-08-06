@@ -2,7 +2,9 @@
 // 2018-6-7
 
 #if defined(WIN32) || defined(_WIN32) 
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
+#endif
 #endif
 
 #include "H265Source.h"

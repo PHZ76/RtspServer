@@ -2,7 +2,9 @@
 // 2018-5-16
 
 #if defined(WIN32) || defined(_WIN32)
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
+#endif
 #endif
 
 #include "RtspMessage.h"
@@ -395,7 +397,7 @@ int RtspRequest::buildOptionRes(const char* buf, int bufSize)
             "\r\n",
             this->getCSeq());
 
-    return strlen(buf);
+    return (int)strlen(buf);
 }
 
 int RtspRequest::buildDescribeRes(const char* buf, int bufSize, const char* strSdp)
@@ -404,15 +406,15 @@ int RtspRequest::buildDescribeRes(const char* buf, int bufSize, const char* strS
     snprintf((char*)buf, bufSize,
             "RTSP/1.0 200 OK\r\n"
             "CSeq: %u\r\n"
-            "Content-Length: %lu\r\n"
+            "Content-Length: %d\r\n"
             "Content-Type: application/sdp\r\n"
             "\r\n"
             "%s",
             this->getCSeq(), 
-            strlen(strSdp), 
+            (int)strlen(strSdp), 
             strSdp);
 
-    return strlen(buf);
+    return (int)strlen(buf);
 }
 
 int RtspRequest::buildSetupMulticastRes(const char* buf, int bufSize, const char* strMulticastIp, uint16_t port, uint32_t sessionId)
@@ -430,7 +432,7 @@ int RtspRequest::buildSetupMulticastRes(const char* buf, int bufSize, const char
             port,
             sessionId);
 
-    return strlen(buf);
+    return (int)strlen(buf);
 }
 
 int RtspRequest::buildSetupUdpRes(const char* buf, int bufSize, uint16_t rtpChn, uint16_t rtcpChn,uint32_t sessionId)
@@ -449,7 +451,7 @@ int RtspRequest::buildSetupUdpRes(const char* buf, int bufSize, uint16_t rtpChn,
             rtcpChn,
             sessionId);
 
-    return strlen(buf);
+    return (int)strlen(buf);
 }
 
 int RtspRequest::buildSetupTcpRes(const char* buf, int bufSize, uint16_t rtpChn, uint16_t rtcpChn, uint32_t sessionId)
@@ -465,7 +467,7 @@ int RtspRequest::buildSetupTcpRes(const char* buf, int bufSize, uint16_t rtpChn,
             rtpChn, rtcpChn,
             sessionId);
 
-    return strlen(buf);
+    return (int)strlen(buf);
 }
 
 int RtspRequest::buildPlayRes(const char* buf, int bufSize, const char* rtpInfo, uint32_t sessionId)
@@ -485,7 +487,7 @@ int RtspRequest::buildPlayRes(const char* buf, int bufSize, const char* rtpInfo,
     }
 
     snprintf((char*)buf + strlen(buf), bufSize - strlen(buf), "\r\n");
-    return strlen(buf);
+    return (int)strlen(buf);
 }
 
 int RtspRequest::buildTeardownRes(const char* buf, int bufSize, uint32_t sessionId)
@@ -499,7 +501,7 @@ int RtspRequest::buildTeardownRes(const char* buf, int bufSize, uint32_t session
             this->getCSeq(),
             sessionId);
 
-    return strlen(buf);
+    return (int)strlen(buf);
 }
 
 int RtspRequest::buildGetParamterRes(const char* buf, int bufSize, uint32_t sessionId)
@@ -513,7 +515,7 @@ int RtspRequest::buildGetParamterRes(const char* buf, int bufSize, uint32_t sess
             this->getCSeq(),
             sessionId);
 
-    return strlen(buf);
+    return (int)strlen(buf);
 }
 
 int RtspRequest::buildNotFoundRes(const char* buf, int bufSize)
@@ -525,7 +527,7 @@ int RtspRequest::buildNotFoundRes(const char* buf, int bufSize)
             "\r\n",
             this->getCSeq());
 
-    return strlen(buf);
+    return (int)strlen(buf);
 }
 
 int RtspRequest::buildServerErrorRes(const char* buf, int bufSize)
@@ -537,7 +539,7 @@ int RtspRequest::buildServerErrorRes(const char* buf, int bufSize)
             "\r\n",
             this->getCSeq());
 
-    return strlen(buf);
+    return (int)strlen(buf);
 }
 
 int RtspRequest::buildUnsupportedRes(const char* buf, int bufSize)
@@ -549,7 +551,7 @@ int RtspRequest::buildUnsupportedRes(const char* buf, int bufSize)
             "\r\n",
             this->getCSeq());
 
-    return strlen(buf);
+    return (int)strlen(buf);
 }
 
 bool RtspResponse::parseResponse(xop::BufferReader *buffer)
@@ -589,7 +591,7 @@ int RtspResponse::buildOptionReq(const char* buf, int bufSize)
             _userAgent.c_str());
 
     _method = OPTIONS;
-    return strlen(buf);
+    return (int)strlen(buf);
 }
 
 int RtspResponse::buildAnnounceReq(const char* buf, int bufSize, const char *strSdp)
@@ -601,18 +603,18 @@ int RtspResponse::buildAnnounceReq(const char* buf, int bufSize, const char *str
             "CSeq: %u\r\n"
             "User-Agent: %s\r\n"
             "Session: %s\r\n"
-            "Content-Length: %lu\r\n"
+            "Content-Length: %d\r\n"
             "\r\n"
             "%s",
             _rtspUrl.c_str(),
             this->getCSeq() + 1, 
             _userAgent.c_str(),
             this->getSession().c_str(),
-            strlen(strSdp),
+            (int)strlen(strSdp),
             strSdp);
 
     _method = ANNOUNCE;
-    return strlen(buf);
+    return (int)strlen(buf);
 }
 
 int RtspResponse::buildDescribeReq(const char* buf, int bufSize)
@@ -629,7 +631,7 @@ int RtspResponse::buildDescribeReq(const char* buf, int bufSize)
             _userAgent.c_str());
 
     _method = DESCRIBE;
-    return strlen(buf);
+    return (int)strlen(buf);
 }
 
 int RtspResponse::buildSetupTcpReq(const char* buf, int bufSize, int trackId)
@@ -658,7 +660,7 @@ int RtspResponse::buildSetupTcpReq(const char* buf, int bufSize, int trackId)
             this->getSession().c_str());
 
     _method = SETUP;
-    return strlen(buf);
+    return (int)strlen(buf);
 }
 
 int RtspResponse::buildRecordReq(const char* buf, int bufSize)
@@ -677,5 +679,5 @@ int RtspResponse::buildRecordReq(const char* buf, int bufSize)
             this->getSession().c_str());
 
     _method = RECORD;
-    return strlen(buf);
+    return (int)strlen(buf);
 }

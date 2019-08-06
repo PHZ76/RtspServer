@@ -24,7 +24,7 @@ TcpServer::TcpServer(EventLoop* eventLoop, std::string ip, uint16_t port)
             this->addConnection(sockfd, tcpConn);
             tcpConn->setDisconnectCallback([this] (TcpConnection::Ptr conn){ 
                     auto taskScheduler = conn->getTaskScheduler();
-                    int sockfd = conn->fd();
+                    SOCKET sockfd = conn->fd();
                     if (!taskScheduler->addTriggerEvent([this, sockfd] {this->removeConnection(sockfd); }))
                     {
                         taskScheduler->addTimer([this, sockfd]() {this->removeConnection(sockfd); return false;}, 1);

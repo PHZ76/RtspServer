@@ -20,12 +20,12 @@ BufferReader::~BufferReader()
 	
 }
 
-int BufferReader::readFd(int sockfd)
+int BufferReader::readFd(SOCKET sockfd)
 {	
     uint32_t size = writableBytes();
     if(size < MAX_BYTES_PER_READ) // 重新调整BufferReader大小
     {
-        uint32_t bufferReaderSize = _buffer->size();
+        uint32_t bufferReaderSize = (uint32_t)_buffer->size();
         if(bufferReaderSize > MAX_BUFFER_SIZE)
         {
             return 0; // close
@@ -65,7 +65,7 @@ uint32_t BufferReader::readUntilCrlf(std::string& data)
         return 0;
     }
 
-    uint32_t size = crlf - peek() + 2;
+    uint32_t size = (uint32_t)(crlf - peek() + 2);
     data.assign(peek(), size);
     retrieve(size);
 

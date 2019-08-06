@@ -4,6 +4,8 @@
 #ifndef XOP_PIPE_H
 #define XOP_PIPE_H
 
+#include "TcpSocket.h"
+
 namespace xop
 {
 	
@@ -16,11 +18,11 @@ public:
     int read(void *buf, int len);
     void close();
 
-    int readfd() const { return _pipefd[0]; }
-    int writefd() const { return _pipefd[1]; }
+    SOCKET readfd() const { return _pipefd[0]; }
+    SOCKET writefd() const { return _pipefd[1]; }
 	
 private:
-    int _pipefd[2];
+    SOCKET _pipefd[2];
 };
 
 }

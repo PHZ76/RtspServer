@@ -9,6 +9,7 @@
 #include <string>
 #include <algorithm>  
 #include <memory>  
+#include "Socket.h"
 
 namespace xop
 {
@@ -21,10 +22,10 @@ public:
     ~BufferReader();
 
     uint32_t readableBytes() const
-    { return _writerIndex - _readerIndex; }
+    { return (uint32_t)(_writerIndex - _readerIndex); }
 
     uint32_t writableBytes() const
-    {  return _buffer->size() - _writerIndex; }
+    {  return (uint32_t)(_buffer->size() - _writerIndex); }
 
     char* peek() 
     { return begin() + _readerIndex; }
@@ -70,12 +71,12 @@ public:
     void retrieveUntil(const char* end)
     { retrieve(end - peek()); }
 
-    int readFd(int sockfd);
+    int readFd(SOCKET sockfd);
     uint32_t readAll(std::string& data);
     uint32_t readUntilCrlf(std::string& data);
 
     uint32_t bufferSize() const 
-    { return _buffer->size(); }
+    { return (uint32_t)_buffer->size(); }
 
 private:
     char* begin()

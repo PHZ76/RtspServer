@@ -60,7 +60,7 @@ public:
     { return _sessionId; }
 
     uint32_t getNumClient() const
-    { return _clients.size(); }
+    { return (uint32_t)_clients.size(); }
 
     bool isMulticast() const
     { return _isMulticast; }

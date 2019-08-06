@@ -261,7 +261,7 @@ bool MediaSession::addClient(SOCKET rtspfd, std::shared_ptr<RtpConnection> rtpCo
         _clients.emplace(rtspfd, rtpConnWeakPtr);
         if (_notifyCallback)
         {
-            _notifyCallback(_sessionId, _clients.size()); //回调通知当前客户端数量
+            _notifyCallback(_sessionId, (uint32_t)_clients.size()); //回调通知当前客户端数量
         }
         
         _hasNewClient = true;
@@ -279,7 +279,7 @@ void MediaSession::removeClient(SOCKET rtspfd)
         _clients.erase(rtspfd);
         if (_notifyCallback)
         {
-            _notifyCallback(_sessionId, _clients.size());  //回调通知当前客户端数量
+            _notifyCallback(_sessionId, (uint32_t)_clients.size());  //回调通知当前客户端数量
         }
     }
 }

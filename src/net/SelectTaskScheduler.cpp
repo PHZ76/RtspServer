@@ -32,7 +32,7 @@ void SelectTaskScheduler::updateChannel(ChannelPtr channel)
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
-    int fd = channel->fd();
+    SOCKET fd = channel->fd();
 
     if(_channels.find(fd) != _channels.end())		// 
     {
@@ -65,7 +65,7 @@ void SelectTaskScheduler::removeChannel(ChannelPtr& channel)
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
-    int fd = channel->fd();
+    SOCKET fd = channel->fd();
 
     if(_channels.find(fd) != _channels.end())	
     {
@@ -101,7 +101,7 @@ bool SelectTaskScheduler::handleEvent(int timeout)
         for(auto iter : _channels)
         {
             int events = iter.second->events();
-            int fd = iter.second->fd();
+			SOCKET fd = iter.second->fd();
 
             if (_isfdReadReset && (events&EVENT_IN))
             {
@@ -163,7 +163,7 @@ bool SelectTaskScheduler::handleEvent(int timeout)
     }
 
     struct timeval tv = { timeout/1000, timeout%1000*1000 };
-    int ret = select(_maxfd+1, &fdRead, &fdWrite, &fdExp, &tv); 	
+    int ret = select((int)_maxfd+1, &fdRead, &fdWrite, &fdExp, &tv); 	
     if (ret < 0)
     {
 #if defined(__linux) || defined(__linux__) 

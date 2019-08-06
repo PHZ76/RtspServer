@@ -47,7 +47,7 @@ bool BufferWriter::append(const char* data, uint32_t size, uint32_t index)
     return true;
 }
 
-int BufferWriter::send(int sockfd, int timeout)
+int BufferWriter::send(SOCKET sockfd, int timeout)
 {		
     if(timeout > 0)
         SocketUtil::setBlock(sockfd, timeout); // 超时返回-1
