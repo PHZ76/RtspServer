@@ -50,7 +50,7 @@ private:
     std::shared_ptr<std::queue<Packet>> _buffer;  		
     int _maxQueueLength = 0;
 	 
-    static const int kMaxQueueLength = 10000;
+    static const int kMaxQueueLength = 2000;
 };
 
 }
