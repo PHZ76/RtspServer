@@ -12,6 +12,13 @@
 
 namespace xop
 {
+
+void writeUint32BE(char* p, uint32_t value);
+void writeUint32LE(char* p, uint32_t value);
+void writeUint24BE(char* p, uint32_t value);
+void writeUint24LE(char* p, uint32_t value);
+void writeUint16BE(char* p, uint16_t value);
+void writeUint16LE(char* p, uint16_t value);
 	
 class BufferWriter
 {
@@ -43,7 +50,7 @@ private:
     std::shared_ptr<std::queue<Packet>> _buffer;  		
     int _maxQueueLength = 0;
 	 
-    static const int kMaxQueueLength = 30;
+    static const int kMaxQueueLength = 10000;
 };
 
 }

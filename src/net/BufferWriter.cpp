@@ -7,6 +7,48 @@
 
 using namespace xop;
 
+void xop::writeUint32BE(char* p, uint32_t value)
+{
+    p[0] = value >> 24;
+	p[1] = value >> 16;
+	p[2] = value >> 8;
+	p[3] = value & 0xff;
+}
+
+void xop::writeUint32LE(char* p, uint32_t value)
+{
+    p[0] = value & 0xff;
+	p[1] = value >> 8;
+	p[2] = value >> 16;
+	p[3] = value >> 24;
+}
+
+void xop::writeUint24BE(char* p, uint32_t value)
+{
+	p[0] = value >> 16;
+	p[1] = value >> 8;
+	p[2] = value & 0xff;
+}
+
+void xop::writeUint24LE(char* p, uint32_t value)
+{
+    p[0] = value & 0xff;
+	p[1] = value >> 8;
+	p[2] = value >> 16;
+}
+
+void xop::writeUint16BE(char* p, uint16_t value)
+{
+    p[0] = value >> 8;
+	p[1] = value & 0xff;
+}
+
+void xop::writeUint16LE(char* p, uint16_t value)
+{
+    p[0] = value & 0xff;
+	p[1] = value >> 8;
+}
+
 BufferWriter::BufferWriter(int capacity) 
     : _maxQueueLength(capacity)
 	, _buffer(new std::queue<Packet>)
