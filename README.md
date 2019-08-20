@@ -16,7 +16,6 @@
 * 支持单播(RTP_OVER_UDP, RTP_OVER_RTSP), 组播。
 * 支持心跳检测(单播)。
 * 支持RTSP推流(TCP)。
-* 支持关键帧(GOP)缓存。
 
 编译环境
 -

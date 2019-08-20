@@ -59,15 +59,12 @@ public:
     void teardown();
 
     std::string getRtpInfo(const std::string& rtspUrl);
-    int sendRtpPacket(MediaChannelId channelId, RtpPacket pkt, bool isGOPCache = false);
+    int sendRtpPacket(MediaChannelId channelId, RtpPacket pkt);
 
     bool isClosed() const
     { return _isClosed; }
 
     int getId() const;
-
-    bool hasGOPFrame() const 
-    { return _hasGOPFrame; }
 
     bool hasIDRFrame() const
     { return _hasIDRFrame; }
@@ -86,7 +83,7 @@ private:
     bool _isMulticast = false;
 
     // server
-    bool _isClosed = false, _hasIDRFrame = false, _hasGOPFrame = false;
+    bool _isClosed = false, _hasIDRFrame = false;
 
     uint8_t _frameType = 0;
     uint16_t _localRtpPort[MAX_MEDIA_CHANNEL];
@@ -98,8 +95,6 @@ private:
     struct sockaddr_in _peerRtpAddr[MAX_MEDIA_CHANNEL];
     struct sockaddr_in _peerRtcpAddr[MAX_MEDIA_CHANNEL];
     MediaChannelInfo _mediaChannelInfo[MAX_MEDIA_CHANNEL];
-
-    const uint8_t kGOPCache = 200;
 };
 
 }

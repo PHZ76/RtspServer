@@ -96,12 +96,9 @@ private:
     uint16_t _multicastPort[MAX_MEDIA_CHANNEL];
     std::string _multicastIp;
 
-    std::atomic_bool _gopCacheEnabled, _hasNewClient;
-    AVFrame _gopCache;
+    std::atomic_bool _hasNewClient;
 
     static std::atomic_uint _lastMediaSessionId;
-
-    const uint8_t kGOP = 200;
 };
 
 typedef std::shared_ptr<MediaSession> MediaSessionPtr;

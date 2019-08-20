@@ -11,8 +11,6 @@
 #include "net/NetInterface.h"
 #include "net/SocketUtil.h"
 
-#define GOP_CACHE_ON 1
-
 using namespace xop;
 using namespace std;
 
@@ -23,7 +21,6 @@ MediaSession::MediaSession(std::string rtspUrlSuffxx)
     , _mediaSources(2)
     , _buffer(2)
 {
-    _gopCacheEnabled = false;
     _hasNewClient = false;
     _sessionId = ++_lastMediaSessionId;
 
@@ -87,22 +84,12 @@ bool MediaSession::addMediaSource(MediaChannelId channelId, MediaSource* source)
             auto iter2 = packets.find(id);
             if (iter2 != packets.end())
             {
-                if (_gopCacheEnabled)
-                {
-                    if (iter->hasGOPFrame() || iter->hasIDRFrame())
-                        continue;
-                }
-
                 count++;
-                ret = iter->sendRtpPacket(channelId, iter2->second, _gopCacheEnabled);
+                ret = iter->sendRtpPacket(channelId, iter2->second);
                 if (_isMulticast && ret==0)
                     break; 
             }						
         }
-
-        if (_gopCacheEnabled && count==0)
-            return false; 
-
         return true;
     });
 
@@ -219,29 +206,6 @@ bool MediaSession::handleFrame(MediaChannelId channelId, AVFrame frame)
     if(_mediaSources[channelId])
     {
         _mediaSources[channelId]->handleFrame(channelId, frame);
-#if GOP_CACHE_ON
-        if (!_isMulticast)
-        {
-            uint32_t mediaType = _mediaSources[channelId]->getMediaType();
-            if (mediaType == H264 || mediaType == H265)
-            {
-                if (frame.type == VIDEO_FRAME_I)
-                {					
-                    _gopCache = frame;
-                    _gopCache.type = kGOP;
-                }
-
-                if (_hasNewClient  && _gopCache.size>0)
-                {
-                    _hasNewClient = false;
-                    _gopCacheEnabled = true;
-                    _gopCache.timestamp = H264Source::getTimeStamp();
-                    _mediaSources[channelId]->handleFrame(channelId, _gopCache);
-                    _gopCacheEnabled = false;
-                }
-            }
-        }
-#endif
     }
     else
     {

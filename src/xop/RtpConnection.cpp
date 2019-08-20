@@ -222,8 +222,7 @@ void RtpConnection::setFrameType(uint8_t frameType)
 
 void RtpConnection::setRtpHeader(MediaChannelId channelId, RtpPacket pkt)
 {
-    if((_mediaChannelInfo[channelId].isPlay || _mediaChannelInfo[channelId].isRecord) 
-        && (_hasIDRFrame || _frameType == kGOPCache))
+    if((_mediaChannelInfo[channelId].isPlay || _mediaChannelInfo[channelId].isRecord) && _hasIDRFrame)
     {
         _mediaChannelInfo[channelId].rtpHeader.marker = pkt.last;
         _mediaChannelInfo[channelId].rtpHeader.ts = htonl(pkt.timestamp);
@@ -232,35 +231,17 @@ void RtpConnection::setRtpHeader(MediaChannelId channelId, RtpPacket pkt)
     }
 }
 
-int RtpConnection::sendRtpPacket(MediaChannelId channelId, RtpPacket pkt, bool isGOPCache)
+int RtpConnection::sendRtpPacket(MediaChannelId channelId, RtpPacket pkt)
 {    
     if (_isClosed)
     {
         return -1;
     }
-
-    if (isGOPCache)
-    {
-        if (_hasGOPFrame || _hasIDRFrame)
-        {
-            return 0;
-        }
-        else
-        {
-            if (pkt.last)
-            {		              
-                _hasGOPFrame = true;
-                //_hasIDRFrame = true;
-            }
-        }
-    }
-        
+   
     bool ret = _rtspConnection->_pTaskScheduler->addTriggerEvent([this, channelId, pkt] {        
         this->setFrameType(pkt.type);
         this->setRtpHeader(channelId, pkt);
-        if((_mediaChannelInfo[channelId].isPlay 
-            || _mediaChannelInfo[channelId].isRecord)
-            && (_hasIDRFrame || _frameType==kGOPCache))
+        if((_mediaChannelInfo[channelId].isPlay || _mediaChannelInfo[channelId].isRecord) && _hasIDRFrame )
         {            
             if(_transportMode == RTP_OVER_TCP)
             {
