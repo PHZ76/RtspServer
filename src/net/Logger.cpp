@@ -59,7 +59,7 @@ void Logger::log(Priority priority, const char* __file, const char* __func, int 
     sprintf(buf, "[%s][%s:%s:%d] ", Priority_To_String[priority],  __file, __func, __line);
     va_list args;
     va_start(args, fmt);
-    vsprintf(buf+strlen(buf), fmt, args);
+    vsprintf(buf + strlen(buf), fmt, args);
     va_end(args);
 
     std::string entry(buf);
@@ -68,18 +68,18 @@ void Logger::log(Priority priority, const char* __file, const char* __func, int 
     _cond.notify_all(); 
 }
 
-void Logger::log(Priority priority, const char *fmt, ...)
+void Logger::log2(Priority priority, const char *fmt, ...)
 {
-	char buf[2048] = { 0 };
+	char buf[4096] = { 0 };
 
-	sprintf(buf, "[%s] ", Priority_To_String[priority]);
+	sprintf(buf, "[%s] ", Priority_To_String[priority]);  
 	va_list args;
 	va_start(args, fmt);
 	vsprintf(buf + strlen(buf), fmt, args);
 	va_end(args);
 
 	std::string entry(buf);
-	std::unique_lock<std::mutex> lock(_mutex);
+	std::unique_lock<std::mutex> lock(_mutex); 
 	_queue.push(std::move(entry));
 	_cond.notify_all();
 }

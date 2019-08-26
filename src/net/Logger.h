@@ -33,7 +33,7 @@ public:
 
     void setLogFile(char *pathname);
     void log(Priority priority, const char* __file, const char* __func, int __line, const char *fmt, ...);
-	void log(Priority priority, const char *fmt, ...);
+	void log2(Priority priority, const char *fmt, ...);
 
 private:
     Logger();
@@ -53,7 +53,7 @@ private:
 #else
 #define LOG_DEBUG(fmt, ...)
 #endif
-#define LOG_INFO(fmt, ...) xop::Logger::instance().log(xop::LOG_INFO, fmt, ##__VA_ARGS__)
+#define LOG_INFO(fmt, ...) xop::Logger::instance().log2(xop::LOG_INFO, fmt, ##__VA_ARGS__)
 #define LOG_ERROR(fmt, ...) xop::Logger::instance().log(xop::LOG_ERROR, __FILE__, __FUNCTION__,__LINE__, fmt, ##__VA_ARGS__)
 
 #endif
