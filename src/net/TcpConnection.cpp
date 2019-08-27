@@ -95,7 +95,7 @@ void TcpConnection::handleWrite()
         ret = _writeBufferPtr->send(_channelPtr->fd());
         if (ret < 0)
         {
-            handleClose();
+			this->handleClose();
             return;
         }
         empty = _writeBufferPtr->isEmpty();
@@ -121,13 +121,15 @@ void TcpConnection::handleClose()
     std::lock_guard<std::mutex> lock(_mutex);
     if (!_isClosed)
     {
-        _isClosed = false;
-        _taskScheduler->removeChannel(_channelPtr);
+        _isClosed = true;        		
 
         if (_closeCB)
             _closeCB(shared_from_this());
 
-        _disconnectCB(shared_from_this());
+		if (_disconnectCB)
+			_disconnectCB(shared_from_this());       
+
+		_taskScheduler->removeChannel(_channelPtr);
     }
 }
 
