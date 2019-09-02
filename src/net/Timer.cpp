@@ -72,8 +72,9 @@ void TimerQueue::handleTimerEvent()
                 _events.emplace(std::pair<int64_t, TimerId>(timerPtr->getNextTimeout(), timerId), timerPtr);
             }
             else		
-            {
-                _timers.erase(timerId);
+            {		
+				_events.erase(_events.begin());
+                _timers.erase(timerId);				
             }
         }	
     }

@@ -35,58 +35,71 @@ TcpConnection::~TcpConnection()
 
 void TcpConnection::send(std::shared_ptr<char> data, uint32_t size)
 {
-    if (_isClosed)
-        return;
+	if (_isClosed)
+		return;
 
-    _writeBufferPtr->append(data, size);
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
+		_writeBufferPtr->append(data, size);
+	}
+
     this->handleWrite();
     return;
 }
 
 void TcpConnection::send(const char *data, uint32_t size)
 {
-    if (_isClosed)
-        return;
+	if (_isClosed)
+		return;
 
-    _writeBufferPtr->append(data, size);
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
+		_writeBufferPtr->append(data, size);
+	}
+
     this->handleWrite();
     return;
 }
 
-void TcpConnection::close()
+void TcpConnection::disconnect()
 {
-    if (_isClosed)
-        return;
-
-    this->handleClose();
+	std::lock_guard<std::mutex> lock(_mutex);
+	this->close();
 }
 
 void TcpConnection::handleRead()
 {
-    if (_isClosed)
-        return;
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
 
-	int ret = _readBufferPtr->readFd(_channelPtr->fd());
-    if (ret <= 0)
-    {
-        this->handleClose();
-        return;
-    }
+		if (_isClosed)
+			return;
+
+		int ret = _readBufferPtr->readFd(_channelPtr->fd());
+		if (ret <= 0)
+		{
+			this->close();
+			return;
+		}
+	}
 
     if (_readCB)
     {
         bool ret = _readCB(shared_from_this(), *_readBufferPtr);
         if (false == ret)
         {
-            this->handleClose();
+			std::lock_guard<std::mutex> lock(_mutex);
+			this->close();
         }
     }
 }
 
 void TcpConnection::handleWrite()
 {
-    if (_isClosed)
-        return;
+	if (_isClosed)
+		return;
+
+	std::lock_guard<std::mutex> lock(_mutex);
 
     int ret = 0;
     bool empty = false;
@@ -95,7 +108,7 @@ void TcpConnection::handleWrite()
         ret = _writeBufferPtr->send(_channelPtr->fd());
         if (ret < 0)
         {
-			this->handleClose();
+			this->close();
             return;
         }
         empty = _writeBufferPtr->isEmpty();
@@ -116,24 +129,29 @@ void TcpConnection::handleWrite()
     }
 }
 
+void TcpConnection::close()
+{
+	if (!_isClosed)
+	{
+		_isClosed = true;
+		_taskScheduler->removeChannel(_channelPtr);
+
+		if (_closeCB)
+			_closeCB(shared_from_this());
+
+		if (_disconnectCB)
+			_disconnectCB(shared_from_this());
+	}
+}
+
 void TcpConnection::handleClose()
 {
     std::lock_guard<std::mutex> lock(_mutex);
-    if (!_isClosed)
-    {
-        _isClosed = true;        		
-
-        if (_closeCB)
-            _closeCB(shared_from_this());
-
-		if (_disconnectCB)
-			_disconnectCB(shared_from_this());       
-
-		_taskScheduler->removeChannel(_channelPtr);
-    }
+	this->close();
 }
 
 void TcpConnection::handleError()
 {
-	this->handleClose();
+	std::lock_guard<std::mutex> lock(_mutex);
+	this->close();
 }

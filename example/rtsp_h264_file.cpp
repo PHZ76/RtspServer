@@ -52,7 +52,7 @@ int main(int argc, char **argv)
     std::string rtspUrl;
 
     std::shared_ptr<xop::EventLoop> eventLoop(new xop::EventLoop());  
-    xop::RtspServer server(eventLoop.get(), ip, 554);  
+    xop::RtspServer server(eventLoop.get(), "0.0.0.0", 554);  
 
     xop::MediaSession *session = xop::MediaSession::createNew("live"); 
     rtspUrl = "rtsp://" + ip + ":554/" + session->getRtspUrlSuffix();

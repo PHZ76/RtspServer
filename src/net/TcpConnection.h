@@ -33,7 +33,8 @@ public:
 
     void send(std::shared_ptr<char> data, uint32_t size);
     void send(const char *data, uint32_t size);
-    void close();
+    
+	void disconnect();
 
     bool isClosed() const 
     { return _isClosed; }
@@ -47,18 +48,21 @@ protected:
     virtual void handleRead();
     virtual void handleWrite();
     virtual void handleClose();
-    virtual void handleError();
+    virtual void handleError();	
 
     void setDisconnectCallback(const DisconnectCallback& cb)
     { _disconnectCB = cb; }
 
-    TaskScheduler *_taskScheduler;
-    std::shared_ptr<xop::BufferReader> _readBufferPtr;
-    std::shared_ptr<xop::BufferWriter> _writeBufferPtr;
+	TaskScheduler *_taskScheduler;
+	std::shared_ptr<xop::BufferReader> _readBufferPtr;
+	std::shared_ptr<xop::BufferWriter> _writeBufferPtr;
+	std::atomic_bool _isClosed;
+
+private:
+	void close();
+
     std::shared_ptr<xop::Channel> _channelPtr;
     std::mutex _mutex;
-    std::atomic_bool _isClosed;
-
     DisconnectCallback _disconnectCB ;
     CloseCallback _closeCB;
     ReadCallback _readCB;

@@ -52,6 +52,13 @@ public:
         return crlf == beginWrite() ? nullptr : crlf;
     }
 
+	const char* findLastCrlfCrlf() const
+	{
+		char crlfCrlf[] = "\r\n\r\n";
+		const char* crlf = std::find_end(peek(), beginWrite(), crlfCrlf, crlfCrlf + 4);
+		return crlf == beginWrite() ? nullptr : crlf;
+	}
+
     void retrieveAll() 
     { 
         _writerIndex = 0; 
