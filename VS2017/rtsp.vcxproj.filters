@@ -19,6 +19,12 @@
     <Filter Include="源文件\net">
       <UniqueIdentifier>{f0200b67-2e3e-4d18-92fb-6a9ef1d1d4d3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\3rdpart">
+      <UniqueIdentifier>{dcb79e29-beb4-4205-a5a7-9e8b373ac709}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\3rdpart\md5">
+      <UniqueIdentifier>{bd328520-ced7-4f34-a7db-68df5cb07909}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\example\rtsp_h264_file.cpp">
@@ -107,6 +113,9 @@
     </ClCompile>
     <ClCompile Include="..\src\net\Timestamp.cpp">
       <Filter>源文件\net</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\xop\DigestAuthentication.cpp">
+      <Filter>源文件\xop</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -220,6 +229,12 @@
     </ClInclude>
     <ClInclude Include="..\src\net\Timestamp.h">
       <Filter>源文件\net</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\xop\DigestAuthentication.h">
+      <Filter>源文件\xop</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\3rdpart\md5\md5.hpp">
+      <Filter>源文件\3rdpart\md5</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

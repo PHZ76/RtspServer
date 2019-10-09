@@ -145,6 +145,11 @@ bool RtspRequest::parseHeadersLine(const char* begin, const char* end)
             return false;
     }
 
+	if (_method == DESCRIBE || _method == SETUP || _method == PLAY)
+	{
+		parseAuthorization(message);
+	}
+
     if(_method == OPTIONS)
     {
         _state = kGotAll;
@@ -222,7 +227,6 @@ bool RtspRequest::parseAccept(std::string& message)
 
 bool RtspRequest::parseTransport(std::string& message)
 {
-    // 解析 传输方式
     std::size_t pos = message.find("Transport");
     if(pos != std::string::npos)
     {
@@ -230,8 +234,10 @@ bool RtspRequest::parseTransport(std::string& message)
         {
             _transport = RTP_OVER_TCP;
             uint16_t rtpChannel = 0, rtcpChannel = 0;
-            if(sscanf(message.c_str()+pos, "%*[^;];%*[^;];%*[^=]=%hu-%hu", &rtpChannel, &rtcpChannel) != 2)
-                return false;
+			if (sscanf(message.c_str() + pos, "%*[^;];%*[^;];%*[^=]=%hu-%hu", &rtpChannel, &rtcpChannel) != 2)
+			{
+				return false;
+			}
             _headerLineParam.emplace("rtp_channel", make_pair("", rtpChannel));
             _headerLineParam.emplace("rtcp_channel", make_pair("", rtcpChannel));
         }
@@ -252,8 +258,10 @@ bool RtspRequest::parseTransport(std::string& message)
             {
                 _transport = RTP_OVER_MULTICAST;
             }
-            else
-                return false;
+			else
+			{
+				return false;
+			}
 
             _headerLineParam.emplace("rtp_port", make_pair("", rtpPort));
             _headerLineParam.emplace("rtcp_port", make_pair("", rtcpPort));
@@ -296,6 +304,25 @@ bool RtspRequest::parseMediaChannel(std::string& message)
     }
 
     return true;
+}
+
+bool RtspRequest::parseAuthorization(std::string& message)
+{	
+	std::size_t pos = message.find("Authorization");
+	if (pos != std::string::npos)
+	{
+		if ((pos = message.find("response=")) != std::string::npos)
+		{
+			_authResponse = message.substr(pos + 10, 32);
+			if (_authResponse.size() == 32)
+			{
+				return true;
+			}
+		}
+	}
+
+	_authResponse.clear();
+	return false;
 }
 
 uint32_t RtspRequest::getCSeq() const
@@ -341,6 +368,11 @@ std::string RtspRequest::getRtspUrlSuffix() const
     }
 
     return "";
+}
+
+std::string RtspRequest::getAuthResponse() const
+{
+	return _authResponse;
 }
 
 uint8_t RtspRequest::getRtpChannel() const
@@ -552,6 +584,21 @@ int RtspRequest::buildUnsupportedRes(const char* buf, int bufSize)
             this->getCSeq());
 
     return (int)strlen(buf);
+}
+
+int RtspRequest::buildUnauthorizedRes(const char* buf, int bufSize, const char* realm, const char* nonce)
+{
+	memset((void*)buf, 0, bufSize);
+	snprintf((char*)buf, bufSize,
+		"RTSP/1.0 401 Unauthorized\r\n"
+		"CSeq: %d\r\n"
+		"WWW-Authenticate: Digest realm=\"%s\", nonce=\"%s\"\r\n"
+		"\r\n",
+		this->getCSeq(),
+		realm,
+		nonce);
+
+	return (int)strlen(buf);
 }
 
 bool RtspResponse::parseResponse(xop::BufferReader *buffer)

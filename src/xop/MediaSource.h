@@ -27,10 +27,10 @@ public:
     virtual MediaType getMediaType() const
     { return _mediaType; }
 
-    // SDP媒体描述 m=
+    /* SDP媒体描述 m= */
     virtual std::string getMediaDescription(uint16_t port=0) = 0;
 
-    // SDP媒体属性 a=
+    /* SDP媒体属性 a= */
     virtual std::string getAttribute()  = 0;
 
     virtual bool handleFrame(MediaChannelId channelId, AVFrame frame) = 0;

@@ -37,10 +37,10 @@ public:
     bool addMediaSource(MediaChannelId channelId, MediaSource* source);
     bool removeMediaSource(MediaChannelId channelId);
 
-    // 启动组播, IP端口随机生成
+    /* 启动组播, IP端口随机生成 */
     bool startMulticast();
 
-    // 新的客户端加入, 会触发回调函数通知客户端
+	/* 新的客户端加入, 会触发回调函数通知客户端 */
     void setNotifyCallback(const NotifyCallback& cb)
     { _notifyCallback = cb; }
 
@@ -126,7 +126,7 @@ public:
 
 			if (m_addrs.find(addrPtr) != m_addrs.end())
 			{
-				addrPtr.clear(); //地址已被使用
+				addrPtr.clear(); 
 			}
 			else
 			{

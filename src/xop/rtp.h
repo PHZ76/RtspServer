@@ -24,7 +24,7 @@ enum TransportMode
 
 typedef struct _RTP_header
 {
-    // 小端序
+    /* 小端序 */
     unsigned char csrc:4;
     unsigned char extension:1;
     unsigned char padding:1;

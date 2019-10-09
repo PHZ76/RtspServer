@@ -20,7 +20,7 @@ using namespace std;
 H264Source::H264Source(uint32_t frameRate)
 	: _frameRate(frameRate)
 {
-    _payload = 96; // rtp负载类型
+    _payload = 96; 
     _mediaType = H264;
     _clockRate = 90000;
 }
@@ -63,7 +63,7 @@ bool H264Source::handleFrame(MediaChannelId channelId, AVFrame frame)
         rtpPkt.timestamp = frame.timestamp;
         rtpPkt.size = frameSize + 4 + RTP_HEADER_SIZE;
         rtpPkt.last = 1;
-        memcpy(rtpPkt.data.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize); // 预留12字节 rtp header
+        memcpy(rtpPkt.data.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize); /* 预留12字节 rtp header */
 
         if (_sendFrameCallback)
         {
@@ -75,7 +75,6 @@ bool H264Source::handleFrame(MediaChannelId channelId, AVFrame frame)
     {
         char FU_A[2] = {0};
 
-        // 分包参考live555
         FU_A[0] = (frameBuf[0] & 0xE0) | 28;
         FU_A[1] = 0x80 | (frameBuf[0] & 0x1f);
 

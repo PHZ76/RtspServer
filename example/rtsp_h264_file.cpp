@@ -1,4 +1,4 @@
-// RTSP服务器Demo
+// RTSP-Server
 
 #include "xop/RtspServer.h"
 #include "net/NetInterface.h"
@@ -53,6 +53,10 @@ int main(int argc, char **argv)
 
     std::shared_ptr<xop::EventLoop> eventLoop(new xop::EventLoop());  
     xop::RtspServer server(eventLoop.get(), "0.0.0.0", 554);  
+
+#ifdef AUTH_CONFIG
+	server.setAuthConfig("-_-", "admin", "12345");
+#endif
 
     xop::MediaSession *session = xop::MediaSession::createNew("live"); 
     rtspUrl = "rtsp://" + ip + ":554/" + session->getRtspUrlSuffix();

@@ -1,4 +1,4 @@
-﻿// RTSP推流器Demo, 目前只支持TCP推流, 在EasyDarwin下测试通过
+﻿// RTSP-Pusher
 
 #include "xop/RtspPusher.h"
 #include <thread>

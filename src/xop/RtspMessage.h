@@ -18,19 +18,25 @@ namespace xop
 class RtspRequest
 {
 public:
-    enum RtspRequestParseState
-    {
-        kParseRequestLine, // 请求行
-        kParseHeadersLine, // 首部行, 可能有多行
-        //kParseBody,	// 主体
-        kGotAll,
-    };
+	enum Method
+	{
+		OPTIONS=0, DESCRIBE, SETUP, PLAY, TEARDOWN, GET_PARAMETER, 
+		RTCP, NONE,
+	};
 
-    enum Method
-    {
-        OPTIONS, DESCRIBE, SETUP, PLAY, TEARDOWN, GET_PARAMETER, RTCP,
-        NONE, // 自定义
-    };
+	const char* MethodToString[8] =
+	{
+		"OPTIONS", "DESCRIBE", "SETUP", "PLAY", "TEARDOWN", "GET_PARAMETER",
+		"RTCP", "NONE"
+	};
+
+	enum RtspRequestParseState
+	{
+		kParseRequestLine, /* 请求行 */
+		kParseHeadersLine, /* 首部行, 可能有多行 */
+		//kParseBody,	/* 主体 */
+		kGotAll,
+	};
 
     bool parseRequest(xop::BufferReader *buffer);
 
@@ -55,6 +61,8 @@ public:
 
     std::string getIp() const;
 
+	std::string getAuthResponse() const;
+
     TransportMode getTransportMode() const
     { return _transport; }
 
@@ -77,6 +85,7 @@ public:
     int buildNotFoundRes(const char* buf, int bufSize);
     int buildServerErrorRes(const char* buf, int bufSize);
     int buildUnsupportedRes(const char* buf, int bufSize);
+	int buildUnauthorizedRes(const char* buf, int bufSize, const char* realm, const char* nonce);
 
 private:
     bool parseRequestLine(const char* begin, const char* end);
@@ -86,10 +95,12 @@ private:
     bool parseTransport(std::string& message);
     bool parseSessionId(std::string& message);
     bool parseMediaChannel(std::string& message);
+	bool parseAuthorization(std::string& message);
 
     Method _method;
     MediaChannelId _channelId;
     TransportMode _transport;
+	std::string _authResponse;
     std::unordered_map<std::string, std::pair<std::string, uint32_t>> _requestLineParam;
     std::unordered_map<std::string, std::pair<std::string, uint32_t>> _headerLineParam;
 
@@ -101,8 +112,8 @@ class RtspResponse
 public:
     enum Method
     {
-        OPTIONS, DESCRIBE, ANNOUNCE, SETUP, RECORD, RTCP,
-        NONE, // 自定义
+        OPTIONS=0, DESCRIBE, ANNOUNCE, SETUP, RECORD, RTCP,
+        NONE, 
     };
 
     bool parseResponse(xop::BufferReader *buffer);

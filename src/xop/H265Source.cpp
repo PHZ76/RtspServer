@@ -64,7 +64,7 @@ bool H265Source::handleFrame(MediaChannelId channelId, AVFrame frame)
         rtpPkt.size = frameSize + 4 + RTP_HEADER_SIZE;
         rtpPkt.last = 1;
 
-        memcpy(rtpPkt.data.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize); // 预留 4字节TCP Header, 12字节 RTP Header 
+        memcpy(rtpPkt.data.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize); /* 预留 4字节TCP Header, 12字节 RTP Header */
         
         if (_sendFrameCallback)
         {
@@ -74,7 +74,7 @@ bool H265Source::handleFrame(MediaChannelId channelId, AVFrame frame)
     }	
     else
     {	
-        // 参考live555
+        /* 参考live555 */
         char FU[3] = {0};	
         char nalUnitType = (frameBuf[0] & 0x7E) >> 1; 
         FU[0] = (frameBuf[0] & 0x81) | (49<<1); 

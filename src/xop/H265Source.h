@@ -22,10 +22,10 @@ public:
     uint32_t getFrameRate() const 
     { return _frameRate; }
 
-    // SDP媒体描述 m=
+    /* SDP媒体描述 m= */
     virtual std::string getMediaDescription(uint16_t port=0); 
 
-    // SDP属性 a=
+    /* SDP属性 a= */
     virtual std::string getAttribute(); 
 
     bool handleFrame(MediaChannelId channelId, AVFrame frame);

@@ -8,6 +8,7 @@
 #include "net/TcpConnection.h"
 #include "RtpConnection.h"
 #include "RtspMessage.h"
+#include "DigestAuthentication.h"
 #include "rtsp.h"
 #include <iostream>
 #include <functional>
@@ -28,9 +29,9 @@ public:
 
     enum ConnectionMode
     {
-        RTSP_SERVER, // RTSP服务器
-        RTSP_PUSHER, // RTSP推流器
-        //RTSP_CLIENT, // RTSP客户端
+        RTSP_SERVER, 
+        RTSP_PUSHER,
+        //RTSP_CLIENT,
     };
 
     RtspConnection() = delete;
@@ -55,7 +56,6 @@ public:
 
         if(_rtpConnPtr != nullptr)
         {
-            // 组播暂时不加入心跳检测
             if(_rtpConnPtr->isMulticast())
                 return true;
         }
@@ -89,6 +89,7 @@ private:
     void handleCmdPlay();
     void handleCmdTeardown();
     void handleCmdGetParamter();
+	bool handleAuthentication();
 
     void sendOptions(ConnectionMode mode= RTSP_SERVER);
     void sendDescribe();
@@ -103,7 +104,11 @@ private:
     enum ConnectionMode _connMode = RTSP_SERVER;
     MediaSessionId _sessionId = 0;
 
-    std::shared_ptr<xop::Channel> _rtpChannelPtr;
+	bool _hasAuth = true;
+	std::string _nonce;
+	std::shared_ptr<DigestAuthentication> _authInfoPtr;
+
+    std::shared_ptr<Channel> _rtpChannelPtr;
     std::shared_ptr<RtspRequest> _rtspRequestPtr;
     std::shared_ptr<RtspResponse> _rtspResponsePtr;
     std::shared_ptr<RtpConnection> _rtpConnPtr;

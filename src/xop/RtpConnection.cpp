@@ -251,8 +251,7 @@ int RtpConnection::sendRtpPacket(MediaChannelId channelId, RtpPacket pkt)
             {
                 sendRtpOverUdp(channelId, pkt);
             }
-        
-            // 发送统计
+                   
             //_mediaChannelInfo[channelId].octetCount  += pkt.size;
             //_mediaChannelInfo[channelId].packetCount += 1;
         }
@@ -278,7 +277,7 @@ int RtpConnection::sendRtpOverUdp(MediaChannelId channelId, RtpPacket pkt)
     //_mediaChannelInfo[channelId].octetCount  += pktSize;
     //_mediaChannelInfo[channelId].packetCount += 1;
 
-    //去掉RTP-OVER-TCP传输的4字节header
+    /* 去掉RTP-OVER-TCP传输的4字节header */
     int ret = sendto(_rtpfd[channelId], (const char*)pkt.data.get()+4, pkt.size-4, 0, 
 					(struct sockaddr *)&(_peerRtpAddr[channelId]),
                     sizeof(struct sockaddr_in));

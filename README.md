@@ -16,6 +16,7 @@
 * 支持单播(RTP_OVER_UDP, RTP_OVER_RTSP), 组播。
 * 支持心跳检测(单播)。
 * 支持RTSP推流(TCP)。
+* 支持摘要认证(Digest Authentication)。
 
 编译环境
 -
@@ -26,6 +27,10 @@
 -
 ![image](https://github.com/PHZ76/RtspServer/blob/master/pic/1.pic.JPG) 
 
+
+感谢
+-
+* [websocketpp-md5](https://github.com/zaphoyd/websocketpp)
 
 其他问题
 -

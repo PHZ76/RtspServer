@@ -96,7 +96,7 @@ bool AACSource::handleFrame(MediaChannelId channelId, AVFrame frame)
         adtsSize = ADTS_SIZE;
     }
 
-    uint8_t *frameBuf = frame.buffer.get() + adtsSize; // 打包RTP去掉ADTS头
+    uint8_t *frameBuf = frame.buffer.get() + adtsSize; /* 打包RTP去掉ADTS头 */
     uint32_t frameSize = frame.size - adtsSize;
 
     char AU[AU_SIZE] = { 0 };

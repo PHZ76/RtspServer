@@ -26,7 +26,8 @@ struct RtspUrlInfo
 class Rtsp
 {
 public:
-    virtual ~Rtsp() {};
+	Rtsp() : _hasAuthInfo(false) {}
+    virtual ~Rtsp() {}
 
     virtual MediaSessionId addMeidaSession(MediaSession* session)
     { return 0; }
@@ -36,6 +37,19 @@ public:
 
     virtual bool pushFrame(MediaSessionId sessionId, MediaChannelId channelId, AVFrame frame)
     { return false;}
+
+	virtual void setAuthConfig(std::string realm, std::string username, std::string password)
+	{
+		_realm = realm;
+		_username = username;
+		_password = password;
+		_hasAuthInfo = true;
+
+		if (_realm=="" || username=="")
+		{
+			_hasAuthInfo = false;
+		}
+	}
 
     virtual void setVersion(std::string version) // SDP Session Name
     { _version = std::move(version); }
@@ -87,6 +101,10 @@ protected:
     virtual MediaSessionPtr lookMediaSession(MediaSessionId sessionId)
     { return nullptr; }
 
+	bool _hasAuthInfo = false;
+	std::string _realm;
+	std::string _username;
+	std::string _password;
     std::string _version;
     //std::string _rtspUrl;
     struct RtspUrlInfo _rtspUrlInfo;
