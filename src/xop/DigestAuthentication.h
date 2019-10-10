@@ -13,9 +13,6 @@ namespace xop
 class DigestAuthentication
 {
 public:
-	DigestAuthentication() = delete;
-	DigestAuthentication &operator=(const DigestAuthentication &) = delete;
-	DigestAuthentication(const DigestAuthentication &) = delete;
 	DigestAuthentication(std::string realm, std::string username, std::string password);
 	~DigestAuthentication();
 

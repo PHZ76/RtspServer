@@ -18,7 +18,7 @@ DigestAuthentication::~DigestAuthentication()
 
 std::string DigestAuthentication::getNonce()
 {
-	return "6d8ddf69907708a0c0a71a451759644f"; // md5::generate_nonce();
+	return md5::generate_nonce();
 }
 
 std::string DigestAuthentication::getResponse(std::string nonce, std::string cmd, std::string url)
