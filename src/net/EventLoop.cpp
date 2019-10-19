@@ -1,5 +1,5 @@
 ﻿// PHZ
-// 2018-5-24
+// 2019-10-18
 
 #include "EventLoop.h"
 
@@ -14,7 +14,8 @@
 
 using namespace xop;
 
-EventLoop::EventLoop(int nThreads)
+EventLoop::EventLoop(uint32_t nThreads)
+	: _index(1)
 {
     static std::once_flag oc_init;
 	std::call_once(oc_init, [] {
@@ -26,38 +27,19 @@ EventLoop::EventLoop(int nThreads)
 		}
 #endif
 	});
-	if (nThreads <= 0)
+
+	_nThreads = 1;
+	if (nThreads > 0)
 	{
-		nThreads = 1;
+		_nThreads = nThreads;
 	}
 
-	for (int n=0; n<nThreads; n++)
-	{	
-#if defined(__linux) || defined(__linux__) 
-		std::shared_ptr<TaskScheduler> taskSchedulerPtr(new EpollTaskScheduler(n));
-#elif defined(WIN32) || defined(_WIN32) 
-		std::shared_ptr<TaskScheduler> taskSchedulerPtr(new SelectTaskScheduler(n));
-#endif
-		_taskSchedulers.push_back(taskSchedulerPtr);
-		if (n != 0)
-		{
-			std::shared_ptr<std::thread> t(new std::thread(&TaskScheduler::start, taskSchedulerPtr.get()));
-			_threads.push_back(t);
-		}
-	}
+	this->loop();
 }
 
 EventLoop::~EventLoop()
 {
-    for (auto iter : _taskSchedulers)
-    {
-        iter->stop();
-    }
-
-    for (auto iter : _threads)
-    {
-        iter->join();
-    }
+	this->quit();
 }
 
 std::shared_ptr<TaskScheduler> EventLoop::getTaskScheduler()
@@ -83,12 +65,62 @@ std::shared_ptr<TaskScheduler> EventLoop::getTaskScheduler()
 
 void EventLoop::loop()
 {
-	_taskSchedulers[0]->start();
+	std::lock_guard<std::mutex> locker(_mutex);
+
+	for (uint32_t n = 0; n < _nThreads; n++)
+	{
+#if defined(__linux) || defined(__linux__) 
+		std::shared_ptr<TaskScheduler> taskSchedulerPtr(new EpollTaskScheduler(n));
+#elif defined(WIN32) || defined(_WIN32) 
+		std::shared_ptr<TaskScheduler> taskSchedulerPtr(new SelectTaskScheduler(n));
+#endif
+		_taskSchedulers.push_back(taskSchedulerPtr);
+		std::shared_ptr<std::thread> t(new std::thread(&TaskScheduler::start, taskSchedulerPtr.get()));
+		t->native_handle();
+		_threads.push_back(t);
+	}
+
+	int priority = TASK_SCHEDULER_PRIORITY_REALTIME;
+
+	for (auto iter : _threads)
+	{
+#if defined(__linux) || defined(__linux__) 
+
+#elif defined(WIN32) || defined(_WIN32) 
+		switch (priority) 
+		{
+		case TASK_SCHEDULER_PRIORITY_LOW:
+			SetThreadPriority(iter->native_handle(), THREAD_PRIORITY_BELOW_NORMAL);
+			break;
+		case TASK_SCHEDULER_PRIORITY_NORMAL:
+			SetThreadPriority(iter->native_handle(), THREAD_PRIORITY_NORMAL);
+			break;
+		case TASK_SCHEDULER_PRIORITYO_HIGH:
+			SetThreadPriority(iter->native_handle(), THREAD_PRIORITY_ABOVE_NORMAL);
+			break;
+		case TASK_SCHEDULER_PRIORITY_HIGHEST:
+			SetThreadPriority(iter->native_handle(), THREAD_PRIORITY_HIGHEST);
+			break;
+		case TASK_SCHEDULER_PRIORITY_REALTIME:
+			SetThreadPriority(iter->native_handle(), THREAD_PRIORITY_TIME_CRITICAL);
+			break;
+		}
+#endif
+	}
 }
 
 void EventLoop::quit()
 {
-	_taskSchedulers[0]->stop();
+	std::lock_guard<std::mutex> locker(_mutex);
+	for (auto iter : _taskSchedulers)
+	{
+		iter->stop();
+	}
+
+	for (auto iter : _threads)
+	{
+		iter->join();
+	}
 }
 	
 void EventLoop::updateChannel(ChannelPtr channel)

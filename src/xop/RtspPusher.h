@@ -16,28 +16,23 @@ public:
     RtspPusher(xop::EventLoop *eventLoop);
     ~RtspPusher();
 
-    MediaSessionId addMeidaSession(MediaSession* session);
+    void addMeidaSession(MediaSession* session);
     void removeMeidaSession(MediaSessionId sessionId);
 
-    int openUrl(std::string url);
+    int openUrl(std::string url, int msec = 3000);
     void close();
+	bool isConnected();
 
-    bool pushFrame(MediaSessionId sessionId, MediaChannelId channelId, AVFrame frame);
-
-    bool isConnected() const
-    { return (_connections.size() > 0); }
+    bool pushFrame(MediaChannelId channelId, AVFrame frame);
 
 private:
     friend class RtspConnection;
     MediaSessionPtr lookMediaSession(MediaSessionId sessionId);
 
-    std::shared_ptr<RtspConnection> newConnection(SOCKET sockfd);
-    void removeConnection(SOCKET sockfd);
-
     xop::EventLoop *_eventLoop = nullptr;
+	xop::TaskScheduler *_taskScheduler = nullptr;
     std::mutex _mutex;
-    std::map<SOCKET, std::shared_ptr<RtspConnection>> _connections;
-
+	std::shared_ptr<RtspConnection> _rtspConn;
     std::shared_ptr<MediaSession> _mediaSessionPtr;
 };
 

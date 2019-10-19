@@ -21,7 +21,6 @@ RtspConnection::RtspConnection(Rtsp *rtsp, TaskScheduler *taskScheduler, SOCKET 
     , _rtpChannelPtr(new Channel(sockfd))
     , _rtspRequestPtr(new RtspRequest)
     , _rtspResponsePtr(new RtspResponse)
-    , _rtpConnPtr(new RtpConnection(this))
 {
     this->setReadCallback([this](std::shared_ptr<TcpConnection> conn, xop::BufferReader& buffer) {
         return this->onRead(buffer);
@@ -48,7 +47,7 @@ RtspConnection::RtspConnection(Rtsp *rtsp, TaskScheduler *taskScheduler, SOCKET 
 	{
 		_hasAuth = false;
 		_authInfoPtr.reset(new DigestAuthentication(rtsp->_realm, rtsp->_username, rtsp->_password));
-	}
+	}	
 }
 
 RtspConnection::~RtspConnection()
@@ -114,7 +113,9 @@ bool RtspConnection::handleRtspRequest(BufferReader& buffer)
 #if RTSP_DEBUG
 	string str(buffer.peek(), buffer.readableBytes());
 	if (str.find("rtsp") != string::npos || str.find("RTSP") != string::npos)
-		cout << str << endl;
+	{
+		std::cout << str << std::endl;
+	}
 #endif
 
     if (_rtspRequestPtr->parseRequest(&buffer))
@@ -250,6 +251,11 @@ void RtspConnection::handleCmdDescribe()
 	if (_authInfoPtr!=nullptr && !handleAuthentication())
 	{
 		return;
+	}
+
+	if (_rtpConnPtr == nullptr)
+	{
+		_rtpConnPtr.reset(new RtpConnection(shared_from_this()));
 	}
 
     std::shared_ptr<char> res(new char[4096]);
@@ -389,6 +395,7 @@ void RtspConnection::handleCmdPlay()
 		return;
 	}
 
+	_connState = START_PLAY;
     _rtpConnPtr->play();
 
     uint16_t sessionId = _rtpConnPtr->getRtpSessionId();
@@ -456,6 +463,11 @@ void RtspConnection::sendOptions(ConnectionMode mode)
 
 void RtspConnection::sendAnnounce()
 {
+	if (_rtpConnPtr == nullptr)
+	{
+		_rtpConnPtr.reset(new RtpConnection(shared_from_this()));
+	}
+
     MediaSessionPtr mediaSessionPtr = _pRtsp->lookMediaSession(1);
     if (!mediaSessionPtr)
     {
@@ -532,5 +544,6 @@ void RtspConnection::sendSetup()
 
 void RtspConnection::handleRecord()
 {
+	_connState = START_PUSH;
 	_rtpConnPtr->record();
 }

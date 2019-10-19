@@ -99,7 +99,11 @@ void TcpConnection::handleWrite()
 	if (_isClosed)
 		return;
 
-	std::lock_guard<std::mutex> lock(_mutex);
+	//std::lock_guard<std::mutex> lock(_mutex);
+	if (!_mutex.try_lock())
+	{
+		return;
+	}
 
     int ret = 0;
     bool empty = false;
@@ -109,6 +113,7 @@ void TcpConnection::handleWrite()
         if (ret < 0)
         {
 			this->close();
+			_mutex.unlock();
             return;
         }
         empty = _writeBufferPtr->isEmpty();
@@ -127,6 +132,8 @@ void TcpConnection::handleWrite()
         _channelPtr->enableWriting();
         _taskScheduler->updateChannel(_channelPtr);
     }
+
+	_mutex.unlock();
 }
 
 void TcpConnection::close()

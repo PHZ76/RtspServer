@@ -2,6 +2,7 @@
 
 #include "xop/RtspServer.h"
 #include "net/NetInterface.h"
+#include "net/Timer.h"
 #include <thread>
 #include <memory>
 #include <iostream>
@@ -51,7 +52,7 @@ int main(int argc, char **argv)
     std::string ip = "127.0.0.1";
     std::string rtspUrl;
 
-    std::shared_ptr<xop::EventLoop> eventLoop(new xop::EventLoop());  
+    std::shared_ptr<xop::EventLoop> eventLoop(new xop::EventLoop(1));  
     xop::RtspServer server(eventLoop.get(), "0.0.0.0", 554);  
 
 #ifdef AUTH_CONFIG
@@ -62,7 +63,11 @@ int main(int argc, char **argv)
     rtspUrl = "rtsp://" + ip + ":554/" + session->getRtspUrlSuffix();
 
     session->addMediaSource(xop::channel_0, xop::H264Source::createNew()); 
-    //session->startMulticast();  
+	//session->startMulticast();  /* enable multicast */
+	session->setNotifyCallback([] (xop::MediaSessionId sessionId, uint32_t clients){
+		std::cout << "Number of rtsp client : " << clients << std::endl;
+	});
+   
     xop::MediaSessionId sessionId = server.addMeidaSession(session); 
          
     std::thread t1(snedFrameThread, &server, sessionId, &h264File); 
@@ -70,7 +75,10 @@ int main(int argc, char **argv)
 
     std::cout << "Play URL: " <<rtspUrl << std::endl;
 
-    eventLoop->loop(); 
+	while (1)
+	{
+		xop::Timer::sleep(100);
+	}
 
     getchar();
     return 0;

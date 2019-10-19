@@ -29,15 +29,6 @@ public:
 	Rtsp() : _hasAuthInfo(false) {}
     virtual ~Rtsp() {}
 
-    virtual MediaSessionId addMeidaSession(MediaSession* session)
-    { return 0; }
-
-    virtual void removeMeidaSession(MediaSessionId sessionId)
-    { return; }
-
-    virtual bool pushFrame(MediaSessionId sessionId, MediaChannelId channelId, AVFrame frame)
-    { return false;}
-
 	virtual void setAuthConfig(std::string realm, std::string username, std::string password)
 	{
 		_realm = realm;

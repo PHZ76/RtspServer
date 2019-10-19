@@ -8,7 +8,7 @@
 using namespace std;
 using namespace xop;
 
-RtpConnection::RtpConnection(RtspConnection* rtspConnection)
+RtpConnection::RtpConnection(std::weak_ptr<TcpConnection> rtspConnection)
     : _rtspConnection(rtspConnection)
 {
     std::random_device rd;
@@ -44,15 +44,27 @@ RtpConnection::~RtpConnection()
 
 int RtpConnection::getId() const
 {
-	return _rtspConnection->getId();
+	auto conn = _rtspConnection.lock();
+	if (!conn)
+	{
+		return -1;
+	}
+	RtspConnection *rtspConn = (RtspConnection *)conn.get();
+	return rtspConn->getId();
 }
 
 bool RtpConnection::setupRtpOverTcp(MediaChannelId channelId, uint16_t rtpChannel, uint16_t rtcpChannel)
 {
+	auto conn = _rtspConnection.lock();
+	if (!conn)
+	{
+		return false;
+	}
+
     _mediaChannelInfo[channelId].rtpChannel = rtpChannel;
     _mediaChannelInfo[channelId].rtcpChannel = rtcpChannel;
-    _rtpfd[channelId] = _rtspConnection->fd();
-    _rtcpfd[channelId] = _rtspConnection->fd();
+    _rtpfd[channelId] = conn->fd();
+    _rtcpfd[channelId] = conn->fd();
     _mediaChannelInfo[channelId].isSetup = true;
     _transportMode = RTP_OVER_TCP;
 
@@ -61,7 +73,13 @@ bool RtpConnection::setupRtpOverTcp(MediaChannelId channelId, uint16_t rtpChanne
 
 bool RtpConnection::setupRtpOverUdp(MediaChannelId channelId, uint16_t rtpPort, uint16_t rtcpPort)
 {
-    if(SocketUtil::getPeerAddr(_rtspConnection->fd(), &_peerAddr) < 0)
+	auto conn = _rtspConnection.lock();
+	if (!conn)
+	{
+		return false;
+	}
+
+    if(SocketUtil::getPeerAddr(conn->fd(), &_peerAddr) < 0)
     {
         return false;
     }
@@ -238,7 +256,13 @@ int RtpConnection::sendRtpPacket(MediaChannelId channelId, RtpPacket pkt)
         return -1;
     }
    
-    bool ret = _rtspConnection->_pTaskScheduler->addTriggerEvent([this, channelId, pkt] {        
+	auto conn = _rtspConnection.lock();
+	if (!conn)
+	{
+		return -1;
+	}
+	RtspConnection *rtspConn = (RtspConnection *)conn.get();
+    bool ret = rtspConn->_pTaskScheduler->addTriggerEvent([this, channelId, pkt] {
         this->setFrameType(pkt.type);
         this->setRtpHeader(channelId, pkt);
         if((_mediaChannelInfo[channelId].isPlay || _mediaChannelInfo[channelId].isRecord) && _hasIDRFrame )
@@ -262,13 +286,19 @@ int RtpConnection::sendRtpPacket(MediaChannelId channelId, RtpPacket pkt)
 
 int RtpConnection::sendRtpOverTcp(MediaChannelId channelId, RtpPacket pkt)
 {
+	auto conn = _rtspConnection.lock();
+	if (!conn)
+	{
+		return -1;
+	}
+
     uint8_t* rtpPktPtr = pkt.data.get();
     rtpPktPtr[0] = '$';
     rtpPktPtr[1] = (char)_mediaChannelInfo[channelId].rtpChannel;
     rtpPktPtr[2] = (char)(((pkt.size-4)&0xFF00)>>8);
     rtpPktPtr[3] = (char)((pkt.size -4)&0xFF);
 
-    _rtspConnection->send((char*)rtpPktPtr, pkt.size);
+	conn->send((char*)rtpPktPtr, pkt.size);
     return pkt.size;
 }
 

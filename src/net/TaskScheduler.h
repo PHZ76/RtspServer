@@ -30,7 +30,7 @@ public:
     virtual void removeChannel(ChannelPtr& channel) { };
     virtual bool handleEvent(int timeout) { return false; };
 
-    int getId() const 
+    int getId()  
     { return _id; }
 
 protected:

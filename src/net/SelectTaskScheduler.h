@@ -22,7 +22,7 @@ namespace xop
 class SelectTaskScheduler : public TaskScheduler
 {
 public:
-    SelectTaskScheduler(int id);
+    SelectTaskScheduler(int id = 0);
     virtual ~SelectTaskScheduler();
 
     void updateChannel(ChannelPtr channel);

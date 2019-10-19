@@ -34,6 +34,13 @@ public:
         //RTSP_CLIENT,
     };
 
+	enum ConnectionState
+	{
+		START_CONNECT,
+		START_PLAY,
+		START_PUSH
+	};
+
     RtspConnection() = delete;
     RtspConnection(Rtsp *rtspServer, TaskScheduler *taskScheduler, SOCKET sockfd);
     ~RtspConnection();
@@ -69,6 +76,12 @@ public:
     int getId() const
     { return _pTaskScheduler->getId(); }
 
+	bool isPlay() const
+	{ return _connState == START_PLAY; }
+
+	bool isRecord() const
+	{ return _connState == START_PUSH; }
+
 private:
     friend class RtpConnection;
     friend class MediaSession;
@@ -102,6 +115,7 @@ private:
     Rtsp* _pRtsp = nullptr;
     xop::TaskScheduler *_pTaskScheduler = nullptr;
     enum ConnectionMode _connMode = RTSP_SERVER;
+	enum ConnectionState _connState = START_CONNECT;
     MediaSessionId _sessionId = 0;
 
 	bool _hasAuth = true;

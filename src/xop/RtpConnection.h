@@ -12,6 +12,7 @@
 #include "rtp.h"
 #include "media.h"
 #include "net/Socket.h"
+#include "net/TcpConnection.h"
 
 namespace xop
 {
@@ -21,7 +22,7 @@ class RtspConnection;
 class RtpConnection
 {
 public:
-    RtpConnection(RtspConnection* rtspConnection);
+    RtpConnection(std::weak_ptr<TcpConnection> rtspConnection);
     virtual ~RtpConnection();
 
     void setClockRate(MediaChannelId channelId, uint32_t clockRate)
@@ -77,7 +78,7 @@ private:
     int sendRtpOverTcp(MediaChannelId channelId, RtpPacket pkt);
     int sendRtpOverUdp(MediaChannelId channelId, RtpPacket pkt);
 
-    RtspConnection* _rtspConnection;
+	std::weak_ptr<TcpConnection> _rtspConnection;
 
     TransportMode _transportMode;
     bool _isMulticast = false;
