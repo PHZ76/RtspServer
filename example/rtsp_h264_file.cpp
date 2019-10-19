@@ -52,7 +52,7 @@ int main(int argc, char **argv)
     std::string ip = "127.0.0.1";
     std::string rtspUrl;
 
-    std::shared_ptr<xop::EventLoop> eventLoop(new xop::EventLoop(1));  
+    std::shared_ptr<xop::EventLoop> eventLoop(new xop::EventLoop());  
     xop::RtspServer server(eventLoop.get(), "0.0.0.0", 554);  
 
 #ifdef AUTH_CONFIG
