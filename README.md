@@ -1,42 +1,25 @@
 ﻿# RtspServer
+A RTSP server and pusher based on C++11
+[中文介绍](https://github.com/PHZ76/RtspServer/blob/master/README_CN.md)
 
-项目介绍
--
-* C++11实现的RTSP服务器和推流器。
+# Features
+ - Support Linux and Windows platforms.
+ - Support H.264/H.265/G711A/AAC
+ - Support unicast(rtp over udp, rtp over rtsp), multicast
+ - Support digest authentication
 
-项目Demo
--
-* 为了方便调试做的一个Demo: [DesktopSharing](https://github.com/PHZ76/DesktopSharing): 抓取屏幕和麦克风的音视频数据，编码后进行RTSP转发和推流。
+# Requirements
+- Compiler support c++11, GCC4.8/VS2015 or above.
 
-目前情况
--
-* 支持 Windows 和 Linux平台。
-* 支持 H264, H265, G711A, AAC 四种音视频格式的转发。
-* 支持同时传输音视频。
-* 支持单播(RTP_OVER_UDP, RTP_OVER_RTSP), 组播。
-* 支持心跳检测(单播)。
-* 支持RTSP推流(TCP)。
-* 支持摘要认证(Digest Authentication)。
+# Example
+ - [rtsp-server](https://github.com/PHZ76/RtspServer/blob/master/example/rtsp_h264_file.cpp)
+ - [DesktopSharing](https://github.com/PHZ76/DesktopSharing)
 
-编译环境
--
-* Linux: gcc 4.7
-* Windows: vs2015
+# Dependencies
+ - [websocketpp-md5](https://github.com/zaphoyd/websocketpp)
 
-整体框架
--
-![image](https://github.com/PHZ76/RtspServer/blob/master/pic/1.pic.JPG) 
+# License
+![MIT License](https://github.com/PHZ76/RtspServer/blob/master/LICENSE)
 
-
-感谢
--
-* [websocketpp-md5](https://github.com/zaphoyd/websocketpp)
-
-其他问题
--
-* 如何转发或推流媒体文件? 项目目前没有实现对媒体文件的解析, 可以通过ffmpeg对文件进行帧读取再进行转发。
-* RTSP连接成功没有收到数据? (1)可以使用Wireshark分析RTP包。(2)确定系统的大小端模式。
-
-联系方式
--
-* penghaoze76@qq.com
+# Contact
+ - Email: penghaoze76@qq.com
