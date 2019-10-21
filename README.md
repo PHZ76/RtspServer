@@ -10,7 +10,7 @@ A RTSP server and pusher based on C++11
  - Support digest authentication
 
 ## Requirements
-- Compiler support c++11, GCC4.8/VS2015 or above.
+- Compiler support c++11, gcc4.8/vs2015 or above.
 
 ## Example
  - [rtsp-server](https://github.com/PHZ76/RtspServer/blob/master/example/rtsp_h264_file.cpp)
@@ -20,7 +20,7 @@ A RTSP server and pusher based on C++11
  - [websocketpp-md5](https://github.com/zaphoyd/websocketpp)
 
 ## License
-[MIT License](https://github.com/PHZ76/RtspServer/blob/master/LICENSE)
+ - [MIT License](https://github.com/PHZ76/RtspServer/blob/master/LICENSE)
 
 ## Contact
  - Email: penghaoze76@qq.com
