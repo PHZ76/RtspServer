@@ -79,7 +79,7 @@ void snedFrameThread(xop::RtspServer* rtspServer, xop::MediaSessionId sessionId,
                     //获取一帧 AAC, 打包
                     xop::AVFrame audioFrame = {0};
                     audioFrame.type = xop::AUDIO_FRAME;
-                    audioFrame.size = audio frame size;  /* 音频帧大小 
+                    audioFrame.size = audio frame size;  // 音频帧大小 
                     audioFrame.timestamp = xop::AACSource::getTimeStamp(44100); // 时间戳
                     audioFrame.buffer.reset(new uint8_t[audioFrame.size]);                    
                     memcpy(audioFrame.buffer.get(), audio frame data, audioFrame.size);

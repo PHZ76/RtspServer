@@ -80,14 +80,13 @@ void EventLoop::loop()
 		_threads.push_back(t);
 	}
 
-	int priority = TASK_SCHEDULER_PRIORITY_REALTIME;
-
 	for (auto iter : _threads)
 	{
 #if defined(__linux) || defined(__linux__) 
 
 #elif defined(WIN32) || defined(_WIN32) 
-		switch (priority) 
+	    int priority = TASK_SCHEDULER_PRIORITY_REALTIME;
+        switch (priority) 
 		{
 		case TASK_SCHEDULER_PRIORITY_LOW:
 			SetThreadPriority(iter->native_handle(), THREAD_PRIORITY_BELOW_NORMAL);

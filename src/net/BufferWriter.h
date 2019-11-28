@@ -47,8 +47,8 @@ private:
         uint32_t writeIndex;
     } Packet;
 
-    std::shared_ptr<std::queue<Packet>> _buffer;  		
     int _maxQueueLength = 0;
+    std::shared_ptr<std::queue<Packet>> _buffer;  		
 	 
     static const int kMaxQueueLength = 10000;
 };

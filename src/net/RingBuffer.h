@@ -17,9 +17,9 @@ class RingBuffer
 {
 public:
     RingBuffer(unsigned capacity=60)
-        : _buffer(capacity)
-        , _capacity(capacity)
+        : _capacity(capacity)
         , _numDatas(0)
+        , _buffer(capacity)
     { }
 	
     ~RingBuffer() {	}

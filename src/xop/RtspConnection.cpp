@@ -16,8 +16,8 @@ using namespace std;
 
 RtspConnection::RtspConnection(Rtsp *rtsp, TaskScheduler *taskScheduler, SOCKET sockfd)
     : TcpConnection(taskScheduler, sockfd)
-	, _pTaskScheduler(taskScheduler)
     , _pRtsp(rtsp)
+    , _pTaskScheduler(taskScheduler)
     , _rtpChannelPtr(new Channel(sockfd))
     , _rtspRequestPtr(new RtspRequest)
     , _rtspResponsePtr(new RtspResponse)

@@ -48,7 +48,7 @@ private:
 };
 
 }
-#ifdef _DEBUG
+#ifdef XOP_DEBUG
 #define LOG_DEBUG(fmt, ...) xop::Logger::instance().log(xop::LOG_DEBUG, __FILE__, __FUNCTION__,__LINE__, fmt, ##__VA_ARGS__)
 #else
 #define LOG_DEBUG(fmt, ...)
