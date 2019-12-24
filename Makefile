@@ -1,4 +1,4 @@
-﻿DEUBG = -DXOP_DEBUG
+﻿DEUBG = -D_DEBUG
 
 TARGET1 = rtsp_server
 TARGET2 = rtsp_pusher

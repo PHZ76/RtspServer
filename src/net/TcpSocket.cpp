@@ -34,7 +34,7 @@ bool TcpSocket::bind(std::string ip, uint16_t port)
 
     if(::bind(_sockfd, (struct sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR)
     {
-        LOG_DEBUG(" <socket=%d> bind <%s:%u> failed.\n", _sockfd, ip.c_str(), port);
+        LOG_ERROR(" <socket=%d> bind <%s:%u> failed.\n", _sockfd, ip.c_str(), port);
         return false;
     }
 
@@ -45,7 +45,7 @@ bool TcpSocket::listen(int backlog)
 {
     if(::listen(_sockfd, backlog) == SOCKET_ERROR)
     {
-        LOG_DEBUG("<socket=%d> listen failed.\n", _sockfd);
+		LOG_ERROR("<socket=%d> listen failed.\n", _sockfd);
         return false;
     }
 
@@ -66,7 +66,7 @@ bool TcpSocket::connect(std::string ip, uint16_t port, int timeout)
 { 
     if(!SocketUtil::connect(_sockfd, ip, port, timeout))
     {
-        LOG_DEBUG("<socket=%d> connect failed.\n", _sockfd);
+		LOG_ERROR("<socket=%d> connect failed.\n", _sockfd);
         return false;
     }
 
