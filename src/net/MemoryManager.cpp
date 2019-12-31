@@ -56,7 +56,7 @@ void* MemoryPool::Alloc(uint32_t size)
 	std::lock_guard<std::mutex> locker(_mutex);
 	if (_head != nullptr)
 	{
-		MemoryBlock* block = _head;
+	    block = _head;
 		_head = _head->_next;
 		return ((char*)block + sizeof(MemoryBlock));
 	}
