@@ -41,13 +41,14 @@ bool TcpServer::Start(std::string ip, uint16_t port)
 		if (acceptor_->Listen(ip, port) < 0) {
 			return false;
 		}
+
+		port_ = port;
+		ip_ = ip;
 		is_started_ = true;
 		return true;
 	}
 
-	port_ = port;
-	ip_ = ip;
-	return true;
+	return false;
 }
 
 void TcpServer::Stop()
