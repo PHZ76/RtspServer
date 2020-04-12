@@ -1,4 +1,4 @@
-﻿// PHZ
+// PHZ
 // 2018-5-15
 
 #include "NetInterface.h"
@@ -6,7 +6,7 @@
 
 using namespace xop;
 
-std::string NetInterface::getLocalIPAddress()
+std::string NetInterface::GetLocalIPAddress()
 {
 #if defined(__linux) || defined(__linux__) 
     SOCKET sockfd = 0;

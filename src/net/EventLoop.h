@@ -1,4 +1,4 @@
-﻿// PHZ
+// PHZ
 // 2018-5-15
 
 #ifndef XOP_EVENT_LOOP_H
@@ -32,26 +32,26 @@ class EventLoop
 public:
 	EventLoop(const EventLoop&) = delete;
 	EventLoop &operator = (const EventLoop&) = delete; 
-	EventLoop(uint32_t nThreads=1); //std::thread::hardware_concurrency()
+	EventLoop(uint32_t num_threads =1);  //std::thread::hardware_concurrency()
 	virtual ~EventLoop();
 
-	std::shared_ptr<TaskScheduler> getTaskScheduler();
+	std::shared_ptr<TaskScheduler> GetTaskScheduler();
 
-	bool addTriggerEvent(TriggerEvent callback);
-	TimerId addTimer(TimerEvent timerEvent, uint32_t msec);
-	void removeTimer(TimerId timerId);	
-	void updateChannel(ChannelPtr channel);
-	void removeChannel(ChannelPtr& channel);
+	bool AddTriggerEvent(TriggerEvent callback);
+	TimerId AddTimer(TimerEvent timerEvent, uint32_t msec);
+	void RemoveTimer(TimerId timerId);	
+	void UpdateChannel(ChannelPtr channel);
+	void RemoveChannel(ChannelPtr& channel);
 	
-private:
-	void loop();
-	void quit();
+	void Loop();
+	void Quit();
 
-	std::mutex _mutex;
-	uint32_t _nThreads = 1;
-	uint32_t _index = 1;
-	std::vector<std::shared_ptr<TaskScheduler>> _taskSchedulers;
-	std::vector<std::shared_ptr<std::thread>> _threads;
+private:
+	std::mutex mutex_;
+	uint32_t num_threads_ = 1;
+	uint32_t index_ = 1;
+	std::vector<std::shared_ptr<TaskScheduler>> task_schedulers_;
+	std::vector<std::shared_ptr<std::thread>> threads_;
 };
 
 }

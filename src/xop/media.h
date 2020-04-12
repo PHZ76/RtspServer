@@ -46,11 +46,11 @@ struct AVFrame
 
 #define MAX_MEDIA_CHANNEL 2
 
-typedef  enum __MediaChannel_Id
+enum MediaChannelId
 {
-    channel_0,
-    channel_1
-} MediaChannelId;
+	channel_0,
+	channel_1
+};
 
 typedef uint32_t MediaSessionId;
 

@@ -16,12 +16,12 @@ DigestAuthentication::~DigestAuthentication()
 
 }
 
-std::string DigestAuthentication::getNonce()
+std::string DigestAuthentication::GetNonce()
 {
 	return md5::generate_nonce();
 }
 
-std::string DigestAuthentication::getResponse(std::string nonce, std::string cmd, std::string url)
+std::string DigestAuthentication::GetResponse(std::string nonce, std::string cmd, std::string url)
 {
 	//md5(md5(<username>:<realm> : <password>) :<nonce> : md5(<cmd>:<url>))
 

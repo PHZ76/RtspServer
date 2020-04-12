@@ -17,17 +17,17 @@
 using namespace xop;
 using namespace std;
 
-H265Source::H265Source(uint32_t frameRate)
-	: _frameRate(frameRate)
+H265Source::H265Source(uint32_t framerate)
+	: framerate_(framerate)
 {
-    _payload = 96;
-    _mediaType = H265;
-    _clockRate = 90000;
+    payload_    = 96;
+    media_type_ = H265;
+    clock_rate_ = 90000;
 }
 
-H265Source* H265Source::createNew(uint32_t frameRate)
+H265Source* H265Source::CreateNew(uint32_t framerate)
 {
-    return new H265Source(frameRate);
+    return new H265Source(framerate);
 }
 
 H265Source::~H265Source()
@@ -35,106 +35,103 @@ H265Source::~H265Source()
 	
 }
 
-string H265Source::getMediaDescription(uint16_t port)
+string H265Source::GetMediaDescription(uint16_t port)
 {
-    char buf[100] = {0};
-    sprintf(buf, "m=video %hu RTP/AVP 96", port);
+	char buf[100] = {0};
+	sprintf(buf, "m=video %hu RTP/AVP 96", port);
 
-    return string(buf);
+	return string(buf);
 }
 	
-string H265Source::getAttribute()
+string H265Source::GetAttribute()
 {
-    return string("a=rtpmap:96 H265/90000");
+	return string("a=rtpmap:96 H265/90000");
 }
 
-bool H265Source::handleFrame(MediaChannelId channelId, AVFrame frame)
+bool H265Source::HandleFrame(MediaChannelId channelId, AVFrame frame)
 {
-    uint8_t *frameBuf  = frame.buffer.get();
-    uint32_t frameSize = frame.size;
+	uint8_t *frame_buf  = frame.buffer.get();
+	uint32_t frame_size = frame.size;
 
-    if(frame.timestamp == 0)
-        frame.timestamp = getTimeStamp();
-
-    if (frameSize <= MAX_RTP_PAYLOAD_SIZE) 
-    {
-        RtpPacket rtpPkt;
-        rtpPkt.type = frame.type;
-        rtpPkt.timestamp = frame.timestamp;
-        rtpPkt.size = frameSize + 4 + RTP_HEADER_SIZE;
-        rtpPkt.last = 1;
-
-        memcpy(rtpPkt.data.get()+4+RTP_HEADER_SIZE, frameBuf, frameSize); /* 预留 4字节TCP Header, 12字节 RTP Header */
+	if (frame.timestamp == 0) {
+		frame.timestamp = GetTimestamp();
+	}
         
-        if (_sendFrameCallback)
-        {
-            if (!_sendFrameCallback(channelId, rtpPkt))
-                return false;
-        }
-    }	
-    else
-    {	
-        /* 参考live555 */
-        char FU[3] = {0};	
-        char nalUnitType = (frameBuf[0] & 0x7E) >> 1; 
-        FU[0] = (frameBuf[0] & 0x81) | (49<<1); 
-        FU[1] = frameBuf[1]; 
-        FU[2] = (0x80 | nalUnitType); 
-        
-        frameBuf  += 2;
-        frameSize -= 2;
-        
-        while (frameSize + 3 > MAX_RTP_PAYLOAD_SIZE) 
-        {
-            RtpPacket rtpPkt;
-            rtpPkt.type = frame.type;
-            rtpPkt.timestamp = frame.timestamp;
-            rtpPkt.size = 4 + RTP_HEADER_SIZE + MAX_RTP_PAYLOAD_SIZE;
-            rtpPkt.last = 0;
+	if (frame_size <= MAX_RTP_PAYLOAD_SIZE) {
+		RtpPacket rtp_pkt;
+		rtp_pkt.type = frame.type;
+		rtp_pkt.timestamp = frame.timestamp;
+		rtp_pkt.size = frame_size + 4 + RTP_HEADER_SIZE;
+		rtp_pkt.last = 1;
 
-            rtpPkt.data.get()[RTP_HEADER_SIZE+4] = FU[0];
-            rtpPkt.data.get()[RTP_HEADER_SIZE+5] = FU[1];
-            rtpPkt.data.get()[RTP_HEADER_SIZE+6] = FU[2];
-            memcpy(rtpPkt.data.get()+4+RTP_HEADER_SIZE+3, frameBuf, MAX_RTP_PAYLOAD_SIZE-3);
+		memcpy(rtp_pkt.data.get()+4+RTP_HEADER_SIZE, frame_buf, frame_size);
+        
+		if (send_frame_callback_) {
+			if (!send_frame_callback_(channelId, rtp_pkt)) {
+				return false;
+			}          
+		}
+	}	
+    else {	
+		char FU[3] = {0};	
+		char nalUnitType = (frame_buf[0] & 0x7E) >> 1; 
+		FU[0] = (frame_buf[0] & 0x81) | (49<<1); 
+		FU[1] = frame_buf[1]; 
+		FU[2] = (0x80 | nalUnitType); 
+        
+		frame_buf  += 2;
+		frame_size -= 2;
+        
+		while (frame_size + 3 > MAX_RTP_PAYLOAD_SIZE) {
+			RtpPacket rtp_pkt;
+			rtp_pkt.type = frame.type;
+			rtp_pkt.timestamp = frame.timestamp;
+			rtp_pkt.size = 4 + RTP_HEADER_SIZE + MAX_RTP_PAYLOAD_SIZE;
+			rtp_pkt.last = 0;
+
+			rtp_pkt.data.get()[RTP_HEADER_SIZE+4] = FU[0];
+			rtp_pkt.data.get()[RTP_HEADER_SIZE+5] = FU[1];
+			rtp_pkt.data.get()[RTP_HEADER_SIZE+6] = FU[2];
+			memcpy(rtp_pkt.data.get()+4+RTP_HEADER_SIZE+3, frame_buf, MAX_RTP_PAYLOAD_SIZE-3);
             
-            if (_sendFrameCallback)
-            {
-                if (!_sendFrameCallback(channelId, rtpPkt))
-                    return false;
-            }
+			if (send_frame_callback_) {
+				if (!send_frame_callback_(channelId, rtp_pkt)) {
+					return false;
+				}                
+			}
             
-            frameBuf  += (MAX_RTP_PAYLOAD_SIZE - 3);
-            frameSize -= (MAX_RTP_PAYLOAD_SIZE - 3);
+			frame_buf  += (MAX_RTP_PAYLOAD_SIZE - 3);
+			frame_size -= (MAX_RTP_PAYLOAD_SIZE - 3);
         
-            FU[2] &= ~0x80;						
-        }
+			FU[2] &= ~0x80;						
+		}
         
-        {
-            RtpPacket rtpPkt;
-            rtpPkt.type = frame.type;
-            rtpPkt.timestamp = frame.timestamp;
-            rtpPkt.size = 4 + RTP_HEADER_SIZE + 3 + frameSize;
-            rtpPkt.last = 1;
+		{
+			RtpPacket rtp_pkt;
+			rtp_pkt.type = frame.type;
+			rtp_pkt.timestamp = frame.timestamp;
+			rtp_pkt.size = 4 + RTP_HEADER_SIZE + 3 + frame_size;
+			rtp_pkt.last = 1;
 
-            FU[2] |= 0x40;
-            rtpPkt.data.get()[RTP_HEADER_SIZE+4] = FU[0];
-            rtpPkt.data.get()[RTP_HEADER_SIZE+5] = FU[1];
-            rtpPkt.data.get()[RTP_HEADER_SIZE+6] = FU[2];
-            memcpy(rtpPkt.data.get()+4+RTP_HEADER_SIZE+3, frameBuf, frameSize);
+			FU[2] |= 0x40;
+			rtp_pkt.data.get()[RTP_HEADER_SIZE+4] = FU[0];
+			rtp_pkt.data.get()[RTP_HEADER_SIZE+5] = FU[1];
+			rtp_pkt.data.get()[RTP_HEADER_SIZE+6] = FU[2];
+			memcpy(rtp_pkt.data.get()+4+RTP_HEADER_SIZE+3, frame_buf, frame_size);
             
-            if (_sendFrameCallback)
-            {
-                if (!_sendFrameCallback(channelId, rtpPkt))
-                    return false;
-            }
-        }            
+			if (send_frame_callback_) {
+				if (!send_frame_callback_(channelId, rtp_pkt)) {
+					return false;
+				}               
+			}
+		}            
     }
 
     return true;
 }
 
 
-uint32_t H265Source::getTimeStamp()
+uint32_t H265Source::GetTimestamp()
 {
 /* #if defined(__linux) || defined(__linux__) 
 	struct timeval tv = {0};
@@ -142,9 +139,9 @@ uint32_t H265Source::getTimeStamp()
 	uint32_t ts = ((tv.tv_sec*1000)+((tv.tv_usec+500)/1000))*90; // 90: _clockRate/1000;
 	return ts;
 #else */
-	//auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now());
-	//auto timePoint = chrono::time_point_cast<chrono::milliseconds>(chrono::steady_clock::now());
-	auto timePoint = chrono::time_point_cast<chrono::microseconds>(chrono::steady_clock::now());
-	return (uint32_t)((timePoint.time_since_epoch().count() + 500) / 1000 * 90);
+	//auto time_point = chrono::time_point_cast<chrono::milliseconds>(chrono::system_clock::now());
+	//auto time_point = chrono::time_point_cast<chrono::milliseconds>(chrono::steady_clock::now());
+	auto time_point = chrono::time_point_cast<chrono::microseconds>(chrono::steady_clock::now());
+	return (uint32_t)((time_point.time_since_epoch().count() + 500) / 1000 * 90);
 //#endif 
 }

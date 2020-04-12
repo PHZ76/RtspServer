@@ -1,4 +1,4 @@
-﻿// PHZ
+// PHZ
 // 2018-5-15
 
 #include "SocketUtil.h"
@@ -7,22 +7,21 @@
 
 using namespace xop;
 
-bool SocketUtil::bind(SOCKET sockfd, std::string ip, uint16_t port)
+bool SocketUtil::Bind(SOCKET sockfd, std::string ip, uint16_t port)
 {
     struct sockaddr_in addr = {0};			  
     addr.sin_family = AF_INET;		  
     addr.sin_addr.s_addr = inet_addr(ip.c_str()); 
     addr.sin_port = htons(port);  
 
-    if(::bind(sockfd, (struct sockaddr*)&addr, sizeof addr) == SOCKET_ERROR)
-    {      
+    if(::bind(sockfd, (struct sockaddr*)&addr, sizeof addr) == SOCKET_ERROR) {      
         return false;
     }
 
     return true;
 }
 
-void SocketUtil::setNonBlock(SOCKET fd)
+void SocketUtil::SetNonBlock(SOCKET fd)
 {
 #if defined(__linux) || defined(__linux__) 
     int flags = fcntl(fd, F_GETFL, 0);
@@ -33,7 +32,7 @@ void SocketUtil::setNonBlock(SOCKET fd)
 #endif
 }
 
-void SocketUtil::setBlock(SOCKET fd, int writeTimeout)
+void SocketUtil::SetBlock(SOCKET fd, int writeTimeout)
 {
 #if defined(__linux) || defined(__linux__) 
     int flags = fcntl(fd, F_GETFL, 0);
@@ -58,13 +57,13 @@ void SocketUtil::setBlock(SOCKET fd, int writeTimeout)
 	}
 }
 
-void SocketUtil::setReuseAddr(SOCKET sockfd)
+void SocketUtil::SetReuseAddr(SOCKET sockfd)
 {
     int on = 1;
     setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof on);
 }
 
-void SocketUtil::setReusePort(SOCKET sockfd)
+void SocketUtil::SetReusePort(SOCKET sockfd)
 {
 #ifdef SO_REUSEPORT
     int on = 1;
@@ -72,7 +71,7 @@ void SocketUtil::setReusePort(SOCKET sockfd)
 #endif	
 }
 
-void SocketUtil::setNoDelay(SOCKET sockfd)
+void SocketUtil::SetNoDelay(SOCKET sockfd)
 {
 #ifdef TCP_NODELAY
     int on = 1;
@@ -80,13 +79,13 @@ void SocketUtil::setNoDelay(SOCKET sockfd)
 #endif
 }
 
-void SocketUtil::setKeepAlive(SOCKET sockfd)
+void SocketUtil::SetKeepAlive(SOCKET sockfd)
 {
     int on = 1;
     setsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, (char *)&on, sizeof(on));
 }
 
-void SocketUtil::setNoSigpipe(SOCKET sockfd)
+void SocketUtil::SetNoSigpipe(SOCKET sockfd)
 {
 #ifdef SO_NOSIGPIPE
     int on = 1;
@@ -94,17 +93,17 @@ void SocketUtil::setNoSigpipe(SOCKET sockfd)
 #endif
 }
 
-void SocketUtil::setSendBufSize(SOCKET sockfd, int size)
+void SocketUtil::SetSendBufSize(SOCKET sockfd, int size)
 {
     setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, (char *)&size, sizeof(size));
 }
 
-void SocketUtil::setRecvBufSize(SOCKET sockfd, int size)
+void SocketUtil::SetRecvBufSize(SOCKET sockfd, int size)
 {
     setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, (char *)&size, sizeof(size));
 }
 
-std::string SocketUtil::getPeerIp(SOCKET sockfd)
+std::string SocketUtil::GetPeerIp(SOCKET sockfd)
 {
     struct sockaddr_in addr = { 0 };
     socklen_t addrlen = sizeof(struct sockaddr_in);
@@ -116,7 +115,7 @@ std::string SocketUtil::getPeerIp(SOCKET sockfd)
     return "0.0.0.0";
 }
 
-uint16_t SocketUtil::getPeerPort(SOCKET sockfd)
+uint16_t SocketUtil::GetPeerPort(SOCKET sockfd)
 {
     struct sockaddr_in addr = { 0 };
     socklen_t addrlen = sizeof(struct sockaddr_in);
@@ -128,13 +127,13 @@ uint16_t SocketUtil::getPeerPort(SOCKET sockfd)
     return 0;
 }
 
-int SocketUtil::getPeerAddr(SOCKET sockfd, struct sockaddr_in *addr)
+int SocketUtil::GetPeerAddr(SOCKET sockfd, struct sockaddr_in *addr)
 {
     socklen_t addrlen = sizeof(struct sockaddr_in);
     return getpeername(sockfd, (struct sockaddr *)addr, &addrlen);
 }
 
-void SocketUtil::close(SOCKET sockfd)
+void SocketUtil::Close(SOCKET sockfd)
 {
 #if defined(__linux) || defined(__linux__) 
     ::close(sockfd);
@@ -143,12 +142,12 @@ void SocketUtil::close(SOCKET sockfd)
 #endif
 }
 
-bool SocketUtil::connect(SOCKET sockfd, std::string ip, uint16_t port, int timeout)
+bool SocketUtil::Connect(SOCKET sockfd, std::string ip, uint16_t port, int timeout)
 {
 	bool isConnected = true;
 	if (timeout > 0)
 	{
-		SocketUtil::setNonBlock(sockfd);
+		SocketUtil::SetNonBlock(sockfd);
 	}
 
 	struct sockaddr_in addr = { 0 };
@@ -170,7 +169,7 @@ bool SocketUtil::connect(SOCKET sockfd, std::string ip, uint16_t port, int timeo
 			{
 				isConnected = true;
 			}
-			SocketUtil::setBlock(sockfd);
+			SocketUtil::SetBlock(sockfd);
 		}
 		else
 		{

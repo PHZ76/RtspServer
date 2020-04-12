@@ -1,4 +1,4 @@
-﻿// PHZ
+// PHZ
 // 2018-5-15
 
 #ifndef _XOP_TIMER_H
@@ -23,84 +23,87 @@ typedef uint32_t TimerId;
 class Timer
 {
 public:
-    Timer(const TimerEvent& event, uint32_t msec)
-        : eventCallback(event)
-        , _interval(msec)
-    {
-        if (_interval == 0)
-            _interval = 1;
-    }
+	Timer(const TimerEvent& event, uint32_t msec)
+		: event_callback_(event)
+		, interval_(msec)
+	{
+		if (interval_ == 0) {
+			interval_ = 1;
+		}
+	}
 
-    Timer() { }
+	Timer() { }
 
-    static void sleep(uint32_t msec)
-    { 
-        std::this_thread::sleep_for(std::chrono::milliseconds(msec));
-    }
+	static void Sleep(uint32_t msec)
+	{ 
+		std::this_thread::sleep_for(std::chrono::milliseconds(msec));
+	}
 
-    void setEventCallback(const TimerEvent& event)
-    {
-        eventCallback = event;
-    }
+	void SetEventCallback(const TimerEvent& event)
+	{
+		event_callback_ = event;
+	}
 
-    void start(int64_t microseconds, bool repeat = false)
-    {
-        _isRepeat = repeat;
-        auto timeBegin = std::chrono::high_resolution_clock::now();
-        int64_t elapsed = 0;
+	void Start(int64_t microseconds, bool repeat = false)
+	{
+		is_repeat_ = repeat;
+		auto time_begin = std::chrono::high_resolution_clock::now();
+		int64_t elapsed = 0;
 
-        do
-        {
-            std::this_thread::sleep_for(std::chrono::microseconds(microseconds - elapsed));
-            timeBegin = std::chrono::high_resolution_clock::now();
-            eventCallback();
-            elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - timeBegin).count();
-            if (elapsed < 0)
-                elapsed = 0;
-        } while (_isRepeat);
-    }
+		do
+		{
+			std::this_thread::sleep_for(std::chrono::microseconds(microseconds - elapsed));
+			time_begin = std::chrono::high_resolution_clock::now();
+			event_callback_();
+			elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_begin).count();
+			if (elapsed < 0) {
+				elapsed = 0;
+			}
+            
+		} while (is_repeat_);
+	}
 
-    void stop()
-    {
-        _isRepeat = false;
-    }	
+	void stop()
+	{
+		is_repeat_ = false;
+	}	
 
 private:
-    friend class TimerQueue;
+	friend class TimerQueue;
 
-    void setNextTimeout(int64_t currentTimePoint)
-    {
-        _nextTimeout = currentTimePoint + _interval;
-    }
+	void SetNextTimeout(int64_t time_point)
+	{
+		next_timeout_ = time_point + interval_;
+	}
 
-    int64_t getNextTimeout() const
-    {
-        return _nextTimeout;
-    }
+	int64_t getNextTimeout() const
+	{
+		return next_timeout_;
+	}
 
-    bool _isRepeat = false;
-    TimerEvent eventCallback = [] { return false; };
-    uint32_t _interval = 0;
-    int64_t _nextTimeout = 0;
+	bool is_repeat_ = false;
+	TimerEvent event_callback_ = [] { return false; };
+	uint32_t interval_ = 0;
+	int64_t  next_timeout_ = 0;
 };
 
 class TimerQueue
 {
 public:
-    TimerId addTimer(const TimerEvent& event, uint32_t msec);
-    void removeTimer(TimerId timerId);
+	TimerId AddTimer(const TimerEvent& event, uint32_t msec);
+	void RemoveTimer(TimerId timerId);
 
-    int64_t getTimeRemaining();
-    void handleTimerEvent();
+	int64_t GetTimeRemaining();
+	void HandleTimerEvent();
 
 private:
-    int64_t getTimeNow();
+	int64_t GetTimeNow();
 
-    std::mutex _mutex;
-    std::unordered_map<TimerId, std::shared_ptr<Timer>> _timers;
-    std::map<std::pair<int64_t, TimerId>, std::shared_ptr<Timer>> _events;
-    uint32_t _lastTimerId = 0;
-    uint32_t _timeRemaining = 0;
+	std::mutex mutex_;
+	std::unordered_map<TimerId, std::shared_ptr<Timer>> timers_;
+	std::map<std::pair<int64_t, TimerId>, std::shared_ptr<Timer>> events_;
+	uint32_t last_timer_id_ = 0;
+	uint32_t time_remaining_ = 0;
 };
 
 }

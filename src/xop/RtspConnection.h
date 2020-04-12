@@ -25,14 +25,14 @@ class MediaSession;
 class RtspConnection : public TcpConnection
 {
 public:
-    typedef std::function<void (SOCKET sockfd)> CloseCallback;
+	typedef std::function<void (SOCKET sockfd)> CloseCallback;
 
-    enum ConnectionMode
-    {
-        RTSP_SERVER, 
-        RTSP_PUSHER,
-        //RTSP_CLIENT,
-    };
+	enum ConnectionMode
+	{
+		RTSP_SERVER, 
+		RTSP_PUSHER,
+		//RTSP_CLIENT,
+	};
 
 	enum ConnectionState
 	{
@@ -41,92 +41,92 @@ public:
 		START_PUSH
 	};
 
-    RtspConnection() = delete;
-    RtspConnection(Rtsp *rtspServer, TaskScheduler *taskScheduler, SOCKET sockfd);
-    ~RtspConnection();
+	RtspConnection() = delete;
+	RtspConnection(std::shared_ptr<Rtsp> rtsp_server, TaskScheduler *task_scheduler, SOCKET sockfd);
+	~RtspConnection();
 
-    MediaSessionId getMediaSessionId()
-    { return _sessionId; }
+	MediaSessionId GetMediaSessionId()
+	{ return session_id_; }
 
-    TaskScheduler *getTaskScheduler() const 
-    { return _pTaskScheduler; }
+	TaskScheduler *GetTaskScheduler() const 
+	{ return task_scheduler_; }
 
-    void keepAlive()
-    { _aliveCount++; }
+	void KeepAlive()
+	{ alive_count_++; }
 
-    bool isAlive() const
-    {
-        if (isClosed())
-        {
-            return false;
-        }
+	bool IsAlive() const
+	{
+		if (IsClosed()) {
+			return false;
+		}
 
-        if(_rtpConnPtr != nullptr)
-        {
-            if(_rtpConnPtr->isMulticast())
-                return true;
-        }
+		if(rtp_conn_ != nullptr) {
+			if (rtp_conn_->IsMulticast()) {
+				return true;
+			}			
+		}
 
-        return (_aliveCount > 0);
-    }
+		return (alive_count_ > 0);
+	}
 
-    void resetAliveCount()
-    { _aliveCount = 0; }
+	void ResetAliveCount()
+	{ alive_count_ = 0; }
 
-    int getId() const
-    { return _pTaskScheduler->getId(); }
+	int GetId() const
+	{ return task_scheduler_->GetId(); }
 
-	bool isPlay() const
-	{ return _connState == START_PLAY; }
+	bool IsPlay() const
+	{ return conn_state_ == START_PLAY; }
 
-	bool isRecord() const
-	{ return _connState == START_PUSH; }
+	bool IsRecord() const
+	{ return conn_state_ == START_PUSH; }
 
 private:
-    friend class RtpConnection;
-    friend class MediaSession;
-    friend class RtspServer;
-    friend class RtspPusher;
+	friend class RtpConnection;
+	friend class MediaSession;
+	friend class RtspServer;
+	friend class RtspPusher;
 
-    bool onRead(BufferReader& buffer);
-    void onClose();
-    void handleRtcp(SOCKET sockfd);
-    void handleRtcp(BufferReader& buffer);
-    void sendMessage(std::shared_ptr<char> buf, uint32_t size);
-    bool handleRtspRequest(BufferReader& buffer);
-    bool handleRtspResponse(BufferReader& buffer);
+	bool OnRead(BufferReader& buffer);
+	void OnClose();
+	void HandleRtcp(SOCKET sockfd);
+	void HandleRtcp(BufferReader& buffer);   
+	bool HandleRtspRequest(BufferReader& buffer);
+	bool HandleRtspResponse(BufferReader& buffer);
 
-    void handleCmdOption();
-    void handleCmdDescribe();
-    void handleCmdSetup();
-    void handleCmdPlay();
-    void handleCmdTeardown();
-    void handleCmdGetParamter();
-	bool handleAuthentication();
+	void SendRtspMessage(std::shared_ptr<char> buf, uint32_t size);
 
-    void sendOptions(ConnectionMode mode= RTSP_SERVER);
-    void sendDescribe();
-    void sendAnnounce();
-    void sendSetup();
-    void handleRecord();
+	void HandleCmdOption();
+	void HandleCmdDescribe();
+	void HandleCmdSetup();
+	void HandleCmdPlay();
+	void HandleCmdTeardown();
+	void HandleCmdGetParamter();
+	bool HandleAuthentication();
 
-    std::atomic_int _aliveCount;
+	void SendOptions(ConnectionMode mode= RTSP_SERVER);
+	void SendDescribe();
+	void SendAnnounce();
+	void SendSetup();
+	void HandleRecord();
 
-    Rtsp* _pRtsp = nullptr;
-    xop::TaskScheduler *_pTaskScheduler = nullptr;
-    enum ConnectionMode _connMode = RTSP_SERVER;
-	enum ConnectionState _connState = START_CONNECT;
-    MediaSessionId _sessionId = 0;
+	std::atomic_int alive_count_;
+	std::weak_ptr<Rtsp> rtsp_;
+	xop::TaskScheduler *task_scheduler_ = nullptr;
 
-	bool _hasAuth = true;
+	ConnectionMode  conn_mode_ = RTSP_SERVER;
+	ConnectionState conn_state_ = START_CONNECT;
+	MediaSessionId  session_id_ = 0;
+
+	bool has_auth_ = true;
 	std::string _nonce;
-	std::shared_ptr<DigestAuthentication> _authInfoPtr;
+	std::unique_ptr<DigestAuthentication> auth_info_;
 
-    std::shared_ptr<Channel> _rtpChannelPtr;
-    std::shared_ptr<RtspRequest> _rtspRequestPtr;
-    std::shared_ptr<RtspResponse> _rtspResponsePtr;
-    std::shared_ptr<RtpConnection> _rtpConnPtr;
-    std::shared_ptr<xop::Channel> _rtcpChannels[MAX_MEDIA_CHANNEL];
+	std::shared_ptr<Channel>       rtp_channel_;
+	std::shared_ptr<Channel>       rtcp_channels_[MAX_MEDIA_CHANNEL];
+	std::unique_ptr<RtspRequest>   rtsp_request_;
+	std::unique_ptr<RtspResponse>  rtsp_response_;
+	std::shared_ptr<RtpConnection> rtp_conn_;
 };
 
 }

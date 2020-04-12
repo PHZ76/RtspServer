@@ -1,4 +1,4 @@
-﻿#include "MemoryManager.h"
+#include "MemoryManager.h"
 
 using namespace xop;
 
@@ -19,32 +19,33 @@ MemoryPool::MemoryPool()
 
 MemoryPool::~MemoryPool()
 {
-	if (_memory)
-		free(_memory);
+	if (memory_) {
+		free(memory_);
+	}
 }
 
 void MemoryPool::Init(uint32_t size, uint32_t n)
 {
-	if (_memory)
+	if (memory_) {
 		return;
+	}
 
-	_blockSize = size;
-	_numBlocks = n;
-	_memory = (char*)malloc(_numBlocks * (_blockSize + sizeof(MemoryBlock)));
-	_head = (MemoryBlock*)_memory;
-	_head->_blockId = 1;
-	_head->_pool = this;
-	_head->_next = nullptr;
+	block_size_ = size;
+	num_blocks_ = n;
+	memory_ = (char*)malloc(num_blocks_ * (block_size_ + sizeof(MemoryBlock)));
+	head_ = (MemoryBlock*)memory_;
+	head_->blockId = 1;
+	head_->pool = this;
+	head_->next = nullptr;
 
-	MemoryBlock* current = _head;
-	for (uint32_t n = 1; n < _numBlocks; n++)
-	{
-		MemoryBlock* next = (MemoryBlock*)(_memory + (n * (_blockSize + sizeof(MemoryBlock))));
-		next->_blockId = n + 1;
-		next->_pool = this;
-		next->_next = nullptr;
+	MemoryBlock* current = head_;
+	for (uint32_t n = 1; n < num_blocks_; n++) {
+		MemoryBlock* next = (MemoryBlock*)(memory_ + (n * (block_size_ + sizeof(MemoryBlock))));
+		next->blockId = n + 1;
+		next->pool = this;
+		next->next = nullptr;
 
-		current->_next = next;
+		current->next = next;
 		current = next;
 	}
 }
@@ -53,11 +54,10 @@ void* MemoryPool::Alloc(uint32_t size)
 {
 	MemoryBlock* block = nullptr;
 
-	std::lock_guard<std::mutex> locker(_mutex);
-	if (_head != nullptr)
-	{
-		MemoryBlock* block = _head;
-		_head = _head->_next;
+	std::lock_guard<std::mutex> locker(mutex_);
+	if (head_ != nullptr) {
+		MemoryBlock* block = head_;
+		head_ = head_->next;
 		return ((char*)block + sizeof(MemoryBlock));
 	}
 
@@ -67,20 +67,19 @@ void* MemoryPool::Alloc(uint32_t size)
 void MemoryPool::Free(void* ptr)
 {
 	MemoryBlock *block = (MemoryBlock*)((char*)ptr - sizeof(MemoryBlock));
-	if (block->_blockId != 0)
-	{
-		std::lock_guard<std::mutex> locker(_mutex);
-		block->_next = _head;
-		_head = block;
+	if (block->blockId != 0) {
+		std::lock_guard<std::mutex> locker(mutex_);
+		block->next = head_;
+		head_ = block;
 	}
 }
 
 MemoryManager::MemoryManager()
 {
-	_memoryPools[0].Init(4096, 50);
-	_memoryPools[1].Init(40960, 10);
-	_memoryPools[2].Init(102400, 5);
-	//_memoryPools[3].Init(204800, 2);
+	memory_pools_[0].Init(4096, 50);
+	memory_pools_[1].Init(40960, 10);
+	memory_pools_[2].Init(102400, 5);
+	//memory_pools_[3].Init(204800, 2);
 }
 
 MemoryManager::~MemoryManager()
@@ -96,36 +95,34 @@ MemoryManager& MemoryManager::Instance()
 
 void* MemoryManager::Alloc(uint32_t size)
 {
-	for (int n = 0; n < kMaxMemoryPool; n++)
-	{
-		if (size <= _memoryPools[n].BolckSize())
-		{
-			void* ptr = _memoryPools[n].Alloc(size);
-			if (ptr != nullptr)
+	for (int n = 0; n < kMaxMemoryPool; n++) {
+		if (size <= memory_pools_[n].BolckSize()) {
+			void* ptr = memory_pools_[n].Alloc(size);
+			if (ptr != nullptr) {
 				return ptr;
-			else
+			}				
+			else {
 				break;
+			}
 		}
-	}
+	} 
 
 	MemoryBlock *block = (MemoryBlock*)malloc(size + sizeof(MemoryBlock));
-	block->_blockId = 0;
-	block->_pool = nullptr;
-	block->_next = nullptr;
+	block->blockId = 0;
+	block->pool = nullptr;
+	block->next = nullptr;
 	return ((char*)block + sizeof(MemoryBlock));
 }
 
 void MemoryManager::Free(void* ptr)
 {
 	MemoryBlock *block = (MemoryBlock*)((char*)ptr - sizeof(MemoryBlock));
-	MemoryPool *pool = block->_pool;
+	MemoryPool *pool = block->pool;
 	
-	if (pool != nullptr && block->_blockId > 0)
-	{
+	if (pool != nullptr && block->blockId > 0) {
 		pool->Free(ptr);
 	}
-	else
-	{
+	else {
 		::free(block);
 	}
 }

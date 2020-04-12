@@ -31,74 +31,75 @@ class MediaSession
 public:
     typedef std::function<void (MediaSessionId sessionId, uint32_t numClients)> NotifyCallback;
 
-    static MediaSession* createNew(std::string rtspUrlSuffxx=" ");
+    static MediaSession* CreateNew(std::string url_suffxx="live");
     ~MediaSession();
 
-    bool addMediaSource(MediaChannelId channelId, MediaSource* source);
-    bool removeMediaSource(MediaChannelId channelId);
+    bool AddSource(MediaChannelId channel_id, MediaSource* source);
+    bool RemoveSource(MediaChannelId channel_id);
 
-    /* 启动组播, IP端口随机生成 */
-    bool startMulticast();
+    bool StartMulticast();
 
-	/* 新的客户端加入, 会触发回调函数通知客户端 */
-    void setNotifyCallback(const NotifyCallback& cb)
-    { _notifyCallback = cb; }
+    void SetNotifyCallback(const NotifyCallback& cb)
+    { notify_callback_ = cb; }
 
-    std::string getRtspUrlSuffix() const
-    { return _suffix; }
+    std::string GetRtspUrlSuffix() const
+    { return suffix_; }
 
-    void setRtspUrlSuffix(std::string& suffix)
-    { _suffix = suffix; }
+    void SetRtspUrlSuffix(std::string& suffix)
+    { suffix_ = suffix; }
 
-    std::string getSdpMessage(std::string sessionName="");
-    MediaSource* getMediaSource(MediaChannelId channelId); 
-    bool handleFrame(MediaChannelId channelId, AVFrame frame);
-    bool addClient(SOCKET rtspfd, std::shared_ptr<RtpConnection> rtpConnPtr);
-    void removeClient(SOCKET rtspfd);
+    std::string GetSdpMessage(std::string sessionName="");
 
-    MediaSessionId getMediaSessionId()
-    { return _sessionId; }
+    MediaSource* GetMediaSource(MediaChannelId channel_id);
 
-    uint32_t getNumClient() const
-    { return (uint32_t)_clients.size(); }
+    bool HandleFrame(MediaChannelId channel_id, AVFrame frame);
 
-    bool isMulticast() const
-    { return _isMulticast; }
+    bool AddClient(SOCKET rtspfd, std::shared_ptr<RtpConnection> rtpConnPtr);
+    void RemoveClient(SOCKET rtspfd);
 
-    std::string getMulticastIp() const
-    { return _multicastIp; }
+    MediaSessionId GetMediaSessionId()
+    { return session_id_; }
 
-    uint16_t getMulticastPort(MediaChannelId channelId) const
+    uint32_t GetNumClient() const
+    { return (uint32_t)clients_.size(); }
+
+    bool IsMulticast() const
+    { return is_multicast_; }
+
+    std::string GetMulticastIp() const
+    { return multicast_ip_; }
+
+    uint16_t GetMulticastPort(MediaChannelId channel_id) const
     {
-        if(channelId >= MAX_MEDIA_CHANNEL)
-            return 0;
-        return _multicastPort[channelId];
+		if (channel_id >= MAX_MEDIA_CHANNEL) {
+			return 0;
+		}         
+        return multicast_port_[channel_id];
     }
 
 private:
     friend class MediaSource;
     friend class RtspServer;
-    MediaSession(std::string rtspUrlSuffxx);
+    MediaSession(std::string url_suffxx);
 
-    MediaSessionId _sessionId = 0;
-    std::string _suffix;
-    std::string _sdp;
+    MediaSessionId session_id_ = 0;
+    std::string suffix_;
+    std::string sdp_;
 
-    std::vector<std::shared_ptr<MediaSource>> _mediaSources;
+    std::vector<std::unique_ptr<MediaSource>> media_sources_;
     std::vector<RingBuffer<AVFrame>> _buffer;
 
-    NotifyCallback _notifyCallback;
-    std::mutex _mutex;
-    std::mutex _mtxMap;
-    std::map<SOCKET, std::weak_ptr<RtpConnection>> _clients;
+    NotifyCallback notify_callback_;
+    std::mutex mutex_;
+    std::mutex map_mutex_;
+    std::map<SOCKET, std::weak_ptr<RtpConnection>> clients_;
 
-    bool _isMulticast = false;
-    uint16_t _multicastPort[MAX_MEDIA_CHANNEL];
-    std::string _multicastIp;
+    bool is_multicast_ = false;
+    uint16_t multicast_port_[MAX_MEDIA_CHANNEL];
+    std::string multicast_ip_;
+    std::atomic_bool has_new_client_;
 
-    std::atomic_bool _hasNewClient;
-
-    static std::atomic_uint _lastMediaSessionId;
+    static std::atomic_uint last_session_id_;
 };
 
 typedef std::shared_ptr<MediaSession> MediaSessionPtr;
@@ -112,34 +113,31 @@ public:
 		return s_multi_addr;
 	}
 
-	std::string getAddr()
+	std::string GetAddr()
 	{
 		std::lock_guard<std::mutex> lock(m_mutex);
-		std::string addrPtr;
+		std::string addr_str;
 		struct sockaddr_in addr = { 0 };
 		std::random_device rd;
-		for (int n = 0; n <= 10; n++)
-		{
+
+		for (int n = 0; n <= 10; n++) {
 			uint32_t range = 0xE8FFFFFF - 0xE8000100;
 			addr.sin_addr.s_addr = htonl(0xE8000100 + (rd()) % range);
-			addrPtr = inet_ntoa(addr.sin_addr);
+			addr_str = inet_ntoa(addr.sin_addr);
 
-			if (m_addrs.find(addrPtr) != m_addrs.end())
-			{
-				addrPtr.clear(); 
+			if (m_addrs.find(addr_str) != m_addrs.end()) {
+				addr_str.clear();
 			}
-			else
-			{
-				m_addrs.insert(addrPtr);
+			else {
+				m_addrs.insert(addr_str);
 				break;
 			}
 		}
 
-		return addrPtr;
+		return addr_str;
 	}
 
-	void release(std::string addr)
-	{
+	void Release(std::string addr) {
 		std::lock_guard<std::mutex> lock(m_mutex);
 		m_addrs.erase(addr);
 	}

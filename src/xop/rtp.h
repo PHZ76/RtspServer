@@ -17,48 +17,48 @@ namespace xop
 
 enum TransportMode
 {
-    RTP_OVER_TCP = 1,
-    RTP_OVER_UDP = 2,
-    RTP_OVER_MULTICAST = 3,
+	RTP_OVER_TCP = 1,
+	RTP_OVER_UDP = 2,
+	RTP_OVER_MULTICAST = 3,
 };
 
 typedef struct _RTP_header
 {
-    /* 小端序 */
-    unsigned char csrc:4;
-    unsigned char extension:1;
-    unsigned char padding:1;
-    unsigned char version:2;
-    unsigned char payload:7;
-    unsigned char marker:1;
+	/* 小端序 */
+	unsigned char csrc:4;
+	unsigned char extension:1;
+	unsigned char padding:1;
+	unsigned char version:2;
+	unsigned char payload:7;
+	unsigned char marker:1;
 
-    unsigned short seq;
-    unsigned int   ts;
-    unsigned int   ssrc;
+	unsigned short seq;
+	unsigned int   ts;
+	unsigned int   ssrc;
 } RtpHeader;
 
 struct MediaChannelInfo
 {
-    RtpHeader rtpHeader;
+	RtpHeader rtp_header;
 
-    // tcp
-    uint16_t rtpChannel;
-    uint16_t rtcpChannel;
+	// tcp
+	uint16_t rtp_channel;
+	uint16_t rtcp_channel;
 
-    // udp
-    uint16_t rtpPort;
-    uint16_t rtcpPort;
-    uint16_t packetSeq;
-    uint32_t clockRate;
+	// udp
+	uint16_t rtp_port;
+	uint16_t rtcp_port;
+	uint16_t packet_seq;
+	uint32_t clock_rate;
 
-    // rtcp
-    uint64_t packetCount;
-    uint64_t octetCount;
-    uint64_t lastRtcpNtpTime;
+	// rtcp
+	uint64_t packet_count;
+	uint64_t octet_count;
+	uint64_t last_rtcp_ntp_time;
 
-    bool isSetup;
-    bool isPlay;
-    bool isRecord;
+	bool is_setup;
+	bool is_play;
+	bool is_record;
 };
 
 struct RtpPacket
@@ -72,8 +72,8 @@ struct RtpPacket
 	std::shared_ptr<uint8_t> data;
 	uint32_t size;
 	uint32_t timestamp;
-	uint8_t type;
-	uint8_t last;
+	uint8_t  type;
+	uint8_t  last;
 };
 
 }

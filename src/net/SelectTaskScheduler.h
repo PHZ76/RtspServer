@@ -1,4 +1,4 @@
-﻿// PHZ
+// PHZ
 // 2018-5-15
 
 #ifndef XOP_SELECT_TASK_SCHEDULER_H
@@ -22,25 +22,25 @@ namespace xop
 class SelectTaskScheduler : public TaskScheduler
 {
 public:
-    SelectTaskScheduler(int id = 0);
-    virtual ~SelectTaskScheduler();
+	SelectTaskScheduler(int id = 0);
+	virtual ~SelectTaskScheduler();
 
-    void updateChannel(ChannelPtr channel);
-    void removeChannel(ChannelPtr& channel);
-    bool handleEvent(int timeout);
+	void UpdateChannel(ChannelPtr channel);
+	void RemoveChannel(ChannelPtr& channel);
+	bool HandleEvent(int timeout);
 	
 private:
-    fd_set _fdReadBackup;
-    fd_set _fdWriteBackup;
-    fd_set _fdExpBackup;
-	SOCKET _maxfd = 0;
+	fd_set fd_read_backup_;
+	fd_set fd_write_backup_;
+	fd_set fd_exp_backup_;
+	SOCKET maxfd_ = 0;
 
-    bool _isfdReadReset = false;
-    bool _isfdWriteReset = false;
-    bool _isfdExpReset = false;
+	bool is_fd_read_reset_ = false;
+	bool is_fd_write_reset_ = false;
+	bool is_fd_exp_reset_ = false;
 
-    std::mutex _mutex;
-    std::unordered_map<SOCKET, ChannelPtr> _channels;
+	std::mutex mutex_;
+	std::unordered_map<SOCKET, ChannelPtr> channels_;
 };
 
 }

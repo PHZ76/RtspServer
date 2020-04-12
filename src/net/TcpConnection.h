@@ -14,58 +14,58 @@ namespace xop
 class TcpConnection : public std::enable_shared_from_this<TcpConnection>
 {
 public:
-    using Ptr = std::shared_ptr<TcpConnection>;
-    using DisconnectCallback = std::function<void(std::shared_ptr<TcpConnection> conn)> ;
-    using CloseCallback = std::function<void(std::shared_ptr<TcpConnection> conn)>;
-    using ReadCallback = std::function<bool(std::shared_ptr<TcpConnection> conn, xop::BufferReader& buffer)>;
+	using Ptr = std::shared_ptr<TcpConnection>;
+	using DisconnectCallback = std::function<void(std::shared_ptr<TcpConnection> conn)> ;
+	using CloseCallback = std::function<void(std::shared_ptr<TcpConnection> conn)>;
+	using ReadCallback = std::function<bool(std::shared_ptr<TcpConnection> conn, xop::BufferReader& buffer)>;
 
-    TcpConnection(TaskScheduler *taskScheduler, SOCKET sockfd);
-    virtual ~TcpConnection();
+	TcpConnection(TaskScheduler *task_scheduler, SOCKET sockfd);
+	virtual ~TcpConnection();
 
-    TaskScheduler* getTaskScheduler() const 
-    { return _taskScheduler; }
+	TaskScheduler* GetTaskScheduler() const 
+	{ return task_scheduler_; }
 
-    void setReadCallback(const ReadCallback& cb)
-    { _readCB = cb; }
+	void SetReadCallback(const ReadCallback& cb)
+	{ read_cb_ = cb; }
 
-    void setCloseCallback(const CloseCallback& cb)
-    { _closeCB = cb; }
+	void SetCloseCallback(const CloseCallback& cb)
+	{ close_cb_ = cb; }
 
-    void send(std::shared_ptr<char> data, uint32_t size);
-    void send(const char *data, uint32_t size);
+	void Send(std::shared_ptr<char> data, uint32_t size);
+	void Send(const char *data, uint32_t size);
     
-	void disconnect();
+	void Disconnect();
 
-    bool isClosed() const 
-    { return _isClosed; }
+	bool IsClosed() const 
+	{ return is_closed_; }
 
-    SOCKET fd() const 
-    { return _channelPtr->fd(); }
+	SOCKET GetSocket() const
+	{ return channel_->GetSocket(); }
 
 protected:
-    friend class TcpServer;
+	friend class TcpServer;
 
-    virtual void handleRead();
-    virtual void handleWrite();
-    virtual void handleClose();
-    virtual void handleError();	
+	virtual void HandleRead();
+	virtual void HandleWrite();
+	virtual void HandleClose();
+	virtual void HandleError();	
 
-    void setDisconnectCallback(const DisconnectCallback& cb)
-    { _disconnectCB = cb; }
+	void SetDisconnectCallback(const DisconnectCallback& cb)
+	{ disconnect_cb_ = cb; }
 
-	TaskScheduler *_taskScheduler;
-	std::shared_ptr<xop::BufferReader> _readBufferPtr;
-	std::shared_ptr<xop::BufferWriter> _writeBufferPtr;
-	std::atomic_bool _isClosed;
+	TaskScheduler* task_scheduler_;
+	std::unique_ptr<xop::BufferReader> read_buffer_;
+	std::unique_ptr<xop::BufferWriter> write_buffer_;
+	std::atomic_bool is_closed_;
 
 private:
-	void close();
+	void Close();
 
-    std::shared_ptr<xop::Channel> _channelPtr;
-    std::mutex _mutex;
-    DisconnectCallback _disconnectCB ;
-    CloseCallback _closeCB;
-    ReadCallback _readCB;
+	std::shared_ptr<xop::Channel> channel_;
+	std::mutex mutex_;
+	DisconnectCallback disconnect_cb_;
+	CloseCallback close_cb_;
+	ReadCallback read_cb_;
 };
 
 }

@@ -1,6 +1,3 @@
-﻿// PHZ
-// 2018-5-15
-
 #include "TcpServer.h"
 #include "Acceptor.h"
 #include "EventLoop.h"
@@ -10,53 +7,84 @@
 using namespace xop;
 using namespace std;
 
-TcpServer::TcpServer(EventLoop* eventLoop, std::string ip, uint16_t port)
-    : _eventLoop(eventLoop),
-      _acceptor(new Acceptor(eventLoop, ip, port))
+TcpServer::TcpServer(EventLoop* event_loop)
+	: event_loop_(event_loop)
+	, port_(0)
+	, acceptor_(new Acceptor(event_loop_))
+	, is_started_(false)
 {
-    _ip = ip;
-    _port = port;
-
-    _acceptor->setNewConnectionCallback([this](SOCKET sockfd) { 
-        TcpConnection::Ptr tcpConn = this->newConnection(sockfd);
-        if (tcpConn)
-        {
-            this->addConnection(sockfd, tcpConn);
-            tcpConn->setDisconnectCallback([this] (TcpConnection::Ptr conn){ 
-                    auto taskScheduler = conn->getTaskScheduler();
-                    SOCKET sockfd = conn->fd();
-                    if (!taskScheduler->addTriggerEvent([this, sockfd] {this->removeConnection(sockfd); }))
-                    {
-                        taskScheduler->addTimer([this, sockfd]() {this->removeConnection(sockfd); return false;}, 1);
-                    }
-            });
-        }
-    });
+	acceptor_->SetNewConnectionCallback([this](SOCKET sockfd) {
+		TcpConnection::Ptr conn = this->OnConnect(sockfd);
+		if (conn) {
+			this->AddConnection(sockfd, conn);
+			conn->SetDisconnectCallback([this](TcpConnection::Ptr conn) {
+				auto scheduler = conn->GetTaskScheduler();
+				SOCKET sockfd = conn->GetSocket();
+				if (!scheduler->AddTriggerEvent([this, sockfd] {this->RemoveConnection(sockfd); })) {
+					scheduler->AddTimer([this, sockfd]() {this->RemoveConnection(sockfd); return false; }, 100);
+				}
+			});
+		}
+	});
 }
 
 TcpServer::~TcpServer()
 {
-	
+	Stop();
 }
 
-int TcpServer::start()
+bool TcpServer::Start(std::string ip, uint16_t port)
 {
-	return _acceptor->listen();
+	Stop();
+
+	if (!is_started_) {
+		if (acceptor_->Listen(ip, port) < 0) {
+			return false;
+		}
+		is_started_ = true;
+		return true;
+	}
+
+	port_ = port;
+	ip_ = ip;
+	return true;
 }
 
-TcpConnection::Ptr TcpServer::newConnection(SOCKET sockfd)
+void TcpServer::Stop()
 {
-	return std::make_shared<TcpConnection>(_eventLoop->getTaskScheduler().get(), sockfd);
+	if (is_started_) {
+		
+		mutex_.lock();
+		for (auto iter : connections_) {
+			iter.second->Disconnect();
+		}
+		mutex_.unlock();
+
+		acceptor_->Close();
+		is_started_ = false;
+
+		while (1) {
+			Timer::Sleep(1);
+			if (connections_.empty()) {
+				break;
+			}
+		}
+	}	
 }
 
-void TcpServer::addConnection(SOCKET sockfd, TcpConnection::Ptr tcpConn)
+TcpConnection::Ptr TcpServer::OnConnect(SOCKET sockfd)
 {
-	std::lock_guard<std::mutex> locker(_conn_mutex);
-	_connections.emplace(sockfd, tcpConn);
+	return std::make_shared<TcpConnection>(event_loop_->GetTaskScheduler().get(), sockfd);
 }
 
-void TcpServer::removeConnection(SOCKET sockfd)
+void TcpServer::AddConnection(SOCKET sockfd, TcpConnection::Ptr tcpConn)
 {
-	std::lock_guard<std::mutex> locker(_conn_mutex);
-	_connections.erase(sockfd);
+	std::lock_guard<std::mutex> locker(mutex_);
+	connections_.emplace(sockfd, tcpConn);
+}
+
+void TcpServer::RemoveConnection(SOCKET sockfd)
+{
+	std::lock_guard<std::mutex> locker(mutex_);
+	connections_.erase(sockfd);
 }

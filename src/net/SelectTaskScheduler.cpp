@@ -1,4 +1,4 @@
-﻿// PHZ
+// PHZ
 // 2018-5-15
 
 #include "SelectTaskScheduler.h"
@@ -16,11 +16,11 @@ using namespace xop;
 SelectTaskScheduler::SelectTaskScheduler(int id)
 	: TaskScheduler(id)
 {
-    FD_ZERO(&_fdReadBackup);
-    FD_ZERO(&_fdWriteBackup);
-    FD_ZERO(&_fdExpBackup);
+	FD_ZERO(&fd_read_backup_);
+	FD_ZERO(&fd_write_backup_);
+	FD_ZERO(&fd_exp_backup_);
 
-    this->updateChannel(_wakeupChannel);
+	this->UpdateChannel(wakeup_channel_);
 }
 
 SelectTaskScheduler::~SelectTaskScheduler()
@@ -28,190 +28,174 @@ SelectTaskScheduler::~SelectTaskScheduler()
 	
 }
 
-void SelectTaskScheduler::updateChannel(ChannelPtr channel)
+void SelectTaskScheduler::UpdateChannel(ChannelPtr channel)
 {
-    std::lock_guard<std::mutex> lock(_mutex);
+	std::lock_guard<std::mutex> lock(mutex_);
 
-    SOCKET fd = channel->fd();
+	SOCKET socket = channel->GetSocket();
 
-    if(_channels.find(fd) != _channels.end())		// 
-    {
-        if(channel->isNoneEvent())
-        {
-            _isfdReadReset = true;
-            _isfdWriteReset = true;
-            _isfdExpReset = true;
-            _channels.erase(fd);
-        }
-        else
-        {
-            //_isfdReadReset = true;
-            _isfdWriteReset = true;
-        }
-    }
-    else
-    {
-        if(!channel->isNoneEvent())
-        {
-            _channels.emplace(fd, channel);
-            _isfdReadReset = true;
-            _isfdWriteReset = true;
-            _isfdExpReset = true;
-        }	
-    }	
+	if(channels_.find(socket) != channels_.end()) {
+		if(channel->IsNoneEvent()) {
+			is_fd_read_reset_ = true;
+			is_fd_write_reset_ = true;
+			is_fd_exp_reset_ = true;
+			channels_.erase(socket);
+		}
+		else {
+			//is_fd_read_reset_ = true;
+			is_fd_write_reset_ = true;
+		}
+	}
+	else {
+		if(!channel->IsNoneEvent()) {
+			channels_.emplace(socket, channel);
+			is_fd_read_reset_ = true;
+			is_fd_write_reset_ = true;
+			is_fd_exp_reset_ = true;
+		}	
+	}	
 }
 
-void SelectTaskScheduler::removeChannel(ChannelPtr& channel)
+void SelectTaskScheduler::RemoveChannel(ChannelPtr& channel)
 {
-    std::lock_guard<std::mutex> lock(_mutex);
+	std::lock_guard<std::mutex> lock(mutex_);
 
-    SOCKET fd = channel->fd();
+	SOCKET fd = channel->GetSocket();
 
-    if(_channels.find(fd) != _channels.end())	
-    {
-        _isfdReadReset = true;
-        _isfdWriteReset = true;
-        _isfdExpReset = true;
-        _channels.erase(fd);
-    }
+	if(channels_.find(fd) != channels_.end()) {
+		is_fd_read_reset_ = true;
+		is_fd_write_reset_ = true;
+		is_fd_exp_reset_ = true;
+		channels_.erase(fd);
+	}
 }
 
-bool SelectTaskScheduler::handleEvent(int timeout)
+bool SelectTaskScheduler::HandleEvent(int timeout)
 {	
-    if(_channels.empty())
-    {
-        if(timeout <= 0)
-            timeout = 100;
-        Timer::sleep(timeout);
-        return true;
-    }
+	if(channels_.empty()) {
+		if (timeout <= 0) {
+			timeout = 10;
+		}
+         
+		Timer::Sleep(timeout);
+		return true;
+	}
 
-    fd_set fdRead;
-    fd_set fdWrite;
-    fd_set fdExp;
-    FD_ZERO(&fdRead);
-    FD_ZERO(&fdWrite);
-    FD_ZERO(&fdExp);
-    bool fdReadReset = false, fdWriteReset = false, fdExpReset = false;
-    if(_isfdReadReset || _isfdWriteReset || _isfdExpReset)
-    {
-        if(_isfdExpReset)
-            _maxfd = 0;
-        std::lock_guard<std::mutex> lock(_mutex);
-        for(auto iter : _channels)
-        {
-            int events = iter.second->events();
-			SOCKET fd = iter.second->fd();
+	fd_set fd_read;
+	fd_set fd_write;
+	fd_set fd_exp;
+	FD_ZERO(&fd_read);
+	FD_ZERO(&fd_write);
+	FD_ZERO(&fd_exp);
+	bool fd_read_reset = false;
+	bool fd_write_reset = false;
+	bool fd_exp_reset = false;
 
-            if (_isfdReadReset && (events&EVENT_IN))
-            {
-                FD_SET(fd, &fdRead);
-            }
+	if(is_fd_read_reset_ || is_fd_write_reset_ || is_fd_exp_reset_) {
+		if (is_fd_exp_reset_) {
+			maxfd_ = 0;
+		}
+          
+		std::lock_guard<std::mutex> lock(mutex_);
+		for(auto iter : channels_) {
+			int events = iter.second->GetEvents();
+			SOCKET fd = iter.second->GetSocket();
 
-            if(_isfdWriteReset && (events&EVENT_OUT))
-            {
-                FD_SET(fd, &fdWrite);
-            }
+			if (is_fd_read_reset_ && (events&EVENT_IN)) {
+				FD_SET(fd, &fd_read);
+			}
 
-            if(_isfdExpReset)
-            {
-                FD_SET(fd, &fdExp);
-                if(fd > _maxfd)
-                {
-                    _maxfd = fd;
-                }
-            }		
-        }
+			if(is_fd_write_reset_ && (events&EVENT_OUT)) {
+				FD_SET(fd, &fd_write);
+			}
+
+			if(is_fd_exp_reset_) {
+				FD_SET(fd, &fd_exp);
+				if(fd > maxfd_) {
+					maxfd_ = fd;
+				}
+			}		
+		}
         
-        fdReadReset = _isfdReadReset;
-        fdWriteReset = _isfdWriteReset;
-        fdExpReset = _isfdExpReset;
-        _isfdReadReset = false;
-        _isfdWriteReset = false;
-        _isfdExpReset = false;
-    }
+		fd_read_reset = is_fd_read_reset_;
+		fd_write_reset = is_fd_write_reset_;
+		fd_exp_reset = is_fd_exp_reset_;
+		is_fd_read_reset_ = false;
+		is_fd_write_reset_ = false;
+		is_fd_exp_reset_ = false;
+	}
 	
-    if(fdReadReset)
-    {
-        FD_ZERO(&_fdReadBackup);
-        memcpy(&_fdReadBackup, &fdRead, sizeof(fd_set)); //备份
-    }
-    else
-        memcpy(&fdRead, &_fdReadBackup, sizeof(fd_set));
+	if(fd_read_reset) {
+		FD_ZERO(&fd_read_backup_);
+		memcpy(&fd_read_backup_, &fd_read, sizeof(fd_set)); 
+	}
+	else {
+		memcpy(&fd_read, &fd_read_backup_, sizeof(fd_set));
+	}
+       
 
-    if(fdWriteReset)
-    {
-        FD_ZERO(&_fdWriteBackup);
-        memcpy(&_fdWriteBackup, &fdWrite, sizeof(fd_set));
-    }
-    else
-        memcpy(&fdWrite, &_fdWriteBackup, sizeof(fd_set));
+	if(fd_write_reset) {
+		FD_ZERO(&fd_write_backup_);
+		memcpy(&fd_write_backup_, &fd_write, sizeof(fd_set));
+	}
+	else {
+		memcpy(&fd_write, &fd_write_backup_, sizeof(fd_set));
+	}
+     
 
-    if(fdExpReset)
-    {
-        FD_ZERO(&_fdExpBackup);
-        memcpy(&_fdExpBackup, &fdExp, sizeof(fd_set));
-    }
-    else
-    {
-        memcpy(&fdExp, &_fdExpBackup, sizeof(fd_set));
-    }
+	if(fd_exp_reset) {
+		FD_ZERO(&fd_exp_backup_);
+		memcpy(&fd_exp_backup_, &fd_exp, sizeof(fd_set));
+	}
+	else {
+		memcpy(&fd_exp, &fd_exp_backup_, sizeof(fd_set));
+	}
 
-    if(timeout < 0)
-    {
-        timeout = 100;
-    }
+	if(timeout <= 0) {
+		timeout = 10;
+	}
 
-    struct timeval tv = { timeout/1000, timeout%1000*1000 };
-    int ret = select((int)_maxfd+1, &fdRead, &fdWrite, &fdExp, &tv); 	
-    if (ret < 0)
-    {
+	struct timeval tv = { timeout/1000, timeout%1000*1000 };
+	int ret = select((int)maxfd_+1, &fd_read, &fd_write, &fd_exp, &tv); 	
+	if (ret < 0) {
 #if defined(__linux) || defined(__linux__) 
-    if(errno == EINTR)
-    {
-        return true;
-    }					
+	if(errno == EINTR) {
+		return true;
+	}					
 #endif 
-        return false;
-    }
+		return false;
+	}
 
-    std::forward_list<std::pair<ChannelPtr, int>> eventList;
-    if(ret > 0)
-    {
-        std::lock_guard<std::mutex> lock(_mutex);
-        for(auto iter : _channels)
-        {
-            int events = 0;
-            {
-                if (FD_ISSET(iter.second->fd(), &fdRead))
-                {
-                    events |= EVENT_IN;
-                }
+	std::forward_list<std::pair<ChannelPtr, int>> event_list;
+	if(ret > 0) {
+		std::lock_guard<std::mutex> lock(mutex_);
+		for(auto iter : channels_) {
+			int events = 0;
+			SOCKET socket = iter.second->GetSocket();
 
-                if (FD_ISSET(iter.second->fd(), &fdWrite))
-                {
-                    events |= EVENT_OUT;
-                }
+			if (FD_ISSET(socket, &fd_read)) {
+				events |= EVENT_IN;
+			}
 
-                if (FD_ISSET(iter.second->fd(), &fdExp))
-                {
-                    events |= (EVENT_HUP); // close
-                }
-            }
-            
-            if(events != 0)
-            {
-                eventList.emplace_front(iter.second, events);
-            }
-        }
-    }	
+			if (FD_ISSET(socket, &fd_write)) {
+				events |= EVENT_OUT;
+			}
 
-    for(auto& iter: eventList)
-    {
-        iter.first->handleEvent(iter.second);
-    }
+			if (FD_ISSET(socket, &fd_exp)) {
+				events |= (EVENT_HUP); // close
+			}
 
-    return true;
+			if(events != 0) {
+				event_list.emplace_front(iter.second, events);
+			}
+		}
+	}	
+
+	for(auto& iter: event_list) {
+		iter.first->HandleEvent(iter.second);
+	}
+
+	return true;
 }
 
 

@@ -13,30 +13,28 @@ namespace xop
 class G711ASource : public MediaSource
 {
 public:
-    static G711ASource* createNew();
-    virtual ~G711ASource();
+	static G711ASource* CreateNew();
+	virtual ~G711ASource();
 
-    uint32_t getSampleRate() const
-    { return _sampleRate; }
+	uint32_t GetSampleRate() const
+	{ return samplerate_; }
 
-    uint32_t getChannels() const
-    { return _channels; }
+	uint32_t GetChannels() const
+	{ return channels_; }
 
-    /* SDP媒体描述 m= */
-    virtual std::string getMediaDescription(uint16_t port=0);
+	virtual std::string GetMediaDescription(uint16_t port=0);
 
-    /* SDP属性 a= */
-    virtual std::string getAttribute();
+	virtual std::string GetAttribute();
 
-    bool handleFrame(MediaChannelId channelId, AVFrame frame);
+	bool HandleFrame(MediaChannelId channel_id, AVFrame frame);
 
-    static uint32_t getTimeStamp();
+	static uint32_t GetTimestamp();
 
 private:
-    G711ASource();
+	G711ASource();
 
-    uint32_t _sampleRate = 8000;   
-    uint32_t _channels = 1;       
+	uint32_t samplerate_ = 8000;   
+	uint32_t channels_ = 1;       
 };
 
 }

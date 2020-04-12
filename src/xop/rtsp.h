@@ -17,39 +17,38 @@ namespace xop
 
 struct RtspUrlInfo
 {
-    std::string url;
-    std::string ip;
-    uint16_t port;
-    std::string suffix;
+	std::string url;
+	std::string ip;
+	uint16_t port;
+	std::string suffix;
 };
 
-class Rtsp
+class Rtsp : public std::enable_shared_from_this<Rtsp>
 {
 public:
-	Rtsp() : _hasAuthInfo(false) {}
-    virtual ~Rtsp() {}
+	Rtsp() : has_auth_info_(false) {}
+	virtual ~Rtsp() {}
 
-	virtual void setAuthConfig(std::string realm, std::string username, std::string password)
+	virtual void SetAuthConfig(std::string realm, std::string username, std::string password)
 	{
-		_realm = realm;
-		_username = username;
-		_password = password;
-		_hasAuthInfo = true;
+		realm_ = realm;
+		username_ = username;
+		password_ = password;
+		has_auth_info_ = true;
 
-		if (_realm=="" || username=="")
-		{
-			_hasAuthInfo = false;
+		if (realm_=="" || username=="") {
+			has_auth_info_ = false;
 		}
 	}
 
-    virtual void setVersion(std::string version) // SDP Session Name
-    { _version = std::move(version); }
+	virtual void SetVersion(std::string version) // SDP Session Name
+	{ version_ = std::move(version); }
 
-    virtual std::string getVersion()
-    { return _version; }
+	virtual std::string GetVersion()
+	{ return version_; }
 
-    virtual std::string getRtspUrl()
-    { return _rtspUrlInfo.url; }
+	virtual std::string GetRtspUrl()
+	{ return rtsp_url_info_.url; }
 
 	bool parseRtspUrl(std::string url)
 	{
@@ -62,7 +61,7 @@ public:
 		if (sscanf_s(url.c_str() + 7, "%[^:]:%hu/%s", ip, 100, &port, suffix, 100) == 3)
 #endif
 		{
-			_rtspUrlInfo.port = port;
+			rtsp_url_info_.port = port;
 		}
 #if defined(__linux) || defined(__linux__)
 		else if (sscanf(url.c_str() + 7, "%[^/]/%s", ip, suffix) == 2)
@@ -70,7 +69,7 @@ public:
 		else if (sscanf_s(url.c_str() + 7, "%[^/]/%s", ip, 100, suffix, 100) == 2)
 #endif
 		{
-			_rtspUrlInfo.port = 554;
+			rtsp_url_info_.port = 554;
 		}
 		else
 		{
@@ -78,27 +77,26 @@ public:
 			return false;
 		}
 
-		_rtspUrlInfo.ip = ip;
-		_rtspUrlInfo.suffix = suffix;
-		_rtspUrlInfo.url = url;
+		rtsp_url_info_.ip = ip;
+		rtsp_url_info_.suffix = suffix;
+		rtsp_url_info_.url = url;
 		return true;
 	}
 
 protected:
-    friend class RtspConnection;
-    virtual MediaSessionPtr lookMediaSession(const std::string& suffix)
-    { return nullptr; }
+	friend class RtspConnection;
+	virtual MediaSessionPtr LookMediaSession(const std::string& suffix)
+	{ return nullptr; }
 
-    virtual MediaSessionPtr lookMediaSession(MediaSessionId sessionId)
-    { return nullptr; }
+	virtual MediaSessionPtr LookMediaSession(MediaSessionId sessionId)
+	{ return nullptr; }
 
-	bool _hasAuthInfo = false;
-	std::string _realm;
-	std::string _username;
-	std::string _password;
-    std::string _version;
-    //std::string _rtspUrl;
-    struct RtspUrlInfo _rtspUrlInfo;
+	bool has_auth_info_ = false;
+	std::string realm_;
+	std::string username_;
+	std::string password_;
+	std::string version_;
+	struct RtspUrlInfo rtsp_url_info_;
 };
 
 }

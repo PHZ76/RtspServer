@@ -3,138 +3,138 @@
 #include "net/Logger.h"
 #include "net/TcpSocket.h"
 #include "net/Timestamp.h"
+#include <memory>
 
 using namespace xop;
 
-RtspPusher::RtspPusher(xop::EventLoop *eventLoop)
-	: _eventLoop(eventLoop)
+RtspPusher::RtspPusher(xop::EventLoop *event_loop)
+	: event_loop_(event_loop)
 {
 
 }
 
 RtspPusher::~RtspPusher()
 {
-	
+	this->Close();
 }
 
-void RtspPusher::addMeidaSession(MediaSession* session)
+std::shared_ptr<RtspPusher> RtspPusher::Create(xop::EventLoop* loop)
 {
-    std::lock_guard<std::mutex> locker(_mutex);
-    _mediaSessionPtr.reset(session);
+	std::shared_ptr<RtspPusher> pusher(new RtspPusher(loop));
+	return pusher;
 }
 
-void RtspPusher::removeMeidaSession(MediaSessionId sessionId)
+void RtspPusher::AddSession(MediaSession* session)
 {
-    std::lock_guard<std::mutex> locker(_mutex);
-    _mediaSessionPtr = nullptr;
+    std::lock_guard<std::mutex> locker(mutex_);
+    media_session_.reset(session);
 }
 
-MediaSessionPtr RtspPusher::lookMediaSession(MediaSessionId sessionId)
+void RtspPusher::RemoveSession(MediaSessionId sessionId)
 {
-    return _mediaSessionPtr;
+	std::lock_guard<std::mutex> locker(mutex_);
+	media_session_ = nullptr;
 }
 
-int RtspPusher::openUrl(std::string url, int msec)
+MediaSessionPtr RtspPusher::LookMediaSession(MediaSessionId sessionId)
 {
-    std::lock_guard<std::mutex> lock(_mutex);
+	return media_session_;
+}
+
+int RtspPusher::OpenUrl(std::string url, int msec)
+{
+	std::lock_guard<std::mutex> lock(mutex_);
 
 	static xop::Timestamp tp;
 	int timeout = msec;
-	if (timeout <= 0)
-	{
+	if (timeout <= 0) {
 		timeout = 10000;
 	}
 
 	tp.reset();
 
-    if (!this->parseRtspUrl(url))
-    {
-        LOG_ERROR("rtsp url(%s) was illegal.\n", url.c_str());
-        return -1;
-    }
-
-	if (_rtspConn != nullptr)
-	{
-		std::shared_ptr<RtspConnection> rtspConn = _rtspConn;
-		SOCKET sockfd = rtspConn->fd();
-		_taskScheduler->addTriggerEvent([sockfd, rtspConn]() {
-			rtspConn->disconnect();
-		});
-		_rtspConn = nullptr;
+	if (!this->parseRtspUrl(url)) {
+		LOG_ERROR("rtsp url(%s) was illegal.\n", url.c_str());
+		return -1;
 	}
 
-    TcpSocket tcpSocket;
-    tcpSocket.create();
-    if (!tcpSocket.connect(_rtspUrlInfo.ip, _rtspUrlInfo.port, timeout)) 
-    {
-        tcpSocket.close();
-        return -1;
-    }
+	if (rtsp_conn_ != nullptr) {
+		std::shared_ptr<RtspConnection> rtspConn = rtsp_conn_;
+		SOCKET sockfd = rtspConn->GetSocket();
+		task_scheduler_->AddTriggerEvent([sockfd, rtspConn]() {
+			rtspConn->Disconnect();
+		});
+		rtsp_conn_ = nullptr;
+	}
 
-	_taskScheduler = _eventLoop->getTaskScheduler().get();
-	_rtspConn.reset(new RtspConnection((RtspPusher*)this, _taskScheduler, tcpSocket.fd()));
-    _eventLoop->addTriggerEvent([this]() {
-		_rtspConn->sendOptions(RtspConnection::RTSP_PUSHER);
+	TcpSocket tcpSocket;
+	tcpSocket.Create();
+	if (!tcpSocket.Connect(rtsp_url_info_.ip, rtsp_url_info_.port, timeout))
+	{
+		tcpSocket.Close();
+		return -1;
+	}
+
+	task_scheduler_ = event_loop_->GetTaskScheduler().get();
+	rtsp_conn_.reset(new RtspConnection(shared_from_this(), task_scheduler_, tcpSocket.GetSocket()));
+    event_loop_->AddTriggerEvent([this]() {
+		rtsp_conn_->SendOptions(RtspConnection::RTSP_PUSHER);
     });
 
 	timeout -= (int)tp.elapsed();
-	if (timeout < 0)
-	{
+	if (timeout < 0) {
 		timeout = 1000;
 	}
 
 	do
 	{
-		xop::Timer::sleep(100);
+		xop::Timer::Sleep(100);
 		timeout -= 100;
-	} while (!_rtspConn->isRecord() && timeout > 0);
+	} while (!rtsp_conn_->IsRecord() && timeout > 0);
 
-	if (!_rtspConn->isRecord())
-	{
-		std::shared_ptr<RtspConnection> rtspConn = _rtspConn;
-		SOCKET sockfd = rtspConn->fd();
-		_taskScheduler->addTriggerEvent([sockfd, rtspConn]() {
-			rtspConn->disconnect();
+	if (!rtsp_conn_->IsRecord()) {
+		std::shared_ptr<RtspConnection> rtspConn = rtsp_conn_;
+		SOCKET sockfd = rtspConn->GetSocket();
+		task_scheduler_->AddTriggerEvent([sockfd, rtspConn]() {
+			rtspConn->Disconnect();
 		});
-		_rtspConn = nullptr;
+		rtsp_conn_ = nullptr;
 		return -1;
 	}
 
-    return 0;
+	return 0;
 }
 
-void RtspPusher::close()
+void RtspPusher::Close()
 {
-	std::lock_guard<std::mutex> lock(_mutex);
+	std::lock_guard<std::mutex> lock(mutex_);
 
-	if (_rtspConn != nullptr)
-	{
-		std::shared_ptr<RtspConnection> rtspConn = _rtspConn;
-		SOCKET sockfd = rtspConn->fd();
-		_taskScheduler->addTriggerEvent([sockfd, rtspConn]() {
-			rtspConn->disconnect();
+	if (rtsp_conn_ != nullptr) {
+		std::shared_ptr<RtspConnection> rtsp_conn = rtsp_conn_;
+		SOCKET sockfd = rtsp_conn->GetSocket();
+		task_scheduler_->AddTriggerEvent([sockfd, rtsp_conn]() {
+			rtsp_conn->Disconnect();
 		});
-		_rtspConn = nullptr;
+		rtsp_conn_ = nullptr;
 	}
 }
 
-bool RtspPusher::isConnected()
+bool RtspPusher::IsConnected()
 {
-	std::lock_guard<std::mutex> lock(_mutex);
-	if (_rtspConn != nullptr)
-	{
-		return (!_rtspConn->isClosed());
+	std::lock_guard<std::mutex> lock(mutex_);
+
+	if (rtsp_conn_ != nullptr) {
+		return (!rtsp_conn_->IsClosed());
 	}
 	return false;
 }
 
-bool RtspPusher::pushFrame(MediaChannelId channelId, AVFrame frame)
+bool RtspPusher::PushFrame(MediaChannelId channelId, AVFrame frame)
 {
-    std::lock_guard<std::mutex> locker(_mutex);
-    if (_mediaSessionPtr==nullptr || _rtspConn==nullptr)
-    {
-        return false;
-    }
+	std::lock_guard<std::mutex> locker(mutex_);
+	if (!media_session_ || !rtsp_conn_) {
+		return false;
+	}
 
-    return _mediaSessionPtr->handleFrame(channelId, frame);
+	return media_session_->HandleFrame(channelId, frame);
 }

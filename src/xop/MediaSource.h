@@ -19,35 +19,33 @@ namespace xop
 class MediaSource
 {
 public:
-    typedef std::function<bool (MediaChannelId channelId, RtpPacket pkt)> SendFrameCallback;
+	typedef std::function<bool (MediaChannelId channel_id, RtpPacket pkt)> SendFrameCallback;
 
-    MediaSource() {}
-    virtual ~MediaSource() {}
+	MediaSource() {}
+	virtual ~MediaSource() {}
 
-    virtual MediaType getMediaType() const
-    { return _mediaType; }
+	virtual MediaType GetMediaType() const
+	{ return media_type_; }
 
-    /* SDP媒体描述 m= */
-    virtual std::string getMediaDescription(uint16_t port=0) = 0;
+	virtual std::string GetMediaDescription(uint16_t port=0) = 0;
 
-    /* SDP媒体属性 a= */
-    virtual std::string getAttribute()  = 0;
+	virtual std::string GetAttribute()  = 0;
 
-    virtual bool handleFrame(MediaChannelId channelId, AVFrame frame) = 0;
-    virtual void setSendFrameCallback(const SendFrameCallback cb)
-    { _sendFrameCallback = cb; }
+	virtual bool HandleFrame(MediaChannelId channelId, AVFrame frame) = 0;
+	virtual void SetSendFrameCallback(const SendFrameCallback cb)
+	{ send_frame_callback_ = cb; }
 
-    virtual uint32_t getPayloadType() const
-    { return _payload; }
+	virtual uint32_t GetPayloadType() const
+	{ return payload_; }
 
-    virtual uint32_t getClockRate() const
-    { return _clockRate; }
+	virtual uint32_t GetClockRate() const
+	{ return clock_rate_; }
 
 protected:
-    MediaType _mediaType = NONE;
-    uint32_t _payload = 0;
-    uint32_t _clockRate = 0;
-    SendFrameCallback _sendFrameCallback;
+	MediaType media_type_ = NONE;
+	uint32_t  payload_    = 0;
+	uint32_t  clock_rate_ = 0;
+	SendFrameCallback send_frame_callback_;
 };
 
 }

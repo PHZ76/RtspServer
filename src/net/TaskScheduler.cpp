@@ -6,25 +6,34 @@
 using namespace xop;
 
 TaskScheduler::TaskScheduler(int id)
-	: _id(id)
-	, _shutdown(false)
-	, _wakeupPipe(std::make_shared<Pipe>())
-	, _triggerEvents(new TriggerEventQueue(kMaxTriggetEvents))
+	: id_(id)
+	, is_shutdown_(false) 
+	, wakeup_pipe_(new Pipe())
+	, trigger_events_(new xop::RingBuffer<TriggerEvent>(kMaxTriggetEvents))
 {
-    if (_wakeupPipe->create())
-    {
-        _wakeupChannel.reset(new Channel(_wakeupPipe->readfd()));
-        _wakeupChannel->enableReading();
-        _wakeupChannel->setReadCallback([this]() { this->wake(); });		
-    }        
+	static std::once_flag flag;
+	std::call_once(flag, [] {
+#if defined(WIN32) || defined(_WIN32) 
+		WSADATA wsa_data;
+		if (WSAStartup(MAKEWORD(2, 2), &wsa_data)) {
+			WSACleanup();
+		}
+#endif
+	});
+
+	if (wakeup_pipe_->Create()) {
+		wakeup_channel_.reset(new Channel(wakeup_pipe_->Read()));
+		wakeup_channel_->EnableReading();
+		wakeup_channel_->SetReadCallback([this]() { this->Wake(); });		
+	}        
 }
 
 TaskScheduler::~TaskScheduler()
 {
-
+	
 }
 
-void TaskScheduler::start()
+void TaskScheduler::Start()
 {
 #if defined(__linux) || defined(__linux__) 
 	signal(SIGPIPE, SIG_IGN);
@@ -33,64 +42,59 @@ void TaskScheduler::start()
 	signal(SIGTERM, SIG_IGN);
 	signal(SIGKILL, SIG_IGN);
 #endif     
-	_shutdown = false;
-	while (!_shutdown)
-	{
-		this->handleTriggerEvent();
-		this->_timerQueue.handleTimerEvent();
-		int64_t timeout = this->_timerQueue.getTimeRemaining();
-		this->handleEvent((int)timeout);
+	is_shutdown_ = false;
+	while (!is_shutdown_) {
+		this->HandleTriggerEvent();
+		this->timer_queue_.HandleTimerEvent();
+		int64_t timeout = this->timer_queue_.GetTimeRemaining();
+		this->HandleEvent((int)timeout);
 	}
 }
 
-void TaskScheduler::stop()
+void TaskScheduler::Stop()
 {
-	_shutdown = true;
+	is_shutdown_ = true;
 	char event = kTriggetEvent;
-	_wakeupPipe->write(&event, 1);
+	wakeup_pipe_->Write(&event, 1);
 }
 
-TimerId TaskScheduler::addTimer(TimerEvent timerEvent, uint32_t msec)
+TimerId TaskScheduler::AddTimer(TimerEvent timerEvent, uint32_t msec)
 {
-	TimerId id = _timerQueue.addTimer(timerEvent, msec);
+	TimerId id = timer_queue_.AddTimer(timerEvent, msec);
 	return id;
 }
 
-void TaskScheduler::removeTimer(TimerId timerId)
+void TaskScheduler::RemoveTimer(TimerId timerId)
 {
-	_timerQueue.removeTimer(timerId);
+	timer_queue_.RemoveTimer(timerId);
 }
 
-bool TaskScheduler::addTriggerEvent(TriggerEvent callback)
+bool TaskScheduler::AddTriggerEvent(TriggerEvent callback)
 {
-	if (_triggerEvents->size() < kMaxTriggetEvents)
-	{
-		std::lock_guard<std::mutex> lock(_mutex);
+	if (trigger_events_->size() < kMaxTriggetEvents) {
+		std::lock_guard<std::mutex> lock(mutex_);
 		char event = kTriggetEvent;
-		_triggerEvents->push(std::move(callback));
-		_wakeupPipe->write(&event, 1);
+		trigger_events_->push(std::move(callback));
+		wakeup_pipe_->Write(&event, 1);
 		return true;
 	}
 
 	return false;
 }
 
-void TaskScheduler::wake()
+void TaskScheduler::Wake()
 {
 	char event[10] = { 0 };
-	while (_wakeupPipe->read(event, 10) > 0);
-
-	return;
+	while (wakeup_pipe_->Read(event, 10) > 0);
 }
 
-void TaskScheduler::handleTriggerEvent()
+void TaskScheduler::HandleTriggerEvent()
 {
-	do
+	do 
 	{
 		TriggerEvent callback;
-		if (_triggerEvents->pop(callback))
-		{
+		if (trigger_events_->pop(callback)) {
 			callback();
 		}
-	} while (_triggerEvents->size() > 0);
+	} while (trigger_events_->size() > 0);
 }

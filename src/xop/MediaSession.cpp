@@ -14,56 +14,49 @@
 using namespace xop;
 using namespace std;
 
-std::atomic_uint MediaSession::_lastMediaSessionId(1);
+std::atomic_uint MediaSession::last_session_id_(1);
 
-MediaSession::MediaSession(std::string rtspUrlSuffxx)
-    : _suffix(rtspUrlSuffxx)
-    , _mediaSources(2)
+MediaSession::MediaSession(std::string url_suffxx)
+    : suffix_(url_suffxx)
+    , media_sources_(2)
     , _buffer(2)
 {
-    _hasNewClient = false;
-    _sessionId = ++_lastMediaSessionId;
+	has_new_client_ = false;
+	session_id_ = ++last_session_id_;
 
-    for(int n=0; n<MAX_MEDIA_CHANNEL; n++)
-    {
-        _multicastPort[n] = 0;
-    }
+	for(int n=0; n<MAX_MEDIA_CHANNEL; n++) {
+		multicast_port_[n] = 0;
+	}
 }
 
-MediaSession* MediaSession::createNew(std::string rtspUrlSuffxx)
+MediaSession* MediaSession::CreateNew(std::string url_suffxx)
 {
-    return new MediaSession(std::move(rtspUrlSuffxx));
+	return new MediaSession(std::move(url_suffxx));
 }
 
 MediaSession::~MediaSession()
 {
-	if (_multicastIp != "")
-	{
-		MulticastAddr::instance().release(_multicastIp);
+	if (multicast_ip_ != "") {
+		MulticastAddr::instance().Release(multicast_ip_);
 	}
 }
 
-bool MediaSession::addMediaSource(MediaChannelId channelId, MediaSource* source)
+bool MediaSession::AddSource(MediaChannelId channelId, MediaSource* source)
 {
-    source->setSendFrameCallback([this](MediaChannelId channelId, RtpPacket pkt) {
-        std::forward_list<std::shared_ptr<RtpConnection>> clients;
-        std::map<int, RtpPacket> packets;
-        {
-            std::lock_guard<std::mutex> lock(_mtxMap);
-            for (auto iter = _clients.begin(); iter != _clients.end();)
-            {
-                auto conn = iter->second.lock();
-                if (conn == nullptr)
-                {
-                    _clients.erase(iter++);
-                }
-                else
-                {				
-                    int id = conn->getId();
-					if (id >= 0)
-					{
-						if (packets.find(id) == packets.end())
-						{
+	source->SetSendFrameCallback([this](MediaChannelId channelId, RtpPacket pkt) {
+		std::forward_list<std::shared_ptr<RtpConnection>> clients;
+		std::map<int, RtpPacket> packets;
+		{
+			std::lock_guard<std::mutex> lock(map_mutex_);
+			for (auto iter = clients_.begin(); iter != clients_.end();) {
+				auto conn = iter->second.lock();
+				if (conn == nullptr) {
+					clients_.erase(iter++);
+				}
+				else  {				
+					int id = conn->GetId();
+					if (id >= 0) {
+						if (packets.find(id) == packets.end()) {
 							RtpPacket tmpPkt;
 							memcpy(tmpPkt.data.get(), pkt.data.get(), pkt.size);
 							tmpPkt.size = pkt.size;
@@ -74,183 +67,171 @@ bool MediaSession::addMediaSource(MediaChannelId channelId, MediaSource* source)
 						}
 						clients.emplace_front(conn);
 					}
-                    iter++;
-                }
-            }
-        }
+					iter++;
+				}
+			}
+		}
         
-        int count = 0;
-        for(auto iter : clients)
-        {
-            int ret = 0;
-            int id = iter->getId();
-			if (id >= 0)
-			{
+		int count = 0;
+		for(auto iter : clients) {
+			int ret = 0;
+			int id = iter->GetId();
+			if (id >= 0) {
 				auto iter2 = packets.find(id);
-				if (iter2 != packets.end())
-				{
+				if (iter2 != packets.end()) {
 					count++;
-					ret = iter->sendRtpPacket(channelId, iter2->second);
-					if (_isMulticast && ret == 0)
+					ret = iter->SendRtpPacket(channelId, iter2->second);
+					if (is_multicast_ && ret == 0) {
 						break;
+					}				
 				}
 			}					
-        }
-        return true;
+		}
+		return true;
     });
 
-    _mediaSources[channelId].reset(source);
-    return true;
+	media_sources_[channelId].reset(source);
+	return true;
 }
 
-bool MediaSession::removeMediaSource(MediaChannelId channelId)
+bool MediaSession::RemoveSource(MediaChannelId channelId)
 {
-    _mediaSources[channelId] = nullptr;
-    return true;
+	media_sources_[channelId] = nullptr;
+	return true;
 }
 
-bool MediaSession::startMulticast()
+bool MediaSession::StartMulticast()
 {  
-    if (_isMulticast)
-    {
-        return true;
-    }
+	if (is_multicast_) {
+		return true;
+	}
 
-    _multicastIp = MulticastAddr::instance().getAddr();
-    if (_multicastIp == "")
-    {
-        return false;
-    }
+	multicast_ip_ = MulticastAddr::instance().GetAddr();
+	if (multicast_ip_ == "") {
+		return false;
+	}
 
-    std::random_device rd;
-    _multicastPort[channel_0] = htons(rd() & 0xfffe);
-    _multicastPort[channel_1] = htons(rd() & 0xfffe);
+	std::random_device rd;
+	multicast_port_[channel_0] = htons(rd() & 0xfffe);
+	multicast_port_[channel_1] = htons(rd() & 0xfffe);
 
-    _isMulticast = true;
-    return true;
+	is_multicast_ = true;
+	return true;
 }
 
-std::string MediaSession::getSdpMessage(std::string sessionName)
+std::string MediaSession::GetSdpMessage(std::string sessionName)
 {
-    if(_sdp != "")
-        return _sdp;
-
-    if(_mediaSources.empty())
-        return "";
-            
-    std::string ip = NetInterface::getLocalIPAddress();
-    char buf[2048] = {0};
-
-    snprintf(buf, sizeof(buf),
-            "v=0\r\n"
-			"o=- 9%ld 1 IN IP4 %s\r\n"
-            "t=0 0\r\n"
-            "a=control:*\r\n" ,
-            (long)std::time(NULL), ip.c_str()); 
-
-    if(sessionName != "")
-    {
-        snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
-                "s=%s\r\n",
-                sessionName.c_str());
-    }
+	if (sdp_ != "") {
+		return sdp_;
+	}
     
-    if(_isMulticast)
-    {
-        snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf),
-                 "a=type:broadcast\r\n"
-                 "a=rtcp-unicast: reflection\r\n");
-    }
+	if (media_sources_.empty()) {
+		return "";
+	}
+                
+	std::string ip = NetInterface::GetLocalIPAddress();
+	char buf[2048] = {0};
+
+	snprintf(buf, sizeof(buf),
+			"v=0\r\n"
+			"o=- 9%ld 1 IN IP4 %s\r\n"
+			"t=0 0\r\n"
+			"a=control:*\r\n" ,
+			(long)std::time(NULL), ip.c_str()); 
+
+	if(sessionName != "") {
+		snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
+				"s=%s\r\n",
+				sessionName.c_str());
+	}
+    
+	if(is_multicast_) {
+		snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf),
+					"a=type:broadcast\r\n"
+					"a=rtcp-unicast: reflection\r\n");
+	}
 		
-    for (uint32_t chn=0; chn<_mediaSources.size(); chn++)
-    {
-        if(_mediaSources[chn])
-        {	
-            if(_isMulticast)		 
-            {
-                snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
-                        "%s\r\n",
-                        _mediaSources[chn]->getMediaDescription(_multicastPort[chn]).c_str()); 
+	for (uint32_t chn=0; chn<media_sources_.size(); chn++) {
+		if(media_sources_[chn]) {	
+			if(is_multicast_) {
+				snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
+						"%s\r\n",
+						media_sources_[chn]->GetMediaDescription(multicast_port_[chn]).c_str()); 
                      
-                snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
-                        "c=IN IP4 %s/255\r\n",
-                        _multicastIp.c_str()); 
-            }
-            else 
-            {
-                snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
-                        "%s\r\n",
-                        _mediaSources[chn]->getMediaDescription(0).c_str());
-            }
+				snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
+						"c=IN IP4 %s/255\r\n",
+						multicast_ip_.c_str()); 
+			}
+			else {
+				snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
+						"%s\r\n",
+						media_sources_[chn]->GetMediaDescription(0).c_str());
+			}
             
 			snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf), 
 					"%s\r\n",
-					_mediaSources[chn]->getAttribute().c_str());
+					media_sources_[chn]->GetAttribute().c_str());
                      
 			snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf),											
 					"a=control:track%d\r\n", chn);	
-        }
-    }
-
-    _sdp = buf;
-    return _sdp;
-}
-
-MediaSource* MediaSession::getMediaSource(MediaChannelId channelId)
-{
-	if (_mediaSources[channelId])
-	{
-		return _mediaSources[channelId].get();
+		}
 	}
 
-    return nullptr;
+	sdp_ = buf;
+	return sdp_;
 }
 
-bool MediaSession::handleFrame(MediaChannelId channelId, AVFrame frame)
+MediaSource* MediaSession::GetMediaSource(MediaChannelId channelId)
 {
-    std::lock_guard<std::mutex> lock(_mutex);
-    if(_mediaSources[channelId])
-    {
-        _mediaSources[channelId]->handleFrame(channelId, frame);
-    }
-    else
-    {
-        return false;
-    }
+	if (media_sources_[channelId]) {
+		return media_sources_[channelId].get();
+	}
 
-    return true;
+	return nullptr;
 }
 
-bool MediaSession::addClient(SOCKET rtspfd, std::shared_ptr<RtpConnection> rtpConnPtr)
+bool MediaSession::HandleFrame(MediaChannelId channelId, AVFrame frame)
 {
-    std::lock_guard<std::mutex> lock(_mtxMap);
-    auto iter = _clients.find (rtspfd);
-    if(iter == _clients.end())
-    {
-        std::weak_ptr<RtpConnection> rtpConnWeakPtr = rtpConnPtr;
-        _clients.emplace(rtspfd, rtpConnWeakPtr);
-        if (_notifyCallback)
-        {
-            _notifyCallback(_sessionId, (uint32_t)_clients.size()); /* 回调通知当前客户端数量 */
-        }
+	std::lock_guard<std::mutex> lock(mutex_);
+
+	if(media_sources_[channelId]) {
+		media_sources_[channelId]->HandleFrame(channelId, frame);
+	}
+	else {
+		return false;
+	}
+
+	return true;
+}
+
+bool MediaSession::AddClient(SOCKET rtspfd, std::shared_ptr<RtpConnection> rtp_conn)
+{
+	std::lock_guard<std::mutex> lock(map_mutex_);
+
+	auto iter = clients_.find (rtspfd);
+	if(iter == clients_.end()) {
+		std::weak_ptr<RtpConnection> rtp_conn_weak_ptr = rtp_conn;
+		clients_.emplace(rtspfd, rtp_conn_weak_ptr);
+		if (notify_callback_) {
+			notify_callback_(session_id_, (uint32_t)clients_.size()); /* 回调通知当前客户端数量 */
+		}
         
-        _hasNewClient = true;
-        return true;
-    }
+		has_new_client_ = true;
+		return true;
+	}
             
-    return false;
+	return false;
 }
 
-void MediaSession::removeClient(SOCKET rtspfd)
+void MediaSession::RemoveClient(SOCKET rtspfd)
 {  
-    std::lock_guard<std::mutex> lock(_mtxMap);
-    if (_clients.find(rtspfd) != _clients.end())
-    {
-        _clients.erase(rtspfd);
-        if (_notifyCallback)
-        {
-            _notifyCallback(_sessionId, (uint32_t)_clients.size());  /* 回调通知当前客户端数量 */
-        }
-    }
+	std::lock_guard<std::mutex> lock(map_mutex_);
+
+	if (clients_.find(rtspfd) != clients_.end()) {
+		clients_.erase(rtspfd);
+		if (notify_callback_) {
+			notify_callback_(session_id_, (uint32_t)clients_.size());  /* 回调通知当前客户端数量 */
+		}
+	}
 }
 

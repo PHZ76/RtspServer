@@ -1,53 +1,72 @@
-﻿#include "Acceptor.h"
+#include "Acceptor.h"
 #include "EventLoop.h"
 #include "SocketUtil.h"
 #include "Logger.h"
 
 using namespace xop;
 
-Acceptor::Acceptor(EventLoop* eventLoop, std::string ip, uint16_t port)
-    : _eventLoop(eventLoop)
-    , _tcpSocket(new TcpSocket)
+Acceptor::Acceptor(EventLoop* eventLoop)
+    : event_loop_(eventLoop)
+    , tcp_socket_(new TcpSocket)
 {	
-    _tcpSocket->create();
-    _acceptChannel.reset(new Channel(_tcpSocket->fd()));
-    SocketUtil::setReuseAddr(_tcpSocket->fd());
-    SocketUtil::setReusePort(_tcpSocket->fd());
-    SocketUtil::setNonBlock(_tcpSocket->fd());
-    _tcpSocket->bind(ip, port);
+	
 }
 
 Acceptor::~Acceptor()
 {
-    _eventLoop->removeChannel(_acceptChannel);
-    _tcpSocket->close();
+
 }
 
-int Acceptor::listen()
+int Acceptor::Listen(std::string ip, uint16_t port)
 {
-    if (!_tcpSocket->listen(1024))
-    {
-        return -1;
-    }
-    _acceptChannel->setReadCallback([this]() { this->handleAccept(); });
-    _acceptChannel->enableReading();
-    _eventLoop->updateChannel(_acceptChannel);
-    return 0;
+	std::lock_guard<std::mutex> locker(mutex_);
+
+	if (tcp_socket_->GetSocket() > 0) {
+		tcp_socket_->Close();
+	}
+
+	SOCKET sockfd = tcp_socket_->Create();
+	channel_ptr_.reset(new Channel(sockfd));
+	SocketUtil::SetReuseAddr(sockfd);
+	SocketUtil::SetReusePort(sockfd);
+	SocketUtil::SetNonBlock(sockfd);
+
+	if (!tcp_socket_->Bind(ip, port)) {
+		return -1;
+	}
+
+	if (!tcp_socket_->Listen(1024)) {
+		return -1;
+	}
+
+	channel_ptr_->SetReadCallback([this]() { this->OnAccept(); });
+	channel_ptr_->EnableReading();
+	event_loop_->UpdateChannel(channel_ptr_);
+	return 0;
 }
 
-void Acceptor::handleAccept()
+void Acceptor::Close()
 {
-    SOCKET connfd = _tcpSocket->accept();
-    if (connfd > 0)
-    {
-        if (_newConnectionCallback)		
-        {
-            _newConnectionCallback(connfd);
-        }
-        else
-        {
-            SocketUtil::close(connfd);
-        }
-    }
+	std::lock_guard<std::mutex> locker(mutex_);
+
+	if (tcp_socket_->GetSocket() > 0) {
+		event_loop_->RemoveChannel(channel_ptr_);
+		tcp_socket_->Close();
+	}
+}
+
+void Acceptor::OnAccept()
+{
+	std::lock_guard<std::mutex> locker(mutex_);
+
+	SOCKET connfd = tcp_socket_->Accept();
+	if (connfd > 0) {
+		if (new_connection_callback_) {
+			new_connection_callback_(connfd);
+		}
+		else {
+			SocketUtil::Close(connfd);
+		}
+	}
 }
 

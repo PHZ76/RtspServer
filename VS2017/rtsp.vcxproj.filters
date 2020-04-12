@@ -27,9 +27,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\example\rtsp_h264_file.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\xop\AACSource.cpp">
       <Filter>源文件\xop</Filter>
     </ClCompile>
@@ -116,6 +113,9 @@
     </ClCompile>
     <ClCompile Include="..\src\xop\DigestAuthentication.cpp">
       <Filter>源文件\xop</Filter>
+    </ClCompile>
+    <ClCompile Include="..\example\rtsp_h264_file.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

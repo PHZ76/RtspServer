@@ -1,4 +1,4 @@
-﻿// PHZ
+// PHZ
 // 2018-5-15
     
 #ifndef XOP_CHANNEL_H
@@ -13,94 +13,85 @@ namespace xop
     
 enum EventType
 {
-    EVENT_NONE   = 0,
-    EVENT_IN     = 1,
-    EVENT_PRI    = 2,		
-    EVENT_OUT    = 4,
-    EVENT_ERR    = 8,
-    EVENT_HUP    = 16,
-    EVENT_RDHUP  = 8192
+	EVENT_NONE   = 0,
+	EVENT_IN     = 1,
+	EVENT_PRI    = 2,		
+	EVENT_OUT    = 4,
+	EVENT_ERR    = 8,
+	EVENT_HUP    = 16,
+	EVENT_RDHUP  = 8192
 };
 
 class Channel 
 {
 public:
-    typedef std::function<void()> EventCallback;
+	typedef std::function<void()> EventCallback;
     
-    Channel() = delete;
-    Channel(SOCKET fd) : _fd(fd) {};
-    ~Channel() {};
+	Channel() = delete;
+	Channel(SOCKET sockfd) : sockfd_(sockfd) {};
+	virtual ~Channel() {};
     
-    void setReadCallback(const EventCallback& cb)
-    { _readCallback = cb; }
-    void setWriteCallback(const EventCallback& cb)
-    { _writeCallback = cb; }
-    void setCloseCallback(const EventCallback& cb)
-    { _closeCallback = cb; }
-    void setErrorCallback(const EventCallback& cb)
-    { _errorCallback = cb; }
+	void SetReadCallback(const EventCallback& cb)
+	{ read_callback_ = cb; }
 
-    void setReadCallback(EventCallback&& cb)
-    { _readCallback = std::move(cb); }
-    void setWriteCallback(EventCallback&& cb)
-    { _writeCallback = std::move(cb); }
-    void setCloseCallback(EventCallback&& cb)
-    { _closeCallback = std::move(cb); }
-    void setErrorCallback(EventCallback&& cb)
-    { _errorCallback = std::move(cb); } 
+	void SetWriteCallback(const EventCallback& cb)
+	{ write_callback_ = cb; }
 
-	SOCKET fd() const { return _fd; }
-    int events() const { return _events; }
-    void setEvents(int events) { _events = events; }
-    
-    void enableReading() 
-    { _events |= EVENT_IN; }
+	void SetCloseCallback(const EventCallback& cb)
+	{ close_callback_ = cb; }
 
-    void enableWriting() 
-    { _events |= EVENT_OUT; }
+	void SetErrorCallback(const EventCallback& cb)
+	{ error_callback_ = cb; }
+
+	SOCKET GetSocket() const { return sockfd_; }
+
+	int  GetEvents() const { return events_; }
+	void SetEvents(int events) { events_ = events; }
     
-    void disableReading() 
-    { _events &= ~EVENT_IN; }
+	void EnableReading() 
+	{ events_ |= EVENT_IN; }
+
+	void EnableWriting() 
+	{ events_ |= EVENT_OUT; }
     
-    void disableWriting() 
-    { _events &= ~EVENT_OUT; }
+	void DisableReading() 
+	{ events_ &= ~EVENT_IN; }
+    
+	void DisableWriting() 
+	{ events_ &= ~EVENT_OUT; }
        
-    bool isNoneEvent() const { return _events == EVENT_NONE; }
-    bool isWriting() const { return (_events & EVENT_OUT)!=0; }
-    bool isReading() const { return (_events & EVENT_IN)!=0; }
+	bool IsNoneEvent() const { return events_ == EVENT_NONE; }
+	bool IsWriting() const { return (events_ & EVENT_OUT) != 0; }
+	bool IsReading() const { return (events_ & EVENT_IN) != 0; }
     
-    void handleEvent(int events)
-    {	
-        if (events & (EVENT_PRI | EVENT_IN))
-        {
-            _readCallback();
-        }
+	void HandleEvent(int events)
+	{	
+		if (events & (EVENT_PRI | EVENT_IN)) {
+			read_callback_();
+		}
 
-        if (events & EVENT_OUT)
-        {
-            _writeCallback();
-        }
+		if (events & EVENT_OUT) {
+			write_callback_();
+		}
         
-        if (events & EVENT_HUP)
-        {
-            _closeCallback();
-            return ;
-        }
+		if (events & EVENT_HUP) {
+			close_callback_();
+			return ;
+		}
 
-        if (events & (EVENT_ERR))
-        {
-            _errorCallback();	
-        }
-    }
+		if (events & (EVENT_ERR)) {
+			error_callback_();
+		}
+	}
 
 private:
-    EventCallback _readCallback  = []{};
-    EventCallback _writeCallback = []{};
-    EventCallback _closeCallback = []{};
-    EventCallback _errorCallback = []{};
+	EventCallback read_callback_  = []{};
+	EventCallback write_callback_ = []{};
+	EventCallback close_callback_ = []{};
+	EventCallback error_callback_ = []{};
     
-	SOCKET _fd = 0;
-    int _events = 0;    
+	SOCKET sockfd_ = 0;
+	int events_ = 0;    
 };
 
 typedef std::shared_ptr<Channel> ChannelPtr;

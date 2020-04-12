@@ -1,5 +1,5 @@
-#ifndef Thread_SAFE_QUEUE_H
-#define Thread_SAFE_QUEUE_H
+#ifndef THREAD_SAFE_QUEUE_H
+#define THREAD_SAFE_QUEUE_H
 
 #include <mutex>
 #include <queue>

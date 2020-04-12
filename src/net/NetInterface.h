@@ -1,4 +1,4 @@
-﻿// PHZ
+// PHZ
 // 2018-5-15
 
 #ifndef XOP_NET_INTERFACE_H
@@ -6,13 +6,14 @@
 
 #include <string>
 
-namespace xop
+namespace xop {
+
+class NetInterface
 {
-    class NetInterface
-    {
-    public:
-        static std::string getLocalIPAddress();
-    };
+public:
+    static std::string GetLocalIPAddress();
+};
+
 }
 
 #endif

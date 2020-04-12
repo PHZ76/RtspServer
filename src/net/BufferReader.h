@@ -1,4 +1,4 @@
-﻿// PHZ
+// PHZ
 // 2018-5-15
 
 #ifndef XOP_BUFFER_READER_H
@@ -14,102 +14,94 @@
 namespace xop
 {
 
-uint32_t readUint32BE(char* data);
-uint32_t readUint32LE(char* data);
-uint32_t readUint24BE(char* data);
-uint32_t readUint24LE(char* data);
-uint16_t readUint16BE(char* data);
-uint16_t readUint16LE(char* data);
+uint32_t ReadUint32BE(char* data);
+uint32_t ReadUint32LE(char* data);
+uint32_t ReadUint24BE(char* data);
+uint32_t ReadUint24LE(char* data);
+uint16_t ReadUint16BE(char* data);
+uint16_t ReadUint16LE(char* data);
     
 class BufferReader
 {
 public:	
 	static const uint32_t kInitialSize = 2048;
-    BufferReader(uint32_t initialSize = kInitialSize);
-    ~BufferReader();
+	BufferReader(uint32_t initialSize = kInitialSize);
+	virtual ~BufferReader();
 
-    uint32_t readableBytes() const
-    { return (uint32_t)(_writerIndex - _readerIndex); }
+	uint32_t ReadableBytes() const
+	{ return (uint32_t)(writer_index_ - reader_index_); }
 
-    uint32_t writableBytes() const
-    {  return (uint32_t)(_buffer->size() - _writerIndex); }
+	uint32_t WritableBytes() const
+	{  return (uint32_t)(buffer_->size() - writer_index_); }
 
-    char* peek() 
-    { return begin() + _readerIndex; }
+	char* Peek() 
+	{ return Begin() + reader_index_; }
 
-    const char* peek() const
-    { return begin() + _readerIndex; }
+	const char* Peek() const
+	{ return Begin() + reader_index_; }
 
-    const char* findFirstCrlf() const
-    {    
-        const char* crlf = std::search(peek(), beginWrite(), kCRLF, kCRLF+2);
-        return crlf == beginWrite() ? nullptr : crlf;
-    }
-
-    const char* findLastCrlf() const
-    {    
-        const char* crlf = std::find_end(peek(), beginWrite(), kCRLF, kCRLF+2);
-        return crlf == beginWrite() ? nullptr : crlf;
-    }
-
-	const char* findLastCrlfCrlf() const
-	{
-		char crlfCrlf[] = "\r\n\r\n";
-		const char* crlf = std::find_end(peek(), beginWrite(), crlfCrlf, crlfCrlf + 4);
-		return crlf == beginWrite() ? nullptr : crlf;
+	const char* FindFirstCrlf() const {    
+		const char* crlf = std::search(Peek(), BeginWrite(), kCRLF, kCRLF+2);
+		return crlf == BeginWrite() ? nullptr : crlf;
 	}
 
-    void retrieveAll() 
-    { 
-        _writerIndex = 0; 
-        _readerIndex = 0; 
-    }
+	const char* FindLastCrlf() const {    
+		const char* crlf = std::find_end(Peek(), BeginWrite(), kCRLF, kCRLF+2);
+		return crlf == BeginWrite() ? nullptr : crlf;
+	}
 
-    void retrieve(size_t len)
-    {
-        if (len <= readableBytes())
-        {
-            _readerIndex += len;
-            if(_readerIndex == _writerIndex)
-            {
-                _readerIndex = 0;
-                _writerIndex = 0;
-            }
-        }
-        else
-        {
-            retrieveAll();
-        }
-    }
+	const char* FindLastCrlfCrlf() const {
+		char crlfCrlf[] = "\r\n\r\n";
+		const char* crlf = std::find_end(Peek(), BeginWrite(), crlfCrlf, crlfCrlf + 4);
+		return crlf == BeginWrite() ? nullptr : crlf;
+	}
 
-    void retrieveUntil(const char* end)
-    { retrieve(end - peek()); }
+	void RetrieveAll()  { 
+		writer_index_ = 0; 
+		reader_index_ = 0; 
+	}
 
-    int readFd(SOCKET sockfd);
-    uint32_t readAll(std::string& data);
-    uint32_t readUntilCrlf(std::string& data);
+	void Retrieve(size_t len) {
+		if (len <= ReadableBytes()) {
+			reader_index_ += len;
+			if(reader_index_ == writer_index_) {
+				reader_index_ = 0;
+				writer_index_ = 0;
+			}
+		}
+		else {
+			RetrieveAll();
+		}
+	}
 
-    uint32_t bufferSize() const 
-    { return (uint32_t)_buffer->size(); }
+	void RetrieveUntil(const char* end)
+	{ Retrieve(end - Peek()); }
+
+	int Read(SOCKET sockfd);
+	uint32_t ReadAll(std::string& data);
+	uint32_t ReadUntilCrlf(std::string& data);
+
+	uint32_t Size() const 
+	{ return (uint32_t)buffer_->size(); }
 
 private:
-    char* begin()
-    { return &*_buffer->begin(); }
+	char* Begin()
+	{ return &*buffer_->begin(); }
 
-    const char* begin() const
-    { return &*_buffer->begin(); }
+	const char* Begin() const
+	{ return &*buffer_->begin(); }
 
-    char* beginWrite()
-    { return begin() + _writerIndex; }
+	char* beginWrite()
+	{ return Begin() + writer_index_; }
 
-    const char* beginWrite() const
-    { return begin() + _writerIndex; }
+	const char* BeginWrite() const
+	{ return Begin() + writer_index_; }
 
-    std::shared_ptr<std::vector<char>> _buffer;
-    size_t _readerIndex = 0;
-    size_t _writerIndex = 0;
+	std::shared_ptr<std::vector<char>> buffer_;
+	size_t reader_index_ = 0;
+	size_t writer_index_ = 0;
 
-    static const char kCRLF[];
+	static const char kCRLF[];
 	static const uint32_t MAX_BYTES_PER_READ = 4096;
 	static const uint32_t MAX_BUFFER_SIZE = 1024 * 100000;
 };

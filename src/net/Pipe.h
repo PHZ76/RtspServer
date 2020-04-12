@@ -1,4 +1,4 @@
-﻿// PHZ
+// PHZ
 // 2018-5-15
 
 #ifndef XOP_PIPE_H
@@ -12,17 +12,17 @@ namespace xop
 class Pipe
 {
 public:
-    Pipe();
-    bool create();
-    int write(void *buf, int len);
-    int read(void *buf, int len);
-    void close();
+	Pipe();
+	bool Create();
+	int Write(void *buf, int len);
+	int Read(void *buf, int len);
+	void Close();
 
-    SOCKET readfd() const { return _pipefd[0]; }
-    SOCKET writefd() const { return _pipefd[1]; }
+	SOCKET Read() const { return pipe_fd_[0]; }
+	SOCKET Write() const { return pipe_fd_[1]; }
 	
 private:
-    SOCKET _pipefd[2];
+	SOCKET pipe_fd_[2];
 };
 
 }

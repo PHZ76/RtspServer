@@ -1,82 +1,76 @@
-﻿#include "Timer.h"
+#include "Timer.h"
 #include <iostream>
 
 using namespace xop;
 using namespace std;
 using namespace std::chrono;
 
-TimerId TimerQueue::addTimer(const TimerEvent& event, uint32_t ms)
+TimerId TimerQueue::AddTimer(const TimerEvent& event, uint32_t ms)
 {    
-    std::lock_guard<std::mutex> locker(_mutex);
-    int64_t timeout = getTimeNow();
-    TimerId timerId = ++_lastTimerId;
+	std::lock_guard<std::mutex> locker(mutex_);
+	int64_t timeout = GetTimeNow();
+	TimerId timer_id = ++last_timer_id_;
 
-    auto timer = make_shared<Timer>(event, ms);	
-    timer->setNextTimeout(timeout);
-    _timers.emplace(timerId, timer);
-    _events.emplace(std::pair<int64_t, TimerId>(timeout + ms, timerId), std::move(timer));
-    return timerId;
+	auto timer = make_shared<Timer>(event, ms);	
+	timer->SetNextTimeout(timeout);
+	timers_.emplace(timer_id, timer);
+	events_.emplace(std::pair<int64_t, TimerId>(timeout + ms, timer_id), std::move(timer));
+	return timer_id;
 }
 
-void TimerQueue::removeTimer(TimerId timerId)
+void TimerQueue::RemoveTimer(TimerId timerId)
 {
-    std::lock_guard<std::mutex> locker(_mutex);
-    auto iter = _timers.find(timerId);
-    if (iter != _timers.end())
-    {
-        int64_t timeout = iter->second->getNextTimeout();
-        _events.erase(std::pair<int64_t, TimerId>(timeout, timerId));
-        _timers.erase(timerId);
-    }
+	std::lock_guard<std::mutex> locker(mutex_);
+	auto iter = timers_.find(timerId);
+	if (iter != timers_.end()) {
+		int64_t timeout = iter->second->getNextTimeout();
+		events_.erase(std::pair<int64_t, TimerId>(timeout, timerId));
+		timers_.erase(timerId);
+	}
 }
 
-int64_t TimerQueue::getTimeNow()
+int64_t TimerQueue::GetTimeNow()
 {	
-    auto timePoint = steady_clock::now();	
-    return duration_cast<milliseconds>(timePoint.time_since_epoch()).count();	
+	auto time_point = steady_clock::now();	
+	return duration_cast<milliseconds>(time_point.time_since_epoch()).count();
 }
 
-int64_t TimerQueue::getTimeRemaining()
+int64_t TimerQueue::GetTimeRemaining()
 {	
-    std::lock_guard<std::mutex> locker(_mutex);
+	std::lock_guard<std::mutex> locker(mutex_);
 
-    if (_timers.empty())
-    {
-        return -1;
-    }
+	if (timers_.empty()) {
+		return -1;
+	}
 
-    int64_t msec = _events.begin()->first.first - getTimeNow();
-    if (msec <= 0)
-    {
-        msec = 0;
-    }
+	int64_t msec = events_.begin()->first.first - GetTimeNow();
+	if (msec < 0) {
+		msec = 0;
+	}
 
-    return msec;
+	return msec;
 }
 
-void TimerQueue::handleTimerEvent()
+void TimerQueue::HandleTimerEvent()
 {
-    if(!_timers.empty())
-    {
-        std::lock_guard<std::mutex> locker(_mutex);
-        int64_t timePoint = getTimeNow();
-        while(!_timers.empty() && _events.begin()->first.first<=timePoint)
-        {	
-            TimerId timerId = _events.begin()->first.second;
-            bool flag = _events.begin()->second->eventCallback();
-            if(flag == true)
-            {
-                _events.begin()->second->setNextTimeout(timePoint);
-                auto timerPtr = std::move(_events.begin()->second);
-                _events.erase(_events.begin());
-                _events.emplace(std::pair<int64_t, TimerId>(timerPtr->getNextTimeout(), timerId), timerPtr);
-            }
-            else		
-            {		
-				_events.erase(_events.begin());
-				_timers.erase(timerId);				
-            }
-        }	
-    }
+	if(!timers_.empty()) {
+		std::lock_guard<std::mutex> locker(mutex_);
+		int64_t timePoint = GetTimeNow();
+		while(!timers_.empty() && events_.begin()->first.first<=timePoint)
+		{	
+			TimerId timerId = events_.begin()->first.second;
+			bool flag = events_.begin()->second->event_callback_();
+			if(flag == true) {
+				events_.begin()->second->SetNextTimeout(timePoint);
+				auto timerPtr = std::move(events_.begin()->second);
+				events_.erase(events_.begin());
+				events_.emplace(std::pair<int64_t, TimerId>(timerPtr->getNextTimeout(), timerId), timerPtr);
+			}
+			else {		
+				events_.erase(events_.begin());
+				timers_.erase(timerId);				
+			}
+		}	
+	}
 }
 

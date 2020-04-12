@@ -1,4 +1,4 @@
-﻿// PHZ
+// PHZ
 // 2018-11-10
 
 #ifndef XOP_TCPSERVER_H
@@ -17,30 +17,33 @@ namespace xop
 class Acceptor;
 class EventLoop;
 
-class TcpServer 
+class TcpServer
 {
 public:	
-    TcpServer(EventLoop* loop, std::string ip, uint16_t port);
-    virtual ~TcpServer();  
-    int start();
+	TcpServer(EventLoop* event_loop);
+	virtual ~TcpServer();  
 
-    std::string getIPAddress() const
-    { return _ip; }
+	virtual bool Start(std::string ip, uint16_t port);
+	virtual void Stop();
 
-    uint16_t getPort() const 
-    { return _port; }
+	std::string GetIPAddress() const
+	{ return ip_; }
+
+	uint16_t GetPort() const 
+	{ return port_; }
 
 protected:
-    virtual TcpConnection::Ptr newConnection(SOCKET sockfd);
-    void addConnection(SOCKET sockfd, TcpConnection::Ptr tcpConn);
-    void removeConnection(SOCKET sockfd);
+	virtual TcpConnection::Ptr OnConnect(SOCKET sockfd);
+	virtual void AddConnection(SOCKET sockfd, TcpConnection::Ptr tcpConn);
+	virtual void RemoveConnection(SOCKET sockfd);
 
-    EventLoop* _eventLoop; 
-    uint16_t _port;
-    std::string _ip;
-    std::shared_ptr<Acceptor> _acceptor; 
-    std::mutex _conn_mutex;
-    std::unordered_map<SOCKET, std::shared_ptr<TcpConnection>> _connections;
+	EventLoop* event_loop_;
+	uint16_t port_;
+	std::string ip_;
+	std::unique_ptr<Acceptor> acceptor_; 
+	bool is_started_;
+	std::mutex mutex_;
+	std::unordered_map<SOCKET, std::shared_ptr<TcpConnection>> connections_;
 };
 
 }

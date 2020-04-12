@@ -1,8 +1,9 @@
-﻿#ifndef XOP_ACCEPTOR_H
+#ifndef XOP_ACCEPTOR_H
 #define XOP_ACCEPTOR_H
 
 #include <functional>
 #include <memory>
+#include <mutex>
 #include "Channel.h"
 #include "TcpSocket.h"
 
@@ -16,30 +17,27 @@ class EventLoop;
 class Acceptor
 {
 public:	
-    Acceptor(EventLoop* eventLoop, std::string ip, uint16_t port);
-    ~Acceptor();
+	Acceptor(EventLoop* eventLoop);
+	~Acceptor();
 
-    void setNewConnectionCallback(const NewConnectionCallback& cb)
-    { _newConnectionCallback = cb; }
+	void SetNewConnectionCallback(const NewConnectionCallback& cb)
+	{ new_connection_callback_ = cb; }
 
-    void setNewConnectionCallback(NewConnectionCallback&& cb)
-    { _newConnectionCallback = cb; }
-
-    int listen();
+	int  Listen(std::string ip, uint16_t port);
+	void Close();
 
 private:
-    void handleAccept();
+	void OnAccept();
 
-    EventLoop* _eventLoop = nullptr;
-
-    std::shared_ptr<TcpSocket> _tcpSocket;
-    ChannelPtr _acceptChannel;
-
-    NewConnectionCallback _newConnectionCallback;
+	EventLoop* event_loop_ = nullptr;
+	std::mutex mutex_;
+	std::unique_ptr<TcpSocket> tcp_socket_;
+	ChannelPtr channel_ptr_;
+	NewConnectionCallback new_connection_callback_;
 };
 
 }
 
-#endif  //
+#endif 
 
 

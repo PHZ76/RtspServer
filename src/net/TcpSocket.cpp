@@ -1,4 +1,4 @@
-﻿// PHZ
+// PHZ
 // 2018-5-15
 
 #include "TcpSocket.h"
@@ -9,7 +9,7 @@
 using namespace xop;
 
 TcpSocket::TcpSocket(SOCKET sockfd)
-    : _sockfd(sockfd)
+    : sockfd_(sockfd)
 {
     
 }
@@ -19,74 +19,74 @@ TcpSocket::~TcpSocket()
 	
 }
 
-SOCKET TcpSocket::create()
+SOCKET TcpSocket::Create()
 {
-    _sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    return _sockfd;
+	sockfd_ = ::socket(AF_INET, SOCK_STREAM, 0);
+	return sockfd_;
 }
 
-bool TcpSocket::bind(std::string ip, uint16_t port)
+bool TcpSocket::Bind(std::string ip, uint16_t port)
 {
-    struct sockaddr_in addr = {0};			  
-    addr.sin_family = AF_INET;		  
-    addr.sin_addr.s_addr = inet_addr(ip.c_str()); 
-    addr.sin_port = htons(port);  
+	struct sockaddr_in addr = {0};			  
+	addr.sin_family = AF_INET;		  
+	addr.sin_addr.s_addr = inet_addr(ip.c_str()); 
+	addr.sin_port = htons(port);  
 
-    if(::bind(_sockfd, (struct sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR)
-    {
-        LOG_ERROR(" <socket=%d> bind <%s:%u> failed.\n", _sockfd, ip.c_str(), port);
-        return false;
-    }
+	if(::bind(sockfd_, (struct sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR)
+	{
+		LOG_DEBUG(" <socket=%d> bind <%s:%u> failed.\n", sockfd_, ip.c_str(), port);
+		return false;
+	}
 
-    return true;
+	return true;
 }
 
-bool TcpSocket::listen(int backlog)
+bool TcpSocket::Listen(int backlog)
 {
-    if(::listen(_sockfd, backlog) == SOCKET_ERROR)
-    {
-		LOG_ERROR("<socket=%d> listen failed.\n", _sockfd);
-        return false;
-    }
+	if(::listen(sockfd_, backlog) == SOCKET_ERROR)
+	{
+		LOG_DEBUG("<socket=%d> listen failed.\n", sockfd_);
+		return false;
+	}
 
-    return true;
+	return true;
 }
 
-SOCKET TcpSocket::accept()
+SOCKET TcpSocket::Accept()
 {
-    struct sockaddr_in addr = {0};
-    socklen_t addrlen = sizeof addr;
+	struct sockaddr_in addr = {0};
+	socklen_t addrlen = sizeof addr;
 
-    SOCKET clientfd = ::accept(_sockfd, (struct sockaddr*)&addr, &addrlen);
+	SOCKET clientfd = ::accept(sockfd_, (struct sockaddr*)&addr, &addrlen);
 
-    return clientfd;
+	return clientfd;
 }
 
-bool TcpSocket::connect(std::string ip, uint16_t port, int timeout)
+bool TcpSocket::Connect(std::string ip, uint16_t port, int timeout)
 { 
-    if(!SocketUtil::connect(_sockfd, ip, port, timeout))
-    {
-		LOG_ERROR("<socket=%d> connect failed.\n", _sockfd);
-        return false;
-    }
+	if(!SocketUtil::Connect(sockfd_, ip, port, timeout))
+	{
+		LOG_DEBUG("<socket=%d> connect failed.\n", sockfd_);
+		return false;
+	}
 
-    return true;
+	return true;
 }
 
-void TcpSocket::close()
+void TcpSocket::Close()
 {
 #if defined(__linux) || defined(__linux__) 
-    ::close(_sockfd);
+    ::close(sockfd_);
 #elif defined(WIN32) || defined(_WIN32)
-    closesocket(_sockfd);
+    closesocket(sockfd_);
 #else
 	
 #endif
-    _sockfd = 0;
+	sockfd_ = 0;
 }
 
-void TcpSocket::shutdownWrite()
+void TcpSocket::ShutdownWrite()
 {
-    shutdown(_sockfd, SHUT_WR);
-    _sockfd = 0;
+	shutdown(sockfd_, SHUT_WR);
+	sockfd_ = 0;
 }

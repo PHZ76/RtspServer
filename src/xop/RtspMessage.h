@@ -32,119 +32,119 @@ public:
 
 	enum RtspRequestParseState
 	{
-		kParseRequestLine, /* 请求行 */
-		kParseHeadersLine, /* 首部行, 可能有多行 */
-		//kParseBody,	/* 主体 */
+		kParseRequestLine,
+		kParseHeadersLine,
+		//kParseBody,	
 		kGotAll,
 	};
 
-    bool parseRequest(xop::BufferReader *buffer);
+	bool ParseRequest(xop::BufferReader *buffer);
 
-    bool gotAll() const
-    { return _state == kGotAll; }
+	bool GotAll() const
+	{ return state_ == kGotAll; }
 
-    void reset()
-    {
-        _state = kParseRequestLine;
-        _requestLineParam.clear();
-        _headerLineParam.clear();
-    }
+	void Reset()
+	{
+		state_ = kParseRequestLine;
+		request_line_param_.clear();
+		header_line_param_.clear();
+	}
 
-    Method getMethod() const
-    { return _method; }
+	Method GetMethod() const
+	{ return method_; }
 
-    uint32_t getCSeq() const;
+	uint32_t GetCSeq() const;
 
-    std::string getRtspUrl() const;
+	std::string GetRtspUrl() const;
 
-    std::string getRtspUrlSuffix() const;
+	std::string GetRtspUrlSuffix() const;
 
-    std::string getIp() const;
+	std::string GetIp() const;
 
-	std::string getAuthResponse() const;
+	std::string GetAuthResponse() const;
 
-    TransportMode getTransportMode() const
-    { return _transport; }
+	TransportMode GetTransportMode() const
+	{ return transport_; }
 
-    MediaChannelId getChannelId() const
-    { return _channelId; }
+	MediaChannelId GetChannelId() const
+	{ return channel_id_; }
 
-    uint8_t getRtpChannel() const;
-    uint8_t getRtcpChannel() const;
-    uint16_t getRtpPort() const;
-    uint16_t getRtcpPort() const;
+	uint8_t  GetRtpChannel() const;
+	uint8_t  GetRtcpChannel() const;
+	uint16_t GetRtpPort() const;
+	uint16_t GetRtcpPort() const;
 
-    int buildOptionRes(const char* buf, int bufSize);
-    int buildDescribeRes(const char* buf, int bufSize, const char* strSdp);
-    int buildSetupMulticastRes(const char* buf, int bufSize, const char* strMulticastIp, uint16_t port, uint32_t sessionId);
-    int buildSetupTcpRes(const char* buf, int bufSize, uint16_t rtpChn, uint16_t rtcpChn, uint32_t sessionId);
-    int buildSetupUdpRes(const char* buf, int bufSize, uint16_t serRtpChn, uint16_t serRtcpChn, uint32_t sessionId);
-    int buildPlayRes(const char* buf, int bufSize, const char* rtpInfo, uint32_t sessionId);
-    int buildTeardownRes(const char* buf, int bufSize, uint32_t sessionId);
-    int buildGetParamterRes(const char* buf, int bufSize, uint32_t sessionId);
-    int buildNotFoundRes(const char* buf, int bufSize);
-    int buildServerErrorRes(const char* buf, int bufSize);
-    int buildUnsupportedRes(const char* buf, int bufSize);
-	int buildUnauthorizedRes(const char* buf, int bufSize, const char* realm, const char* nonce);
+	int BuildOptionRes(const char* buf, int buf_size);
+	int BuildDescribeRes(const char* buf, int buf_size, const char* sdp);
+	int BuildSetupMulticastRes(const char* buf, int buf_size, const char* multicast_ip, uint16_t port, uint32_t session_id);
+	int BuildSetupTcpRes(const char* buf, int buf_size, uint16_t rtp_chn, uint16_t rtcp_chn, uint32_t session_id);
+	int BuildSetupUdpRes(const char* buf, int buf_size, uint16_t rtp_chn, uint16_t rtcp_chn, uint32_t session_id);
+	int BuildPlayRes(const char* buf, int buf_size, const char* rtp_info, uint32_t session_id);
+	int BuildTeardownRes(const char* buf, int buf_size, uint32_t session_id);
+	int BuildGetParamterRes(const char* buf, int buf_size, uint32_t session_id);
+	int BuildNotFoundRes(const char* buf, int buf_size);
+	int BuildServerErrorRes(const char* buf, int buf_size);
+	int BuildUnsupportedRes(const char* buf, int buf_size);
+	int BuildUnauthorizedRes(const char* buf, int buf_size, const char* realm, const char* nonce);
 
 private:
-    bool parseRequestLine(const char* begin, const char* end);
-    bool parseHeadersLine(const char* begin, const char* end);
-    bool parseCSeq(std::string& message);
-    bool parseAccept(std::string& message);
-    bool parseTransport(std::string& message);
-    bool parseSessionId(std::string& message);
-    bool parseMediaChannel(std::string& message);
-	bool parseAuthorization(std::string& message);
+	bool ParseRequestLine(const char* begin, const char* end);
+	bool ParseHeadersLine(const char* begin, const char* end);
+	bool ParseCSeq(std::string& message);
+	bool ParseAccept(std::string& message);
+	bool ParseTransport(std::string& message);
+	bool ParseSessionId(std::string& message);
+	bool ParseMediaChannel(std::string& message);
+	bool ParseAuthorization(std::string& message);
 
-    Method _method;
-    MediaChannelId _channelId;
-    TransportMode _transport;
-	std::string _authResponse;
-    std::unordered_map<std::string, std::pair<std::string, uint32_t>> _requestLineParam;
-    std::unordered_map<std::string, std::pair<std::string, uint32_t>> _headerLineParam;
+	Method method_;
+	MediaChannelId channel_id_;
+	TransportMode transport_;
+	std::string auth_response_;
+	std::unordered_map<std::string, std::pair<std::string, uint32_t>> request_line_param_;
+	std::unordered_map<std::string, std::pair<std::string, uint32_t>> header_line_param_;
 
-    RtspRequestParseState _state = kParseRequestLine;
+	RtspRequestParseState state_ = kParseRequestLine;
 };
 
 class RtspResponse
 {
 public:
-    enum Method
-    {
-        OPTIONS=0, DESCRIBE, ANNOUNCE, SETUP, RECORD, RTCP,
-        NONE, 
-    };
+	enum Method
+	{
+		OPTIONS=0, DESCRIBE, ANNOUNCE, SETUP, RECORD, RTCP,
+		NONE, 
+	};
 
-    bool parseResponse(xop::BufferReader *buffer);
+	bool ParseResponse(xop::BufferReader *buffer);
 
-    Method getMethod() const
-    { return _method; }
+	Method GetMethod() const
+	{ return method_; }
 
-    uint32_t getCSeq() const
-    { return _cseq;  }
+	uint32_t GetCSeq() const
+	{ return cseq_;  }
 
-    std::string getSession() const
-    { return _session; }
+	std::string GetSession() const
+	{ return session_; }
 
-    void setUserAgent(const char *userAgent) 
-    { _userAgent = std::string(userAgent); }
+	void SetUserAgent(const char *user_agent) 
+	{ user_agent_ = std::string(user_agent); }
 
-    void setRtspUrl(const char *url)
-    { _rtspUrl = std::string(url); }
+	void SetRtspUrl(const char *url)
+	{ rtsp_url_ = std::string(url); }
 
-    int buildOptionReq(const char* buf, int bufSize);
-    int buildDescribeReq(const char* buf, int bufSize);
-    int buildAnnounceReq(const char* buf, int bufSize, const char *strSdp);
-    int buildSetupTcpReq(const char* buf, int bufSize, int channel);
-    int buildRecordReq(const char* buf, int bufSize);
+	int BuildOptionReq(const char* buf, int buf_size);
+	int BuildDescribeReq(const char* buf, int buf_size);
+	int BuildAnnounceReq(const char* buf, int buf_size, const char *sdp);
+	int BuildSetupTcpReq(const char* buf, int buf_size, int channel);
+	int BuildRecordReq(const char* buf, int buf_size);
 
 private:
-    Method _method;
-    uint32_t _cseq = 0;
-    std::string _userAgent;
-    std::string _rtspUrl;
-    std::string _session;
+	Method method_;
+	uint32_t cseq_ = 0;
+	std::string user_agent_;
+	std::string rtsp_url_;
+	std::string session_;
 };
 
 }
