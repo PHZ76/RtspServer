@@ -158,8 +158,9 @@ bool RtspConnection::HandleRtspResponse(BufferReader& buffer)
 {
 #if RTSP_DEBUG
 	string str(buffer.Peek(), buffer.ReadableBytes());
-	if(str.find("rtsp")!=string::npos || str.find("RTSP") != string::npos)
+	if (str.find("rtsp") != string::npos || str.find("RTSP") != string::npos) {
 		cout << str << endl;
+	}		
 #endif
 
 	if (rtsp_response_->ParseResponse(&buffer)) {
@@ -360,7 +361,13 @@ server_error:
 
 void RtspConnection::HandleCmdPlay()
 {
-	if (auth_info_ != nullptr && !HandleAuthentication()) {
+	if (auth_info_ != nullptr) {
+		if (!HandleAuthentication()) {
+			return;
+		}
+	}
+
+	if (rtp_conn_ == nullptr) {
 		return;
 	}
 
@@ -376,6 +383,10 @@ void RtspConnection::HandleCmdPlay()
 
 void RtspConnection::HandleCmdTeardown()
 {
+	if (rtp_conn_ == nullptr) {
+		return;
+	}
+
 	rtp_conn_->Teardown();
 
 	uint16_t session_id = rtp_conn_->GetRtpSessionId();
@@ -383,11 +394,15 @@ void RtspConnection::HandleCmdTeardown()
 	int size = rtsp_request_->BuildTeardownRes(res.get(), 2048, session_id);
 	SendRtspMessage(res, size);
 
-	HandleClose();
+	//HandleClose();
 }
 
 void RtspConnection::HandleCmdGetParamter()
 {
+	if (rtp_conn_ == nullptr) {
+		return;
+	}
+
 	uint16_t session_id = rtp_conn_->GetRtpSessionId();
 	std::shared_ptr<char> res(new char[2048]);
 	int size = rtsp_request_->BuildGetParamterRes(res.get(), 2048, session_id);
