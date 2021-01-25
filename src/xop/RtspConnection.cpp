@@ -263,7 +263,7 @@ void RtspConnection::HandleCmdDescribe()
 			}
 		}
 
-		std::string sdp = media_session->GetSdpMessage(rtsp->GetVersion());
+		std::string sdp = media_session->GetSdpMessage(SocketUtil::GetSocketIp(this->GetSocket()), rtsp->GetVersion());
 		if(sdp == "") {
 			size = rtsp_request_->BuildServerErrorRes(res.get(), 4096);
 		}
@@ -478,7 +478,7 @@ void RtspConnection::SendAnnounce()
 		}
 	}
 
-	std::string sdp = media_session->GetSdpMessage(rtsp->GetVersion());
+	std::string sdp = media_session->GetSdpMessage(SocketUtil::GetSocketIp(this->GetSocket()), rtsp->GetVersion());
 	if (sdp == "") {
 		HandleClose();
 		return;
