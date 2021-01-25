@@ -124,6 +124,12 @@ std::string SocketUtil::GetSocketIp(SOCKET sockfd)
 	return str;
 }
 
+int SocketUtil::GetSocketAddr(SOCKET sockfd, struct sockaddr_in* addr)
+{
+    socklen_t addrlen = sizeof(struct sockaddr_in);
+    return getsockname(sockfd, (struct sockaddr*)addr, &addrlen);
+}
+
 uint16_t SocketUtil::GetPeerPort(SOCKET sockfd)
 {
     struct sockaddr_in addr = { 0 };
