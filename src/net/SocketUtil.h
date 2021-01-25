@@ -24,6 +24,7 @@ public:
 	static void SetSendBufSize(SOCKET sockfd, int size);
 	static void SetRecvBufSize(SOCKET sockfd, int size);
 	static std::string GetPeerIp(SOCKET sockfd);
+	static std::string GetSocketIp(SOCKET sockfd);
 	static uint16_t GetPeerPort(SOCKET sockfd);
 	static int GetPeerAddr(SOCKET sockfd, struct sockaddr_in *addr);
 	static void Close(SOCKET sockfd);

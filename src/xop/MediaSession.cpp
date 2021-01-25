@@ -8,7 +8,6 @@
 #include <map>
 #include <forward_list>
 #include "net/Logger.h"
-#include "net/NetInterface.h"
 #include "net/SocketUtil.h"
 
 using namespace xop;
@@ -119,7 +118,7 @@ bool MediaSession::StartMulticast()
 	return true;
 }
 
-std::string MediaSession::GetSdpMessage(std::string sessionName)
+std::string MediaSession::GetSdpMessage(std::string ip, std::string sessionName)
 {
 	if (sdp_ != "") {
 		return sdp_;
@@ -128,8 +127,7 @@ std::string MediaSession::GetSdpMessage(std::string sessionName)
 	if (media_sources_.empty()) {
 		return "";
 	}
-                
-	std::string ip = NetInterface::GetLocalIPAddress();
+
 	char buf[2048] = {0};
 
 	snprintf(buf, sizeof(buf),

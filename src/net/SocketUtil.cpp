@@ -115,6 +115,15 @@ std::string SocketUtil::GetPeerIp(SOCKET sockfd)
     return "0.0.0.0";
 }
 
+std::string SocketUtil::GetSocketIp(SOCKET sockfd)
+{
+	struct sockaddr_in addr = {0};
+	char str[INET_ADDRSTRLEN] = "127.0.0.1";
+	if (GetSocketAddr(sockfd, &addr) == 0)
+		inet_ntop(AF_INET, &addr.sin_addr, str, sizeof(str));
+	return str;
+}
+
 uint16_t SocketUtil::GetPeerPort(SOCKET sockfd)
 {
     struct sockaddr_in addr = { 0 };
