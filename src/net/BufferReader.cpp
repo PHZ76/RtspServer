@@ -51,9 +51,8 @@ uint16_t xop::ReadUint16LE(char* data)
 const char BufferReader::kCRLF[] = "\r\n";
 
 BufferReader::BufferReader(uint32_t initialSize)
-    : buffer_(new std::vector<char>(initialSize))
+    : buffer_(initialSize)
 {
-	buffer_->resize(initialSize);
 }	
 
 BufferReader::~BufferReader()
@@ -65,12 +64,12 @@ int BufferReader::Read(SOCKET sockfd)
 {	
 	uint32_t size = WritableBytes();
 	if(size < MAX_BYTES_PER_READ) {
-		uint32_t bufferReaderSize = (uint32_t)buffer_->size();
+		uint32_t bufferReaderSize = (uint32_t)buffer_.size();
 		if(bufferReaderSize > MAX_BUFFER_SIZE) {
 			return 0; 
 		}
         
-		buffer_->resize(bufferReaderSize + MAX_BYTES_PER_READ);
+		buffer_.resize(bufferReaderSize + MAX_BYTES_PER_READ);
 	}
 
 	int bytes_read = ::recv(sockfd, beginWrite(), MAX_BYTES_PER_READ, 0);
