@@ -31,7 +31,7 @@ private:
 
 	EventLoop* event_loop_ = nullptr;
 	std::mutex mutex_;
-	std::unique_ptr<TcpSocket> tcp_socket_;
+	TcpSocket tcp_socket_;
 	ChannelPtr channel_ptr_;
 	NewConnectionCallback new_connection_callback_;
 };
