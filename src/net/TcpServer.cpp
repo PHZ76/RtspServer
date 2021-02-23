@@ -10,10 +10,10 @@ using namespace std;
 TcpServer::TcpServer(EventLoop* event_loop)
 	: event_loop_(event_loop)
 	, port_(0)
-	, acceptor_(new Acceptor(event_loop_))
+	, acceptor_(event_loop_)
 	, is_started_(false)
 {
-	acceptor_->SetNewConnectionCallback([this](SOCKET sockfd, std::string ip, int port) {
+	acceptor_.SetNewConnectionCallback([this](SOCKET sockfd, std::string ip, int port) {
 		TcpConnection::Ptr conn = this->OnConnect(sockfd, ip, port);
 		if (conn) {
 			this->AddConnection(sockfd, conn);
@@ -38,7 +38,7 @@ bool TcpServer::Start(std::string ip, uint16_t port)
 	Stop();
 
 	if (!is_started_) {
-		if (acceptor_->Listen(ip, port) < 0) {
+		if (acceptor_.Listen(ip, port) < 0) {
 			return false;
 		}
 
@@ -61,7 +61,7 @@ void TcpServer::Stop()
 		}
 		mutex_.unlock();
 
-		acceptor_->Close();
+		acceptor_.Close();
 		is_started_ = false;
 
 		while (1) {

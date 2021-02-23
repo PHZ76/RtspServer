@@ -8,13 +8,12 @@
 #include <string>
 #include <mutex>
 #include <unordered_map>
-#include "Socket.h"
+#include "Acceptor.h"
 #include "TcpConnection.h"
 
 namespace xop
 {
 
-class Acceptor;
 class EventLoop;
 
 class TcpServer
@@ -40,7 +39,7 @@ protected:
 	EventLoop* event_loop_;
 	uint16_t port_;
 	std::string ip_;
-	std::unique_ptr<Acceptor> acceptor_; 
+	Acceptor acceptor_; 
 	bool is_started_;
 	std::mutex mutex_;
 	std::unordered_map<SOCKET, std::shared_ptr<TcpConnection>> connections_;
