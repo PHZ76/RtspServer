@@ -25,7 +25,7 @@ public:
 	virtual bool Start(std::string ip, uint16_t port);
 	virtual void Stop();
 
-	std::string GetIPAddress() const
+	const std::string& GetIPAddress() const
 	{ return ip_; }
 
 	uint16_t GetPort() const 
