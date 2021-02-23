@@ -8,8 +8,7 @@ using namespace xop;
 TaskScheduler::TaskScheduler(int id)
 	: id_(id)
 	, is_shutdown_(false) 
-	, wakeup_pipe_(new Pipe())
-	, trigger_events_(new xop::RingBuffer<TriggerEvent>(kMaxTriggetEvents))
+	, trigger_events_(kMaxTriggetEvents)
 {
 	static std::once_flag flag;
 	std::call_once(flag, [] {
@@ -21,8 +20,8 @@ TaskScheduler::TaskScheduler(int id)
 #endif
 	});
 
-	if (wakeup_pipe_->Create()) {
-		wakeup_channel_.reset(new Channel(wakeup_pipe_->Read(),"pip", -1));
+	if (wakeup_pipe_.Create()) {
+		wakeup_channel_.reset(new Channel(wakeup_pipe_.Read(),"pip", -1));
 		wakeup_channel_->EnableReading();
 		wakeup_channel_->SetReadCallback([this]() { this->Wake(); });		
 	}        
@@ -55,7 +54,7 @@ void TaskScheduler::Stop()
 {
 	is_shutdown_ = true;
 	char event = kTriggetEvent;
-	wakeup_pipe_->Write(&event, 1);
+	wakeup_pipe_.Write(&event, 1);
 }
 
 TimerId TaskScheduler::AddTimer(TimerEvent timerEvent, uint32_t msec)
@@ -71,11 +70,11 @@ void TaskScheduler::RemoveTimer(TimerId timerId)
 
 bool TaskScheduler::AddTriggerEvent(TriggerEvent callback)
 {
-	if (trigger_events_->size() < kMaxTriggetEvents) {
+	if (trigger_events_.size() < kMaxTriggetEvents) {
 		std::lock_guard<std::mutex> lock(mutex_);
 		char event = kTriggetEvent;
-		trigger_events_->push(std::move(callback));
-		wakeup_pipe_->Write(&event, 1);
+		trigger_events_.push(std::move(callback));
+		wakeup_pipe_.Write(&event, 1);
 		return true;
 	}
 
@@ -85,7 +84,7 @@ bool TaskScheduler::AddTriggerEvent(TriggerEvent callback)
 void TaskScheduler::Wake()
 {
 	char event[10] = { 0 };
-	while (wakeup_pipe_->Read(event, 10) > 0);
+	while (wakeup_pipe_.Read(event, 10) > 0);
 }
 
 void TaskScheduler::HandleTriggerEvent()
@@ -93,8 +92,8 @@ void TaskScheduler::HandleTriggerEvent()
 	do 
 	{
 		TriggerEvent callback;
-		if (trigger_events_->pop(callback)) {
+		if (trigger_events_.pop(callback)) {
 			callback();
 		}
-	} while (trigger_events_->size() > 0);
+	} while (trigger_events_.size() > 0);
 }

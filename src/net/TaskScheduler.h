@@ -39,9 +39,9 @@ protected:
 
 	int id_ = 0;
 	std::atomic_bool is_shutdown_;
-	std::unique_ptr<Pipe> wakeup_pipe_;
+	Pipe wakeup_pipe_;
 	std::shared_ptr<Channel> wakeup_channel_;
-	std::unique_ptr<xop::RingBuffer<TriggerEvent>> trigger_events_;
+	xop::RingBuffer<TriggerEvent> trigger_events_;
 
 	std::mutex mutex_;
 	TimerQueue timer_queue_;
