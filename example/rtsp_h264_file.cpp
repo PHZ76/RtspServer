@@ -64,8 +64,8 @@ int main(int argc, char **argv)
 	xop::MediaSession *session = xop::MediaSession::CreateNew("live"); 
 	session->AddSource(xop::channel_0, xop::H264Source::CreateNew()); 
 	//session->StartMulticast(); 
-	session->SetNotifyCallback([] (xop::MediaSessionId session_id, uint32_t clients){
-		std::cout << "The number of rtsp clients: " << clients << std::endl;
+	session->AddNotifyConnectedCallback([] (xop::MediaSessionId sessionId, uint32_t num_clients, std::string ip){
+		std::cout << "The number of rtsp clients: " << num_clients << std::endl;
 	});
    
 	xop::MediaSessionId session_id = server->AddSession(session);
