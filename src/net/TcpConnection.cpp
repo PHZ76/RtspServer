@@ -5,8 +5,7 @@ using namespace xop;
 
 TcpConnection::TcpConnection(TaskScheduler *task_scheduler, SOCKET sockfd, std::string ip, int port)
 	: task_scheduler_(task_scheduler)
-	, read_buffer_(new BufferReader)
-	, write_buffer_(new BufferWriter(500))
+	, write_buffer_(500)
 	, channel_(new Channel(sockfd, ip, port))
 {
 	is_closed_ = false;
@@ -36,7 +35,7 @@ void TcpConnection::Send(std::shared_ptr<char> data, uint32_t size)
 {
 	if (!is_closed_) {
 		mutex_.lock();
-		write_buffer_->Append(data, size);
+		write_buffer_.Append(data, size);
 		mutex_.unlock();
 
 		this->HandleWrite();
@@ -47,7 +46,7 @@ void TcpConnection::Send(const char *data, uint32_t size)
 {
 	if (!is_closed_) {
 		mutex_.lock();
-		write_buffer_->Append(data, size);
+		write_buffer_.Append(data, size);
 		mutex_.unlock();
 
 		this->HandleWrite();
@@ -72,7 +71,7 @@ void TcpConnection::HandleRead()
 			return;
 		}
 		
-		int ret = read_buffer_->Read(channel_->GetSocket());
+		int ret = read_buffer_.Read(channel_->GetSocket());
 		if (ret <= 0) {
 			this->Close();
 			return;
@@ -80,7 +79,7 @@ void TcpConnection::HandleRead()
 	}
 
 	if (read_cb_) {
-		bool ret = read_cb_(shared_from_this(), *read_buffer_);
+		bool ret = read_cb_(shared_from_this(), read_buffer_);
 		if (false == ret) {
 			std::lock_guard<std::mutex> lock(mutex_);
 			this->Close();
@@ -103,13 +102,13 @@ void TcpConnection::HandleWrite()
 	bool empty = false;
 	do
 	{
-		ret = write_buffer_->Send(channel_->GetSocket());
+		ret = write_buffer_.Send(channel_->GetSocket());
 		if (ret < 0) {
 			this->Close();
 			mutex_.unlock();
 			return;
 		}
-		empty = write_buffer_->IsEmpty();
+		empty = write_buffer_.IsEmpty();
 	} while (0);
 
 	if (empty) {

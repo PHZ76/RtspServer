@@ -64,8 +64,8 @@ protected:
 	{ disconnect_cb_ = cb; }
 
 	TaskScheduler* task_scheduler_;
-	std::unique_ptr<xop::BufferReader> read_buffer_;
-	std::unique_ptr<xop::BufferWriter> write_buffer_;
+	xop::BufferReader read_buffer_;
+	xop::BufferWriter write_buffer_;
 	std::atomic_bool is_closed_;
 
 private:
