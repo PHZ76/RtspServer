@@ -30,18 +30,16 @@ enum FrameType
 
 struct AVFrame
 {	
-	AVFrame(uint32_t size = 0)
-		:buffer(new uint8_t[size + 1], std::default_delete<uint8_t[]>())
+	AVFrame(uint32_t size_ = 0)
+		: buffer(new uint8_t[size_ + 1], std::default_delete<uint8_t[]>()),
+                  size(size_)
 	{
-		this->size = size;
-		type = 0;
-		timestamp = 0;
 	}
 
 	std::shared_ptr<uint8_t> buffer; /* 帧数据 */
-	uint32_t size;				     /* 帧大小 */
-	uint8_t  type;				     /* 帧类型 */	
-	uint32_t timestamp;		  	     /* 时间戳 */
+	uint32_t size       = 0; /* 帧大小 */
+	uint8_t  type       = 0; /* 帧类型 */	
+	uint32_t timestamp  = 0; /* 时间戳 */
 };
 
 #define MAX_MEDIA_CHANNEL 2

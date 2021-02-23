@@ -48,9 +48,6 @@ public:
 	MediaSessionId GetMediaSessionId()
 	{ return session_id_; }
 
-	TaskScheduler *GetTaskScheduler() const 
-	{ return task_scheduler_; }
-
 	void KeepAlive()
 	{ alive_count_++; }
 
@@ -112,7 +109,6 @@ private:
 
 	std::atomic_int alive_count_;
 	std::weak_ptr<Rtsp> rtsp_;
-	xop::TaskScheduler *task_scheduler_ = nullptr;
 
 	ConnectionMode  conn_mode_ = RTSP_SERVER;
 	ConnectionState conn_state_ = START_CONNECT;

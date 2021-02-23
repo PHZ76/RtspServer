@@ -14,9 +14,6 @@ RtpConnection::RtpConnection(std::weak_ptr<TcpConnection> rtsp_connection)
 	std::random_device rd;
 
 	for(int chn=0; chn<MAX_MEDIA_CHANNEL; chn++) {
-		rtcpfd_[chn].fd = 0;
-        rtcpfd_[chn].ip = "";
-        rtcpfd_[chn].port = 0;
 		memset(&media_channel_info_[chn], 0, sizeof(media_channel_info_[chn]));
 		media_channel_info_[chn].rtp_header.version = RTP_VERSION;
 		media_channel_info_[chn].packet_seq = rd()&0xffff;

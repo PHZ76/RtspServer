@@ -13,7 +13,7 @@ namespace xop
 class G711ASource : public MediaSource
 {
 public:
-	static G711ASource* CreateNew();
+	static std::unique_ptr<MediaSource> CreateNew();
 	virtual ~G711ASource();
 
 	uint32_t GetSampleRate() const

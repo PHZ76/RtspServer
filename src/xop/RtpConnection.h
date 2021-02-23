@@ -21,9 +21,9 @@ class RtspConnection;
 
 struct SockInfo
 {
-    SOCKET      fd;
-    std::string ip;
-    uint16_t    port;
+    SOCKET      fd	= 0;
+    std::string ip	= "";
+    uint16_t    port	= 0;
 };
 
 class RtpConnection

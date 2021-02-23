@@ -70,10 +70,10 @@ struct RtpPacket
 	}
 
 	std::shared_ptr<uint8_t> data;
-	uint32_t size;
-	uint32_t timestamp;
-	uint8_t  type;
-	uint8_t  last;
+	uint32_t size       = 0;
+	uint32_t timestamp  = 0;
+	uint8_t  type       = 0;
+	uint8_t  last       = 0;
 };
 
 }

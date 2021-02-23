@@ -23,9 +23,9 @@ G711ASource::G711ASource()
     clock_rate_ = 8000;
 }
 
-G711ASource* G711ASource::CreateNew()
+std::unique_ptr<MediaSource> G711ASource::CreateNew()
 {
-    return new G711ASource();
+    return std::unique_ptr<MediaSource>(new G711ASource());
 }
 
 G711ASource::~G711ASource()

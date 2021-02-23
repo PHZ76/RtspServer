@@ -25,14 +25,9 @@ H264Source::H264Source(uint32_t framerate)
     clock_rate_ = 90000;
 }
 
-H264Source* H264Source::CreateNew(uint32_t framerate)
+std::unique_ptr<MediaSource> H264Source::CreateNew(uint32_t framerate)
 {
-    return new H264Source(framerate);
-}
-
-H264Source::~H264Source()
-{
-
+    return std::unique_ptr<MediaSource>(new H264Source(framerate));
 }
 
 string H264Source::GetMediaDescription(uint16_t port)

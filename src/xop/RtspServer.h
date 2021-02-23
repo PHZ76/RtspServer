@@ -22,7 +22,7 @@ public:
 	static std::shared_ptr<RtspServer> Create(xop::EventLoop* loop);
 	~RtspServer();
 
-    MediaSessionId AddSession(MediaSession* session);
+    MediaSessionId AddSession(std::shared_ptr<MediaSession> session);
     void RemoveSession(MediaSessionId sessionId);
 
     bool PushFrame(MediaSessionId sessionId, MediaChannelId channelId, AVFrame frame);

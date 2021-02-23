@@ -25,14 +25,9 @@ H265Source::H265Source(uint32_t framerate)
     clock_rate_ = 90000;
 }
 
-H265Source* H265Source::CreateNew(uint32_t framerate)
+std::unique_ptr<MediaSource> H265Source::CreateNew(uint32_t framerate)
 {
-    return new H265Source(framerate);
-}
-
-H265Source::~H265Source()
-{
-	
+    return std::unique_ptr<MediaSource>(new H265Source(framerate));
 }
 
 string H265Source::GetMediaDescription(uint16_t port)

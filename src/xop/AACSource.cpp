@@ -27,9 +27,9 @@ AACSource::AACSource(uint32_t samplerate, uint32_t channels, bool has_adts)
 	clock_rate_ = samplerate;
 }
 
-AACSource* AACSource::CreateNew(uint32_t samplerate, uint32_t channels, bool has_adts)
+std::unique_ptr<MediaSource> AACSource::CreateNew(uint32_t samplerate, uint32_t channels, bool has_adts)
 {
-    return new AACSource(samplerate, channels, has_adts);
+    return std::unique_ptr<MediaSource>(new AACSource(samplerate, channels, has_adts));
 }
 
 AACSource::~AACSource()

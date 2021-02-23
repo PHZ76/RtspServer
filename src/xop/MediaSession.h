@@ -32,10 +32,10 @@ public:
     typedef std::function<void (MediaSessionId sessionId, uint32_t num_clients, std::string ip)> NotifyConnectedCallback;
     typedef std::function<void (MediaSessionId sessionId, uint32_t num_clients, std::string ip)> NotifyDisconnectedCallback;
 
-    static MediaSession* CreateNew(std::string url_suffxx="live");
+    static std::shared_ptr<MediaSession> CreateNew(std::string url_suffxx="live");
     ~MediaSession();
 
-    bool AddSource(MediaChannelId channel_id, MediaSource* source);
+    bool AddSource(MediaChannelId channel_id, std::unique_ptr<MediaSource>&& source);
     bool RemoveSource(MediaChannelId channel_id);
 
     bool StartMulticast();

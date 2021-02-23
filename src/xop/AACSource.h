@@ -13,7 +13,7 @@ namespace xop
 class AACSource : public MediaSource
 {
 public:
-    static AACSource* CreateNew(uint32_t samplerate=44100, uint32_t channels=2, bool has_adts=true);
+    static std::unique_ptr<MediaSource> CreateNew(uint32_t samplerate=44100, uint32_t channels=2, bool has_adts=true);
     virtual ~AACSource();
 
     uint32_t GetSamplerate() const

@@ -28,9 +28,9 @@ MediaSession::MediaSession(std::string url_suffxx)
 	}
 }
 
-MediaSession* MediaSession::CreateNew(std::string url_suffxx)
+std::shared_ptr<MediaSession> MediaSession::CreateNew(std::string url_suffxx)
 {
-	return new MediaSession(std::move(url_suffxx));
+	return std::shared_ptr<MediaSession>(new MediaSession(std::move(url_suffxx)));
 }
 
 MediaSession::~MediaSession()
@@ -50,7 +50,7 @@ void MediaSession::AddNotifyDisconnectedCallback(const NotifyDisconnectedCallbac
     _notifyDisconnectedCallbacks.push_back(cb);
 }
 
-bool MediaSession::AddSource(MediaChannelId channelId, MediaSource* source)
+bool MediaSession::AddSource(MediaChannelId channelId,  std::unique_ptr<MediaSource>&& source)
 {
 	source->SetSendFrameCallback([this](MediaChannelId channelId, RtpPacket pkt) {
 		std::forward_list<std::shared_ptr<RtpConnection>> clients;
@@ -99,7 +99,7 @@ bool MediaSession::AddSource(MediaChannelId channelId, MediaSource* source)
 		return true;
     });
 
-	media_sources_[channelId].reset(source);
+	media_sources_[channelId] = std::move(source);
 	return true;
 }
 

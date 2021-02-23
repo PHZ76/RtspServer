@@ -13,8 +13,7 @@ namespace xop
 class H264Source : public MediaSource
 {
 public:
-	static H264Source* CreateNew(uint32_t framerate=25);
-	~H264Source();
+	static std::unique_ptr<MediaSource> CreateNew(uint32_t framerate=25);
 
 	void SetFramerate(uint32_t framerate)
 	{ framerate_ = framerate; }
