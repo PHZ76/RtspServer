@@ -18,8 +18,6 @@ RtspConnection::RtspConnection(std::shared_ptr<Rtsp> rtsp, TaskScheduler *task_s
 	: TcpConnection(task_scheduler, sockfd, ip, port)
 	, rtsp_(rtsp)
 	, rtp_channel_(new Channel(sockfd, ip, port))
-	, rtsp_request_(new RtspRequest)
-	, rtsp_response_(new RtspResponse)
 {
 	this->SetReadCallback([this](std::shared_ptr<TcpConnection> conn, xop::BufferReader& buffer) {
 		return this->OnRead(buffer);
@@ -108,13 +106,13 @@ bool RtspConnection::HandleRtspRequest(BufferReader& buffer)
 	}
 #endif
 
-    if (rtsp_request_->ParseRequest(&buffer)) {
-		RtspRequest::Method method = rtsp_request_->GetMethod();
+    if (rtsp_request_.ParseRequest(&buffer)) {
+		RtspRequest::Method method = rtsp_request_.GetMethod();
 		if(method == RtspRequest::RTCP) {
 			HandleRtcp(buffer);
 			return true;
 		}
-		else if(!rtsp_request_->GotAll()) {
+		else if(!rtsp_request_.GotAll()) {
 			return true;
 		}
         
@@ -142,8 +140,8 @@ bool RtspConnection::HandleRtspRequest(BufferReader& buffer)
 			break;
 		}
 
-		if (rtsp_request_->GotAll()) {
-			rtsp_request_->Reset();
+		if (rtsp_request_.GotAll()) {
+			rtsp_request_.Reset();
 		}
     }
 	else {
@@ -162,8 +160,8 @@ bool RtspConnection::HandleRtspResponse(BufferReader& buffer)
 	}		
 #endif
 
-	if (rtsp_response_->ParseResponse(&buffer)) {
-		RtspResponse::Method method = rtsp_response_->GetMethod();
+	if (rtsp_response_.ParseResponse(&buffer)) {
+		RtspResponse::Method method = rtsp_response_.GetMethod();
 		switch (method)
 		{
 		case RtspResponse::OPTIONS:
@@ -224,7 +222,7 @@ void RtspConnection::HandleRtcp(SOCKET sockfd)
 void RtspConnection::HandleCmdOption()
 {
 	std::shared_ptr<char> res(new char[2048], std::default_delete<char[]>());
-	int size = rtsp_request_->BuildOptionRes(res.get(), 2048);
+	int size = rtsp_request_.BuildOptionRes(res.get(), 2048);
 	this->SendRtspMessage(res, size);	
 }
 
@@ -244,11 +242,11 @@ void RtspConnection::HandleCmdDescribe()
 
 	auto rtsp = rtsp_.lock();
 	if (rtsp) {
-		media_session = rtsp->LookMediaSession(rtsp_request_->GetRtspUrlSuffix());
+		media_session = rtsp->LookMediaSession(rtsp_request_.GetRtspUrlSuffix());
 	}
 	
 	if(!rtsp || !media_session) {
-		size = rtsp_request_->BuildNotFoundRes(res.get(), 4096);
+		size = rtsp_request_.BuildNotFoundRes(res.get(), 4096);
 	}
 	else {
 		session_id_ = media_session->GetMediaSessionId();
@@ -264,10 +262,10 @@ void RtspConnection::HandleCmdDescribe()
 
 		std::string sdp = media_session->GetSdpMessage(SocketUtil::GetSocketIp(this->GetSocket()), rtsp->GetVersion());
 		if(sdp == "") {
-			size = rtsp_request_->BuildServerErrorRes(res.get(), 4096);
+			size = rtsp_request_.BuildServerErrorRes(res.get(), 4096);
 		}
 		else {
-			size = rtsp_request_->BuildDescribeRes(res.get(), 4096, sdp.c_str());		
+			size = rtsp_request_.BuildDescribeRes(res.get(), 4096, sdp.c_str());		
 		}
 	}
 
@@ -283,7 +281,7 @@ void RtspConnection::HandleCmdSetup()
 
 	int size = 0;
 	std::shared_ptr<char> res(new char[4096], std::default_delete<char[]>());
-	MediaChannelId channel_id = rtsp_request_->GetChannelId();
+	MediaChannelId channel_id = rtsp_request_.GetChannelId();
 	MediaSessionPtr media_session = nullptr;
 
 	auto rtsp = rtsp_.lock();
@@ -297,31 +295,31 @@ void RtspConnection::HandleCmdSetup()
 
 	if(media_session->IsMulticast())  {
 		std::string multicast_ip = media_session->GetMulticastIp();
-		if(rtsp_request_->GetTransportMode() == RTP_OVER_MULTICAST) {
+		if(rtsp_request_.GetTransportMode() == RTP_OVER_MULTICAST) {
 			uint16_t port = media_session->GetMulticastPort(channel_id);
 			uint16_t session_id = rtp_conn_->GetRtpSessionId();
 			if (!rtp_conn_->SetupRtpOverMulticast(channel_id, multicast_ip.c_str(), port)) {
 				goto server_error;
 			}
 
-			size = rtsp_request_->BuildSetupMulticastRes(res.get(), 4096, multicast_ip.c_str(), port, session_id);
+			size = rtsp_request_.BuildSetupMulticastRes(res.get(), 4096, multicast_ip.c_str(), port, session_id);
 		}
 		else {
 			goto transport_unsupport;
 		}
 	}
 	else {
-		if(rtsp_request_->GetTransportMode() == RTP_OVER_TCP) {
-			uint16_t rtp_channel = rtsp_request_->GetRtpChannel();
-			uint16_t rtcp_channel = rtsp_request_->GetRtcpChannel();
+		if(rtsp_request_.GetTransportMode() == RTP_OVER_TCP) {
+			uint16_t rtp_channel = rtsp_request_.GetRtpChannel();
+			uint16_t rtcp_channel = rtsp_request_.GetRtcpChannel();
 			uint16_t session_id = rtp_conn_->GetRtpSessionId();
 
 			rtp_conn_->SetupRtpOverTcp(channel_id, rtp_channel, rtcp_channel);
-			size = rtsp_request_->BuildSetupTcpRes(res.get(), 4096, rtp_channel, rtcp_channel, session_id);
+			size = rtsp_request_.BuildSetupTcpRes(res.get(), 4096, rtp_channel, rtcp_channel, session_id);
 		}
-		else if(rtsp_request_->GetTransportMode() == RTP_OVER_UDP) {
-			uint16_t cliRtpPort = rtsp_request_->GetRtpPort();
-			uint16_t cliRtcpPort = rtsp_request_->GetRtcpPort();
+		else if(rtsp_request_.GetTransportMode() == RTP_OVER_UDP) {
+			uint16_t cliRtpPort = rtsp_request_.GetRtpPort();
+			uint16_t cliRtcpPort = rtsp_request_.GetRtcpPort();
 			uint16_t session_id = rtp_conn_->GetRtpSessionId();
 
 			if(rtp_conn_->SetupRtpOverUdp(channel_id, cliRtpPort, cliRtcpPort)) {                
@@ -337,7 +335,7 @@ void RtspConnection::HandleCmdSetup()
 
 			uint16_t serRtpPort = rtp_conn_->GetRtpPort(channel_id);
 			uint16_t serRtcpPort = rtp_conn_->GetRtcpPort(channel_id);
-			size = rtsp_request_->BuildSetupUdpRes(res.get(), 4096, serRtpPort, serRtcpPort, session_id);
+			size = rtsp_request_.BuildSetupUdpRes(res.get(), 4096, serRtpPort, serRtcpPort, session_id);
 		}
 		else {          
 			goto transport_unsupport;
@@ -348,12 +346,12 @@ void RtspConnection::HandleCmdSetup()
 	return ;
 
 transport_unsupport:
-	size = rtsp_request_->BuildUnsupportedRes(res.get(), 4096);
+	size = rtsp_request_.BuildUnsupportedRes(res.get(), 4096);
 	SendRtspMessage(res, size);
 	return ;
 
 server_error:
-	size = rtsp_request_->BuildServerErrorRes(res.get(), 4096);
+	size = rtsp_request_.BuildServerErrorRes(res.get(), 4096);
 	SendRtspMessage(res, size);
 	return ;
 }
@@ -376,7 +374,7 @@ void RtspConnection::HandleCmdPlay()
 	uint16_t session_id = rtp_conn_->GetRtpSessionId();
 	std::shared_ptr<char> res(new char[2048], std::default_delete<char[]>());
 
-	int size = rtsp_request_->BuildPlayRes(res.get(), 2048, nullptr, session_id);
+	int size = rtsp_request_.BuildPlayRes(res.get(), 2048, nullptr, session_id);
 	SendRtspMessage(res, size);
 }
 
@@ -390,7 +388,7 @@ void RtspConnection::HandleCmdTeardown()
 
 	uint16_t session_id = rtp_conn_->GetRtpSessionId();
 	std::shared_ptr<char> res(new char[2048], std::default_delete<char[]>());
-	int size = rtsp_request_->BuildTeardownRes(res.get(), 2048, session_id);
+	int size = rtsp_request_.BuildTeardownRes(res.get(), 2048, session_id);
 	SendRtspMessage(res, size);
 
 	//HandleClose();
@@ -404,24 +402,24 @@ void RtspConnection::HandleCmdGetParamter()
 
 	uint16_t session_id = rtp_conn_->GetRtpSessionId();
 	std::shared_ptr<char> res(new char[2048], std::default_delete<char[]>());
-	int size = rtsp_request_->BuildGetParamterRes(res.get(), 2048, session_id);
+	int size = rtsp_request_.BuildGetParamterRes(res.get(), 2048, session_id);
 	SendRtspMessage(res, size);
 }
 
 bool RtspConnection::HandleAuthentication()
 {
 	if (auth_info_ != nullptr && !has_auth_) {
-		std::string cmd = rtsp_request_->MethodToString[rtsp_request_->GetMethod()];
-		std::string url = rtsp_request_->GetRtspUrl();
+		std::string cmd = rtsp_request_.MethodToString[rtsp_request_.GetMethod()];
+		std::string url = rtsp_request_.GetRtspUrl();
 
-		if (_nonce.size() > 0 && (auth_info_->GetResponse(_nonce, cmd, url) == rtsp_request_->GetAuthResponse())) {
+		if (_nonce.size() > 0 && (auth_info_->GetResponse(_nonce, cmd, url) == rtsp_request_.GetAuthResponse())) {
 			_nonce.clear();
 			has_auth_ = true;
 		}
 		else {
 			std::shared_ptr<char> res(new char[4096], std::default_delete<char[]>());
 			_nonce = auth_info_->GetNonce();
-			int size = rtsp_request_->BuildUnauthorizedRes(res.get(), 4096, auth_info_->GetRealm().c_str(), _nonce.c_str());
+			int size = rtsp_request_.BuildUnauthorizedRes(res.get(), 4096, auth_info_->GetRealm().c_str(), _nonce.c_str());
 			SendRtspMessage(res, size);
 			return false;
 		}
@@ -443,11 +441,11 @@ void RtspConnection::SendOptions(ConnectionMode mode)
 	}	
 
 	conn_mode_ = mode;
-	rtsp_response_->SetUserAgent(USER_AGENT);
-	rtsp_response_->SetRtspUrl(rtsp->GetRtspUrl().c_str());
+	rtsp_response_.SetUserAgent(USER_AGENT);
+	rtsp_response_.SetRtspUrl(rtsp->GetRtspUrl().c_str());
 
 	std::shared_ptr<char> req(new char[2048], std::default_delete<char[]>());
-	int size = rtsp_response_->BuildOptionReq(req.get(), 2048);
+	int size = rtsp_response_.BuildOptionReq(req.get(), 2048);
 	SendRtspMessage(req, size);
 }
 
@@ -484,14 +482,14 @@ void RtspConnection::SendAnnounce()
 	}
 
 	std::shared_ptr<char> req(new char[4096], std::default_delete<char[]>());
-	int size = rtsp_response_->BuildAnnounceReq(req.get(), 4096, sdp.c_str());
+	int size = rtsp_response_.BuildAnnounceReq(req.get(), 4096, sdp.c_str());
 	SendRtspMessage(req, size);
 }
 
 void RtspConnection::SendDescribe()
 {
 	std::shared_ptr<char> req(new char[2048], std::default_delete<char[]>());
-	int size = rtsp_response_->BuildDescribeReq(req.get(), 2048);
+	int size = rtsp_response_.BuildDescribeReq(req.get(), 2048);
 	SendRtspMessage(req, size);
 }
 
@@ -513,14 +511,14 @@ void RtspConnection::SendSetup()
 
 	if (media_session->GetMediaSource(channel_0) && !rtp_conn_->IsSetup(channel_0)) {
 		rtp_conn_->SetupRtpOverTcp(channel_0, 0, 1);
-		size = rtsp_response_->BuildSetupTcpReq(buf.get(), 2048, channel_0);
+		size = rtsp_response_.BuildSetupTcpReq(buf.get(), 2048, channel_0);
 	}
 	else if (media_session->GetMediaSource(channel_1) && !rtp_conn_->IsSetup(channel_1)) {
 		rtp_conn_->SetupRtpOverTcp(channel_1, 2, 3);
-		size = rtsp_response_->BuildSetupTcpReq(buf.get(), 2048, channel_1);
+		size = rtsp_response_.BuildSetupTcpReq(buf.get(), 2048, channel_1);
 	}
 	else {
-		size = rtsp_response_->BuildRecordReq(buf.get(), 2048);
+		size = rtsp_response_.BuildRecordReq(buf.get(), 2048);
 	}
 
 	SendRtspMessage(buf, size);

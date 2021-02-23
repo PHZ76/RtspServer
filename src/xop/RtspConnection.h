@@ -120,8 +120,8 @@ private:
 
 	std::shared_ptr<Channel>       rtp_channel_;
 	std::shared_ptr<Channel>       rtcp_channels_[MAX_MEDIA_CHANNEL];
-	std::unique_ptr<RtspRequest>   rtsp_request_;
-	std::unique_ptr<RtspResponse>  rtsp_response_;
+	RtspRequest   rtsp_request_;
+	RtspResponse  rtsp_response_;
 	std::shared_ptr<RtpConnection> rtp_conn_;
 };
 
