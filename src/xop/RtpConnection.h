@@ -19,7 +19,7 @@ namespace xop
 
 class RtspConnection;
 
-struct sockInfo
+struct SockInfo
 {
     SOCKET      fd;
     std::string ip;
@@ -51,7 +51,7 @@ public:
     uint16_t GetRtcpPort(MediaChannelId channel_id) const
     { return local_rtcp_port_[channel_id]; }
 
-    sockInfo GetRtcpSockInfo(MediaChannelId channel_id)
+    SockInfo GetRtcpSockInfo(MediaChannelId channel_id)
     { return rtcpfd_[channel_id]; }
 
     std::string GetIp()
@@ -102,8 +102,8 @@ private:
     uint8_t  frame_type_ = 0;
     uint16_t local_rtp_port_[MAX_MEDIA_CHANNEL];
     uint16_t local_rtcp_port_[MAX_MEDIA_CHANNEL];
-	SOCKET rtpfd_[MAX_MEDIA_CHANNEL];
-	SOCKET rtcpfd_[MAX_MEDIA_CHANNEL];
+    SockInfo rtpfd_[MAX_MEDIA_CHANNEL];
+    SockInfo rtcpfd_[MAX_MEDIA_CHANNEL];
 
     struct sockaddr_in peer_addr_;
     struct sockaddr_in peer_rtp_addr_[MAX_MEDIA_CHANNEL];

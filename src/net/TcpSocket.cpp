@@ -57,13 +57,12 @@ std::tuple<SOCKET,std::string,int> TcpSocket::Accept()
 	struct sockaddr_in addr = {0};
 	socklen_t addrlen = sizeof addr;
 
-        std::tuple<SOCKET,std::string,int> ret;
+    std::tuple<SOCKET,std::string,int> ret;
 	std::get<0>(ret) = ::accept(sockfd_, (struct sockaddr*)&addr, &addrlen);
-        if (std::get<0>(ret) > 0)
-        {
-            std::get<1>(ret) = inet_ntoa(addr.sin_addr);
-            std::get<2>(ret) = htons(addr.sin_port);
-        }
+    if (std::get<0>(ret) > 0) {
+        std::get<1>(ret) = inet_ntoa(addr.sin_addr);
+        std::get<2>(ret) = htons(addr.sin_port);
+    }
 	return ret;
 }
 

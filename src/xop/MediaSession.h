@@ -29,8 +29,8 @@ class RtpConnection;
 class MediaSession
 {
 public:
-    typedef std::function<void (MediaSessionId sessionId, uint32_t numClients, std::string ip)> NotifyConnectedCallback;
-    typedef std::function<void (MediaSessionId sessionId, uint32_t numClients, std::string ip)> NotifyDisconnectedCallback;
+    typedef std::function<void (MediaSessionId sessionId, uint32_t num_clients, std::string ip)> NotifyConnectedCallback;
+    typedef std::function<void (MediaSessionId sessionId, uint32_t num_clients, std::string ip)> NotifyDisconnectedCallback;
 
     static MediaSession* CreateNew(std::string url_suffxx="live");
     ~MediaSession();
@@ -40,8 +40,8 @@ public:
 
     bool StartMulticast();
 
-    void addNotifyConnectedCallback(const NotifyConnectedCallback& cb);
-    void addNotifyDisconnectedCallback(const NotifyDisconnectedCallback& cb);
+    void AddNotifyConnectedCallback(const NotifyConnectedCallback& cb);
+    void AddNotifyDisconnectedCallback(const NotifyDisconnectedCallback& cb);
 
     std::string GetRtspUrlSuffix() const
     { return suffix_; }

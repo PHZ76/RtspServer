@@ -76,7 +76,8 @@ int RtspPusher::OpenUrl(std::string url, int msec)
 	}
 
 	task_scheduler_ = event_loop_->GetTaskScheduler().get();
-	rtsp_conn_.reset(new RtspConnection(shared_from_this(), task_scheduler_, tcpSocket.GetSocket()));
+	rtsp_conn_.reset(new RtspConnection(shared_from_this(), task_scheduler_, 
+		tcpSocket.GetSocket(), rtsp_url_info_.ip, rtsp_url_info_.port));
     event_loop_->AddTriggerEvent([this]() {
 		rtsp_conn_->SendOptions(RtspConnection::RTSP_PUSHER);
     });

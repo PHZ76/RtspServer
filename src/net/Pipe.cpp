@@ -4,6 +4,8 @@
 #include "Pipe.h"
 #include "SocketUtil.h"
 #include <random>
+#include <string>
+#include <array>
 
 using namespace xop;
 
@@ -41,8 +43,9 @@ bool Pipe::Create()
 	if (!wp.Connect("127.0.0.1", port)) {
 		return false;
 	}
-   
-	if ((pipe_fd_[0] = rp.Accept()) < 0) {
+
+	auto ret = rp.Accept();
+	if ((pipe_fd_[0] = std::get<0>(ret)) < 0) {
 		return false;
 	}
 

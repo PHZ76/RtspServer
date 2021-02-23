@@ -40,12 +40,12 @@ MediaSession::~MediaSession()
 	}
 }
 
-void MediaSession::addNotifyConnectedCallback(const NotifyConnectedCallback& cb)
+void MediaSession::AddNotifyConnectedCallback(const NotifyConnectedCallback& cb)
 {
     _notifyConnectedCallbacks.push_back(cb);
 }
 
-void MediaSession::addNotifyDisconnectedCallback(const NotifyDisconnectedCallback& cb) 
+void MediaSession::AddNotifyDisconnectedCallback(const NotifyDisconnectedCallback& cb) 
 {
     _notifyDisconnectedCallbacks.push_back(cb);
 }
