@@ -16,7 +16,7 @@ public:
 	static std::shared_ptr<RtspPusher> Create(xop::EventLoop* loop);
 	~RtspPusher();
 
-	void AddSession(MediaSession* session);
+	void AddSession(std::shared_ptr<MediaSession> session);
 	void RemoveSession(MediaSessionId session_id);
 
 	int  OpenUrl(std::string url, int msec = 3000);

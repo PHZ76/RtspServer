@@ -24,10 +24,10 @@ std::shared_ptr<RtspPusher> RtspPusher::Create(xop::EventLoop* loop)
 	return pusher;
 }
 
-void RtspPusher::AddSession(MediaSession* session)
+void RtspPusher::AddSession(std::shared_ptr<MediaSession> session)
 {
     std::lock_guard<std::mutex> locker(mutex_);
-    media_session_.reset(session);
+    media_session_ = session;
 }
 
 void RtspPusher::RemoveSession(MediaSessionId sessionId)
