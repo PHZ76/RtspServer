@@ -61,7 +61,7 @@ int main(int argc, char **argv)
 	server->SetAuthConfig("-_-", "admin", "12345");
 #endif
 
-	xop::MediaSession *session = xop::MediaSession::CreateNew("live"); 
+	auto session = xop::MediaSession::CreateNew("live"); 
 	session->AddSource(xop::channel_0, xop::H264Source::CreateNew()); 
 	//session->StartMulticast(); 
 	session->AddNotifyConnectedCallback([] (xop::MediaSessionId sessionId, uint32_t num_clients, std::string ip){

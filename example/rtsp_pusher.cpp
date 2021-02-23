@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 	std::shared_ptr<xop::EventLoop> event_loop(new xop::EventLoop());  
 	std::shared_ptr<xop::RtspPusher> rtsp_pusher = xop::RtspPusher::Create(event_loop.get());
 
-	xop::MediaSession *session = xop::MediaSession::CreateNew(); 
+	auto session = xop::MediaSession::CreateNew(); 
 	session->AddSource(xop::channel_0, xop::H264Source::CreateNew()); 
 	session->AddSource(xop::channel_1, xop::AACSource::CreateNew(44100, 2, false));
 	rtsp_pusher->AddSession(session);

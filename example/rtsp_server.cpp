@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 	server->SetAuthConfig("-_-", "admin", "12345");
 #endif
 	 
-	xop::MediaSession *session = xop::MediaSession::CreateNew("live"); // url: rtsp://ip/live
+	auto session = xop::MediaSession::CreateNew("live"); // url: rtsp://ip/live
 	session->AddSource(xop::channel_0, xop::H264Source::CreateNew()); 
 	session->AddSource(xop::channel_1, xop::AACSource::CreateNew(44100,2));
 	// session->startMulticast(); /* 开启组播(ip,端口随机生成), 默认使用 RTP_OVER_UDP, RTP_OVER_RTSP */
