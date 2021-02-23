@@ -26,7 +26,7 @@ int Acceptor::Listen(std::string ip, uint16_t port)
 	}
 
 	SOCKET sockfd = tcp_socket_->Create();
-	channel_ptr_.reset(new Channel(sockfd));
+	channel_ptr_.reset(new Channel(sockfd, ip, port));
 	SocketUtil::SetReuseAddr(sockfd);
 	SocketUtil::SetReusePort(sockfd);
 	SocketUtil::SetNonBlock(sockfd);
@@ -59,13 +59,13 @@ void Acceptor::OnAccept()
 {
 	std::lock_guard<std::mutex> locker(mutex_);
 
-	SOCKET connfd = tcp_socket_->Accept();
-	if (connfd > 0) {
+	auto ret = tcp_socket_->Accept();
+	if (std::get<0>(ret) > 0) {
 		if (new_connection_callback_) {
-			new_connection_callback_(connfd);
+			new_connection_callback_(std::get<0>(ret), std::get<1>(ret), std::get<2>(ret));
 		}
 		else {
-			SocketUtil::Close(connfd);
+			SocketUtil::Close(std::get<0>(ret));
 		}
 	}
 }

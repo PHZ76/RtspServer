@@ -15,7 +15,9 @@ RtpConnection::RtpConnection(std::weak_ptr<TcpConnection> rtsp_connection)
 
 	for(int chn=0; chn<MAX_MEDIA_CHANNEL; chn++) {
 		rtpfd_[chn] = 0;
-		rtcpfd_[chn] = 0;
+		rtcpfd_[chn].fd = 0;
+                rtcpfd_[chn].ip = "";
+                rtcpfd_[chn].port = 0;
 		memset(&media_channel_info_[chn], 0, sizeof(media_channel_info_[chn]));
 		media_channel_info_[chn].rtp_header.version = RTP_VERSION;
 		media_channel_info_[chn].packet_seq = rd()&0xffff;
@@ -32,8 +34,8 @@ RtpConnection::~RtpConnection()
 			SocketUtil::Close(rtpfd_[chn]);
 		}
 
-		if(rtcpfd_[chn] > 0) {
-			SocketUtil::Close(rtcpfd_[chn]);
+		if(rtcpfd_[chn].fd > 0) {
+			SocketUtil::Close(rtcpfd_[chn].fd);
 		}
 	}
 }
@@ -58,7 +60,9 @@ bool RtpConnection::SetupRtpOverTcp(MediaChannelId channel_id, uint16_t rtp_chan
 	media_channel_info_[channel_id].rtp_channel = rtp_channel;
 	media_channel_info_[channel_id].rtcp_channel = rtcp_channel;
 	rtpfd_[channel_id] = conn->GetSocket();
-	rtcpfd_[channel_id] = conn->GetSocket();
+	rtcpfd_[channel_id].fd = conn->GetSocket();
+        rtcpfd_[channel_id].ip   = conn->GetIp();
+        rtcpfd_[channel_id].port = conn->GetPort();
 	media_channel_info_[channel_id].is_setup = true;
 	transport_mode_ = RTP_OVER_TCP;
 
@@ -94,13 +98,16 @@ bool RtpConnection::SetupRtpOverUdp(MediaChannelId channel_id, uint16_t rtp_port
 			continue;
 		}
 
-		rtcpfd_[channel_id] = ::socket(AF_INET, SOCK_DGRAM, 0);
-		if(!SocketUtil::Bind(rtcpfd_[channel_id], "0.0.0.0", local_rtcp_port_[channel_id])) {
+		rtcpfd_[channel_id].fd = ::socket(AF_INET, SOCK_DGRAM, 0);
+		if(!SocketUtil::Bind(rtcpfd_[channel_id].fd, "0.0.0.0", local_rtcp_port_[channel_id])) {
 			SocketUtil::Close(rtpfd_[channel_id]);
-			SocketUtil::Close(rtcpfd_[channel_id]);
+			SocketUtil::Close(rtcpfd_[channel_id].fd);
 			continue;
 		}
 
+                rtcpfd_[channel_id].port = local_rtcp_port_[channel_id];
+                rtcpfd_[channel_id].ip   = "0.0.0.0";
+        
 		break;
 	}
 

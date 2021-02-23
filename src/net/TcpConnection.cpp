@@ -3,11 +3,11 @@
 
 using namespace xop;
 
-TcpConnection::TcpConnection(TaskScheduler *task_scheduler, SOCKET sockfd)
+TcpConnection::TcpConnection(TaskScheduler *task_scheduler, SOCKET sockfd, std::string ip, int port)
 	: task_scheduler_(task_scheduler)
 	, read_buffer_(new BufferReader)
 	, write_buffer_(new BufferWriter(500))
-	, channel_(new Channel(sockfd))
+	, channel_(new Channel(sockfd, ip, port))
 {
 	is_closed_ = false;
 

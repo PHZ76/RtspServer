@@ -33,7 +33,7 @@ public:
 	{ return port_; }
 
 protected:
-	virtual TcpConnection::Ptr OnConnect(SOCKET sockfd);
+	virtual TcpConnection::Ptr OnConnect(SOCKET sockfd, std::string ip, int port);
 	virtual void AddConnection(SOCKET sockfd, TcpConnection::Ptr tcpConn);
 	virtual void RemoveConnection(SOCKET sockfd);
 

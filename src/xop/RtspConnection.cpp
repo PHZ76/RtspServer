@@ -14,11 +14,11 @@
 using namespace xop;
 using namespace std;
 
-RtspConnection::RtspConnection(std::shared_ptr<Rtsp> rtsp, TaskScheduler *task_scheduler, SOCKET sockfd)
-	: TcpConnection(task_scheduler, sockfd)
-	, task_scheduler_(task_scheduler)
+RtspConnection::RtspConnection(std::shared_ptr<Rtsp> rtsp, TaskScheduler *task_scheduler, SOCKET sockfd, std::string ip, int port)
+	: TcpConnection(task_scheduler, sockfd, ip, port)
 	, rtsp_(rtsp)
-	, rtp_channel_(new Channel(sockfd))
+        , task_scheduler_(task_scheduler)
+	, rtp_channel_(new Channel(sockfd, ip, port))
 	, rtsp_request_(new RtspRequest)
 	, rtsp_response_(new RtspResponse)
 {
@@ -224,7 +224,7 @@ void RtspConnection::HandleRtcp(SOCKET sockfd)
 
 void RtspConnection::HandleCmdOption()
 {
-	std::shared_ptr<char> res(new char[2048]);
+	std::shared_ptr<char> res(new char[2048], std::default_delete<char[]>());
 	int size = rtsp_request_->BuildOptionRes(res.get(), 2048);
 	this->SendRtspMessage(res, size);	
 }
@@ -240,7 +240,7 @@ void RtspConnection::HandleCmdDescribe()
 	}
 
 	int size = 0;
-	std::shared_ptr<char> res(new char[4096]);
+	std::shared_ptr<char> res(new char[4096], std::default_delete<char[]>());
 	MediaSessionPtr media_session = nullptr;
 
 	auto rtsp = rtsp_.lock();
@@ -283,7 +283,7 @@ void RtspConnection::HandleCmdSetup()
 	}
 
 	int size = 0;
-	std::shared_ptr<char> res(new char[4096]);
+	std::shared_ptr<char> res(new char[4096], std::default_delete<char[]>());
 	MediaChannelId channel_id = rtsp_request_->GetChannelId();
 	MediaSessionPtr media_session = nullptr;
 
@@ -326,9 +326,9 @@ void RtspConnection::HandleCmdSetup()
 			uint16_t session_id = rtp_conn_->GetRtpSessionId();
 
 			if(rtp_conn_->SetupRtpOverUdp(channel_id, cliRtpPort, cliRtcpPort)) {                
-				SOCKET rtcpfd = rtp_conn_->GetRtcpfd(channel_id);
-				rtcp_channels_[channel_id].reset(new Channel(rtcpfd));
-				rtcp_channels_[channel_id]->SetReadCallback([rtcpfd, this]() { this->HandleRtcp(rtcpfd); });
+				auto rtcpSockInfo = rtp_conn_->GetRtcpSockInfo(channel_id);
+				rtcp_channels_[channel_id].reset(new Channel(rtcpSockInfo.fd, rtcpSockInfo.ip, rtcpSockInfo.port));
+				rtcp_channels_[channel_id]->SetReadCallback([rtcpSockInfo, this]() { this->HandleRtcp(rtcpSockInfo.fd); });
 				rtcp_channels_[channel_id]->EnableReading();
 				task_scheduler_->UpdateChannel(rtcp_channels_[channel_id]);
 			}
@@ -375,7 +375,7 @@ void RtspConnection::HandleCmdPlay()
 	rtp_conn_->Play();
 
 	uint16_t session_id = rtp_conn_->GetRtpSessionId();
-	std::shared_ptr<char> res(new char[2048]);
+	std::shared_ptr<char> res(new char[2048], std::default_delete<char[]>());
 
 	int size = rtsp_request_->BuildPlayRes(res.get(), 2048, nullptr, session_id);
 	SendRtspMessage(res, size);
@@ -390,7 +390,7 @@ void RtspConnection::HandleCmdTeardown()
 	rtp_conn_->Teardown();
 
 	uint16_t session_id = rtp_conn_->GetRtpSessionId();
-	std::shared_ptr<char> res(new char[2048]);
+	std::shared_ptr<char> res(new char[2048], std::default_delete<char[]>());
 	int size = rtsp_request_->BuildTeardownRes(res.get(), 2048, session_id);
 	SendRtspMessage(res, size);
 
@@ -404,7 +404,7 @@ void RtspConnection::HandleCmdGetParamter()
 	}
 
 	uint16_t session_id = rtp_conn_->GetRtpSessionId();
-	std::shared_ptr<char> res(new char[2048]);
+	std::shared_ptr<char> res(new char[2048], std::default_delete<char[]>());
 	int size = rtsp_request_->BuildGetParamterRes(res.get(), 2048, session_id);
 	SendRtspMessage(res, size);
 }
@@ -420,7 +420,7 @@ bool RtspConnection::HandleAuthentication()
 			has_auth_ = true;
 		}
 		else {
-			std::shared_ptr<char> res(new char[4096]);
+			std::shared_ptr<char> res(new char[4096], std::default_delete<char[]>());
 			_nonce = auth_info_->GetNonce();
 			int size = rtsp_request_->BuildUnauthorizedRes(res.get(), 4096, auth_info_->GetRealm().c_str(), _nonce.c_str());
 			SendRtspMessage(res, size);
@@ -447,7 +447,7 @@ void RtspConnection::SendOptions(ConnectionMode mode)
 	rtsp_response_->SetUserAgent(USER_AGENT);
 	rtsp_response_->SetRtspUrl(rtsp->GetRtspUrl().c_str());
 
-	std::shared_ptr<char> req(new char[2048]);
+	std::shared_ptr<char> req(new char[2048], std::default_delete<char[]>());
 	int size = rtsp_response_->BuildOptionReq(req.get(), 2048);
 	SendRtspMessage(req, size);
 }
@@ -484,14 +484,14 @@ void RtspConnection::SendAnnounce()
 		return;
 	}
 
-	std::shared_ptr<char> req(new char[4096]);
+	std::shared_ptr<char> req(new char[4096], std::default_delete<char[]>());
 	int size = rtsp_response_->BuildAnnounceReq(req.get(), 4096, sdp.c_str());
 	SendRtspMessage(req, size);
 }
 
 void RtspConnection::SendDescribe()
 {
-	std::shared_ptr<char> req(new char[2048]);
+	std::shared_ptr<char> req(new char[2048], std::default_delete<char[]>());
 	int size = rtsp_response_->BuildDescribeReq(req.get(), 2048);
 	SendRtspMessage(req, size);
 }
@@ -499,7 +499,7 @@ void RtspConnection::SendDescribe()
 void RtspConnection::SendSetup()
 {
 	int size = 0;
-	std::shared_ptr<char> buf(new char[2048]);	
+	std::shared_ptr<char> buf(new char[2048], std::default_delete<char[]>());	
 	MediaSessionPtr media_session = nullptr;
 
 	auto rtsp = rtsp_.lock();

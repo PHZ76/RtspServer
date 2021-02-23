@@ -52,14 +52,19 @@ bool TcpSocket::Listen(int backlog)
 	return true;
 }
 
-SOCKET TcpSocket::Accept()
+std::tuple<SOCKET,std::string,int> TcpSocket::Accept()
 {
 	struct sockaddr_in addr = {0};
 	socklen_t addrlen = sizeof addr;
 
-	SOCKET clientfd = ::accept(sockfd_, (struct sockaddr*)&addr, &addrlen);
-
-	return clientfd;
+        std::tuple<SOCKET,std::string,int> ret;
+	std::get<0>(ret) = ::accept(sockfd_, (struct sockaddr*)&addr, &addrlen);
+        if (std::get<0>(ret) > 0)
+        {
+            std::get<1>(ret) = inet_ntoa(addr.sin_addr);
+            std::get<2>(ret) = htons(addr.sin_port);
+        }
+	return ret;
 }
 
 bool TcpSocket::Connect(std::string ip, uint16_t port, int timeout)

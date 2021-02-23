@@ -31,7 +31,7 @@ enum FrameType
 struct AVFrame
 {	
 	AVFrame(uint32_t size = 0)
-		:buffer(new uint8_t[size + 1])
+		:buffer(new uint8_t[size + 1], std::default_delete<uint8_t[]>())
 	{
 		this->size = size;
 		type = 0;

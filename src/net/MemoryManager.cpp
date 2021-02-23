@@ -52,8 +52,6 @@ void MemoryPool::Init(uint32_t size, uint32_t n)
 
 void* MemoryPool::Alloc(uint32_t size)
 {
-	MemoryBlock* block = nullptr;
-
 	std::lock_guard<std::mutex> locker(mutex_);
 	if (head_ != nullptr) {
 		MemoryBlock* block = head_;

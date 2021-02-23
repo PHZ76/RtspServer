@@ -42,7 +42,7 @@ public:
 	};
 
 	RtspConnection() = delete;
-	RtspConnection(std::shared_ptr<Rtsp> rtsp_server, TaskScheduler *task_scheduler, SOCKET sockfd);
+	RtspConnection(std::shared_ptr<Rtsp> rtsp_server, TaskScheduler *task_scheduler, SOCKET sockfd, std::string ip, int port);
 	~RtspConnection();
 
 	MediaSessionId GetMediaSessionId()

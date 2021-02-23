@@ -13,8 +13,8 @@ TcpServer::TcpServer(EventLoop* event_loop)
 	, acceptor_(new Acceptor(event_loop_))
 	, is_started_(false)
 {
-	acceptor_->SetNewConnectionCallback([this](SOCKET sockfd) {
-		TcpConnection::Ptr conn = this->OnConnect(sockfd);
+	acceptor_->SetNewConnectionCallback([this](SOCKET sockfd, std::string ip, int port) {
+		TcpConnection::Ptr conn = this->OnConnect(sockfd, ip, port);
 		if (conn) {
 			this->AddConnection(sockfd, conn);
 			conn->SetDisconnectCallback([this](TcpConnection::Ptr conn) {
@@ -73,9 +73,9 @@ void TcpServer::Stop()
 	}	
 }
 
-TcpConnection::Ptr TcpServer::OnConnect(SOCKET sockfd)
+TcpConnection::Ptr TcpServer::OnConnect(SOCKET sockfd, std::string ip, int port)
 {
-	return std::make_shared<TcpConnection>(event_loop_->GetTaskScheduler().get(), sockfd);
+	return std::make_shared<TcpConnection>(event_loop_->GetTaskScheduler().get(), sockfd, ip, port);
 }
 
 void TcpServer::AddConnection(SOCKET sockfd, TcpConnection::Ptr tcpConn)
