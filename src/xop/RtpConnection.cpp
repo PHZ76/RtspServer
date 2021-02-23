@@ -8,7 +8,7 @@
 using namespace std;
 using namespace xop;
 
-RtpConnection::RtpConnection(std::weak_ptr<TcpConnection> rtsp_connection)
+RtpConnection::RtpConnection(std::shared_ptr<RtspConnection> rtsp_connection)
     : rtsp_connection_(rtsp_connection)
 {
 	std::random_device rd;
@@ -38,27 +38,22 @@ RtpConnection::~RtpConnection()
 
 int RtpConnection::GetId() const
 {
-	auto conn = rtsp_connection_.lock();
-	if (!conn) {
-		return -1;
-	}
-	RtspConnection *rtspConn = (RtspConnection *)conn.get();
-	return rtspConn->GetId();
+	return rtsp_connection_->GetId();
+}
+
+const std::string& RtpConnection::GetIp()
+{
+    return rtsp_connection_->GetIp();
 }
 
 bool RtpConnection::SetupRtpOverTcp(MediaChannelId channel_id, uint16_t rtp_channel, uint16_t rtcp_channel)
 {
-	auto conn = rtsp_connection_.lock();
-	if (!conn) {
-		return false;
-	}
-
 	media_channel_info_[channel_id].rtp_channel = rtp_channel;
 	media_channel_info_[channel_id].rtcp_channel = rtcp_channel;
-	rtpfd_[channel_id].fd = conn->GetSocket();
-	rtcpfd_[channel_id].fd = conn->GetSocket();
-    rtcpfd_[channel_id].ip   = conn->GetIp();
-    rtcpfd_[channel_id].port = conn->GetPort();
+	rtpfd_[channel_id].fd    = rtsp_connection_->GetSocket();
+	rtcpfd_[channel_id].fd   = rtsp_connection_->GetSocket();
+	rtcpfd_[channel_id].ip   = rtsp_connection_->GetIp();
+	rtcpfd_[channel_id].port = rtsp_connection_->GetPort();
 	media_channel_info_[channel_id].is_setup = true;
 	transport_mode_ = RTP_OVER_TCP;
 
@@ -67,12 +62,7 @@ bool RtpConnection::SetupRtpOverTcp(MediaChannelId channel_id, uint16_t rtp_chan
 
 bool RtpConnection::SetupRtpOverUdp(MediaChannelId channel_id, uint16_t rtp_port, uint16_t rtcp_port)
 {
-	auto conn = rtsp_connection_.lock();
-	if (!conn) {
-		return false;
-	}
-
-	if(SocketUtil::GetPeerAddr(conn->GetSocket(), &peer_addr_) < 0) {
+	if(SocketUtil::GetPeerAddr(rtsp_connection_->GetSocket(), &peer_addr_) < 0) {
 		return false;
 	}
 
@@ -238,12 +228,7 @@ int RtpConnection::SendRtpPacket(MediaChannelId channel_id, RtpPacket pkt)
 		return -1;
 	}
    
-	auto conn = rtsp_connection_.lock();
-	if (!conn) {
-		return -1;
-	}
-	RtspConnection *rtsp_conn = (RtspConnection *)conn.get();
-	bool ret = rtsp_conn->task_scheduler_->AddTriggerEvent([this, channel_id, pkt] {
+	bool ret = rtsp_connection_->task_scheduler_->AddTriggerEvent([this, channel_id, pkt] {
 		this->SetFrameType(pkt.type);
 		this->SetRtpHeader(channel_id, pkt);
 		if((media_channel_info_[channel_id].is_play || media_channel_info_[channel_id].is_record) && has_key_frame_ ) {            
@@ -264,18 +249,13 @@ int RtpConnection::SendRtpPacket(MediaChannelId channel_id, RtpPacket pkt)
 
 int RtpConnection::SendRtpOverTcp(MediaChannelId channel_id, RtpPacket pkt)
 {
-	auto conn = rtsp_connection_.lock();
-	if (!conn) {
-		return -1;
-	}
-
 	uint8_t* rtpPktPtr = pkt.data.get();
 	rtpPktPtr[0] = '$';
 	rtpPktPtr[1] = (char)media_channel_info_[channel_id].rtp_channel;
 	rtpPktPtr[2] = (char)(((pkt.size-4)&0xFF00)>>8);
 	rtpPktPtr[3] = (char)((pkt.size -4)&0xFF);
 
-	conn->Send((char*)rtpPktPtr, pkt.size);
+	rtsp_connection_->Send((char*)rtpPktPtr, pkt.size);
 	return pkt.size;
 }
 

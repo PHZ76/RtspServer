@@ -29,8 +29,8 @@ class RtpConnection;
 class MediaSession
 {
 public:
-    typedef std::function<void (MediaSessionId sessionId, uint32_t num_clients, std::string ip)> NotifyConnectedCallback;
-    typedef std::function<void (MediaSessionId sessionId, uint32_t num_clients, std::string ip)> NotifyDisconnectedCallback;
+    typedef std::function<void (MediaSessionId sessionId, uint32_t num_clients, const std::string& ip)> NotifyConnectedCallback;
+    typedef std::function<void (MediaSessionId sessionId, uint32_t num_clients, const std::string& ip)> NotifyDisconnectedCallback;
 
     static std::shared_ptr<MediaSession> CreateNew(std::string url_suffxx="live");
     ~MediaSession();
@@ -94,12 +94,11 @@ private:
     std::vector<NotifyDisconnectedCallback> _notifyDisconnectedCallbacks;
     std::mutex mutex_;
     std::mutex map_mutex_;
-    std::map<SOCKET, std::weak_ptr<RtpConnection>> clients_;
+    std::map<SOCKET, std::shared_ptr<RtpConnection>> clients_;
 
     bool is_multicast_ = false;
     uint16_t multicast_port_[MAX_MEDIA_CHANNEL];
     std::string multicast_ip_;
-    std::atomic_bool has_new_client_;
 
     static std::atomic_uint last_session_id_;
 };

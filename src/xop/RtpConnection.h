@@ -29,7 +29,7 @@ struct SockInfo
 class RtpConnection
 {
 public:
-    RtpConnection(std::weak_ptr<TcpConnection> rtsp_connection);
+    RtpConnection(std::shared_ptr<RtspConnection> rtsp_connection);
     virtual ~RtpConnection();
 
     void SetClockRate(MediaChannelId channel_id, uint32_t clock_rate)
@@ -54,11 +54,7 @@ public:
     SockInfo GetRtcpSockInfo(MediaChannelId channel_id)
     { return rtcpfd_[channel_id]; }
 
-    std::string GetIp()
-    { 
-        auto conn = rtsp_connection_.lock();
-        return conn ? conn->GetIp() : "";
-    }
+    const std::string& GetIp();
     
     bool IsMulticast() const
     { return is_multicast_; }
@@ -91,7 +87,7 @@ private:
     int  SendRtpOverTcp(MediaChannelId channel_id, RtpPacket pkt);
     int  SendRtpOverUdp(MediaChannelId channel_id, RtpPacket pkt);
 
-	std::weak_ptr<TcpConnection> rtsp_connection_;
+    std::shared_ptr<RtspConnection> rtsp_connection_;
 
     TransportMode transport_mode_;
     bool is_multicast_ = false;

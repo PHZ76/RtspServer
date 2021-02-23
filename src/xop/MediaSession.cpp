@@ -20,7 +20,6 @@ MediaSession::MediaSession(std::string url_suffxx)
     , media_sources_(2)
     , _buffer(2)
 {
-	has_new_client_ = false;
 	session_id_ = ++last_session_id_;
 
 	for(int n=0; n<MAX_MEDIA_CHANNEL; n++) {
@@ -57,26 +56,20 @@ bool MediaSession::AddSource(MediaChannelId channelId,  std::unique_ptr<MediaSou
 		std::map<int, RtpPacket> packets;
 		{
 			std::lock_guard<std::mutex> lock(map_mutex_);
-			for (auto iter = clients_.begin(); iter != clients_.end();) {
-				auto conn = iter->second.lock();
-				if (conn == nullptr) {
-					clients_.erase(iter++);
-				}
-				else  {				
-					int id = conn->GetId();
-					if (id >= 0) {
-						if (packets.find(id) == packets.end()) {
-							RtpPacket tmpPkt;
-							memcpy(tmpPkt.data.get(), pkt.data.get(), pkt.size);
-							tmpPkt.size = pkt.size;
-							tmpPkt.last = pkt.last;
-							tmpPkt.timestamp = pkt.timestamp;
-							tmpPkt.type = pkt.type;
-							packets.emplace(id, tmpPkt);
-						}
-						clients.emplace_front(conn);
+			for (auto& iter : clients_) {
+				auto conn = iter->second;			
+				int id = conn->GetId();
+				if (id >= 0) {
+					if (packets.find(id) == packets.end()) {
+						RtpPacket tmpPkt;
+						memcpy(tmpPkt.data.get(), pkt.data.get(), pkt.size);
+						tmpPkt.size = pkt.size;
+						tmpPkt.last = pkt.last;
+						tmpPkt.timestamp = pkt.timestamp;
+						tmpPkt.type = pkt.type;
+						packets.emplace(id, tmpPkt);
 					}
-					iter++;
+					clients.emplace_front(conn);
 				}
 			}
 		}
@@ -218,12 +211,9 @@ bool MediaSession::AddClient(SOCKET rtspfd, std::shared_ptr<RtpConnection> rtp_c
 
 	auto iter = clients_.find (rtspfd);
 	if(iter == clients_.end()) {
-		std::weak_ptr<RtpConnection> rtp_conn_weak_ptr = rtp_conn;
-		clients_.emplace(rtspfd, rtp_conn_weak_ptr);
+		clients_.emplace(rtspfd, rtp_conn);
 		for (auto& cb : _notifyConnectedCallbacks)
 			cb(session_id_, (uint32_t)clients_.size(), rtp_conn->GetIp());
-        
-		has_new_client_ = true;
 		return true;
 	}
             
@@ -236,12 +226,10 @@ void MediaSession::RemoveClient(SOCKET rtspfd)
     	auto it = clients_.find(rtspfd);
     	if (it != clients_.end())
     	{
-                auto conn = it->second.lock();
-                if (conn) {
-                    for (auto& cb : _notifyDisconnectedCallbacks)
-                        cb(session_id_, (uint32_t)clients_.size() - 1, conn->GetIp());
-                }
+                auto conn = it->second;
 		clients_.erase(it);
+		for (auto& cb : _notifyDisconnectedCallbacks)
+			cb(session_id_, (uint32_t)clients_.size(), conn->GetIp());
     	}
 }
 

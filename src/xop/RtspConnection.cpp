@@ -233,7 +233,8 @@ void RtspConnection::HandleCmdDescribe()
 	}
 
 	if (rtp_conn_ == nullptr) {
-		rtp_conn_.reset(new RtpConnection(shared_from_this()));
+            auto me = std::dynamic_pointer_cast<RtspConnection>(shared_from_this());
+            rtp_conn_.reset(new RtpConnection(me));
 	}
 
 	int size = 0;
@@ -431,7 +432,8 @@ bool RtspConnection::HandleAuthentication()
 void RtspConnection::SendOptions(ConnectionMode mode)
 {
 	if (rtp_conn_ == nullptr) {
-		rtp_conn_.reset(new RtpConnection(shared_from_this()));
+            auto me = std::dynamic_pointer_cast<RtspConnection>(shared_from_this());
+            rtp_conn_.reset(new RtpConnection(me));
 	}
 
 	auto rtsp = rtsp_.lock();
