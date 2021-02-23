@@ -51,7 +51,7 @@ private:
 	uint32_t num_threads_ = 1;
 	uint32_t index_ = 1;
 	std::vector<std::shared_ptr<TaskScheduler>> task_schedulers_;
-	std::vector<std::shared_ptr<std::thread>> threads_;
+	std::vector<std::unique_ptr<std::thread>> threads_;
 };
 
 }
