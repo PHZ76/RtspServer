@@ -29,7 +29,8 @@ class RtpConnection;
 class MediaSession
 {
 public:
-    typedef std::function<void (MediaSessionId sessionId, uint32_t numClients)> NotifyCallback;
+    typedef std::function<void (MediaSessionId sessionId, uint32_t numClients, std::string ip)> NotifyConnectedCallback;
+    typedef std::function<void (MediaSessionId sessionId, uint32_t numClients, std::string ip)> NotifyDisconnectedCallback;
 
     static MediaSession* CreateNew(std::string url_suffxx="live");
     ~MediaSession();
@@ -39,8 +40,8 @@ public:
 
     bool StartMulticast();
 
-    void SetNotifyCallback(const NotifyCallback& cb)
-    { notify_callback_ = cb; }
+    void addNotifyConnectedCallback(const NotifyConnectedCallback& cb);
+    void addNotifyDisconnectedCallback(const NotifyDisconnectedCallback& cb);
 
     std::string GetRtspUrlSuffix() const
     { return suffix_; }
@@ -89,7 +90,8 @@ private:
     std::vector<std::unique_ptr<MediaSource>> media_sources_;
     std::vector<RingBuffer<AVFrame>> _buffer;
 
-    NotifyCallback notify_callback_;
+    std::vector<NotifyConnectedCallback> _notifyConnectedCallbacks;
+    std::vector<NotifyDisconnectedCallback> _notifyDisconnectedCallbacks;
     std::mutex mutex_;
     std::mutex map_mutex_;
     std::map<SOCKET, std::weak_ptr<RtpConnection>> clients_;

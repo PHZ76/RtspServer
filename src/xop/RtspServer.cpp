@@ -97,8 +97,8 @@ bool RtspServer::PushFrame(MediaSessionId sessionId, MediaChannelId channelId, A
     return false;
 }
 
-TcpConnection::Ptr RtspServer::OnConnect(SOCKET sockfd)
+TcpConnection::Ptr RtspServer::OnConnect(SOCKET sockfd, std::string ip, int port)
 {	
-	return std::make_shared<RtspConnection>(shared_from_this(), event_loop_->GetTaskScheduler().get(), sockfd);
+	return std::make_shared<RtspConnection>(shared_from_this(), event_loop_->GetTaskScheduler().get(), sockfd, ip, port);
 }
 

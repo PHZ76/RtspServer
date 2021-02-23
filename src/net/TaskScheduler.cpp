@@ -22,7 +22,7 @@ TaskScheduler::TaskScheduler(int id)
 	});
 
 	if (wakeup_pipe_->Create()) {
-		wakeup_channel_.reset(new Channel(wakeup_pipe_->Read()));
+		wakeup_channel_.reset(new Channel(wakeup_pipe_->Read(),"pip", -1));
 		wakeup_channel_->EnableReading();
 		wakeup_channel_->SetReadCallback([this]() { this->Wake(); });		
 	}        

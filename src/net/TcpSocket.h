@@ -20,7 +20,7 @@ public:
 	SOCKET Create();
 	bool Bind(std::string ip, uint16_t port);
 	bool Listen(int backlog);
-	SOCKET Accept();
+	std::tuple<SOCKET,std::string,int> Accept();
 	bool Connect(std::string ip, uint16_t port, int timeout = 0);
 	void Close();
 	void ShutdownWrite();

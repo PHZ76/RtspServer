@@ -103,7 +103,7 @@ private:
 	std::unordered_map<TimerId, std::shared_ptr<Timer>> timers_;
 	std::map<std::pair<int64_t, TimerId>, std::shared_ptr<Timer>> events_;
 	uint32_t last_timer_id_ = 0;
-	uint32_t time_remaining_ = 0;
+//	uint32_t time_remaining_ = 0;
 };
 
 }

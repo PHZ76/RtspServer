@@ -31,13 +31,13 @@ public:
 	int Send(SOCKET sockfd, int timeout=0);
 
 	bool IsEmpty() const 
-	{ return buffer_->empty(); }
+	{ return buffer_.empty(); }
 
 	bool IsFull() const 
-	{ return ((int)buffer_->size() >= max_queue_length_ ? true : false); }
+	{ return ((int)buffer_.size() >= max_queue_length_ ? true : false); }
 
 	uint32_t Size() const 
-	{ return (uint32_t)buffer_->size(); }
+	{ return (uint32_t)buffer_.size(); }
 	
 private:
 	typedef struct 
@@ -47,7 +47,7 @@ private:
 		uint32_t writeIndex;
 	} Packet;
 
-	std::shared_ptr<std::queue<Packet>> buffer_;  		
+	std::queue<Packet> buffer_;  		
 	int max_queue_length_ = 0;
 	 
 	static const int kMaxQueueLength = 10000;

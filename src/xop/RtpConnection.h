@@ -19,6 +19,13 @@ namespace xop
 
 class RtspConnection;
 
+struct sockInfo
+{
+    SOCKET      fd;
+    std::string ip;
+    uint16_t    port;
+};
+
 class RtpConnection
 {
 public:
@@ -44,9 +51,15 @@ public:
     uint16_t GetRtcpPort(MediaChannelId channel_id) const
     { return local_rtcp_port_[channel_id]; }
 
-    SOCKET GetRtcpfd(MediaChannelId channel_id)
+    sockInfo GetRtcpSockInfo(MediaChannelId channel_id)
     { return rtcpfd_[channel_id]; }
 
+    std::string GetIp()
+    { 
+        auto conn = rtsp_connection_.lock();
+        return conn ? conn->GetIp() : "";
+    }
+    
     bool IsMulticast() const
     { return is_multicast_; }
 

@@ -19,7 +19,7 @@ public:
 	using CloseCallback = std::function<void(std::shared_ptr<TcpConnection> conn)>;
 	using ReadCallback = std::function<bool(std::shared_ptr<TcpConnection> conn, xop::BufferReader& buffer)>;
 
-	TcpConnection(TaskScheduler *task_scheduler, SOCKET sockfd);
+	TcpConnection(TaskScheduler *task_scheduler, SOCKET sockfd, std::string ip, int port);
 	virtual ~TcpConnection();
 
 	TaskScheduler* GetTaskScheduler() const 
@@ -41,6 +41,16 @@ public:
 
 	SOCKET GetSocket() const
 	{ return channel_->GetSocket(); }
+
+        int GetPort() const
+        {
+            return channel_->GetPort();
+        }
+    
+        const std::string& GetIp() const
+        {
+            return channel_->GetIp();
+        }
 
 protected:
 	friend class TcpServer;

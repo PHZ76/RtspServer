@@ -40,6 +40,16 @@ MediaSession::~MediaSession()
 	}
 }
 
+void MediaSession::addNotifyConnectedCallback(const NotifyConnectedCallback& cb)
+{
+    _notifyConnectedCallbacks.push_back(cb);
+}
+
+void MediaSession::addNotifyDisconnectedCallback(const NotifyDisconnectedCallback& cb) 
+{
+    _notifyDisconnectedCallbacks.push_back(cb);
+}
+
 bool MediaSession::AddSource(MediaChannelId channelId, MediaSource* source)
 {
 	source->SetSendFrameCallback([this](MediaChannelId channelId, RtpPacket pkt) {
@@ -210,9 +220,8 @@ bool MediaSession::AddClient(SOCKET rtspfd, std::shared_ptr<RtpConnection> rtp_c
 	if(iter == clients_.end()) {
 		std::weak_ptr<RtpConnection> rtp_conn_weak_ptr = rtp_conn;
 		clients_.emplace(rtspfd, rtp_conn_weak_ptr);
-		if (notify_callback_) {
-			notify_callback_(session_id_, (uint32_t)clients_.size()); /* 回调通知当前客户端数量 */
-		}
+		for (auto& cb : _notifyConnectedCallbacks)
+			cb(session_id_, (uint32_t)clients_.size(), rtp_conn->GetIp());
         
 		has_new_client_ = true;
 		return true;
@@ -224,12 +233,15 @@ bool MediaSession::AddClient(SOCKET rtspfd, std::shared_ptr<RtpConnection> rtp_c
 void MediaSession::RemoveClient(SOCKET rtspfd)
 {  
 	std::lock_guard<std::mutex> lock(map_mutex_);
-
-	if (clients_.find(rtspfd) != clients_.end()) {
-		clients_.erase(rtspfd);
-		if (notify_callback_) {
-			notify_callback_(session_id_, (uint32_t)clients_.size());  /* 回调通知当前客户端数量 */
-		}
-	}
+    	auto it = clients_.find(rtspfd);
+    	if (it != clients_.end())
+    	{
+                auto conn = it->second.lock();
+                if (conn) {
+                    for (auto& cb : _notifyDisconnectedCallbacks)
+                        cb(session_id_, (uint32_t)clients_.size() - 1, conn->GetIp());
+                }
+		clients_.erase(it);
+    	}
 }
 

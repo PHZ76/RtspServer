@@ -33,7 +33,7 @@ private:
 	RtspServer(xop::EventLoop* loop);
     MediaSessionPtr LookMediaSession(const std::string& suffix);
     MediaSessionPtr LookMediaSession(MediaSessionId sessionId);
-    virtual TcpConnection::Ptr OnConnect(SOCKET sockfd);
+    virtual TcpConnection::Ptr OnConnect(SOCKET sockfd, std::string ip, int port);
 
     std::mutex mutex_;
     std::unordered_map<MediaSessionId, std::shared_ptr<MediaSession>> media_sessions_;
