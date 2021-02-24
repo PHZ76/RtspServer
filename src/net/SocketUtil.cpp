@@ -159,7 +159,6 @@ void SocketUtil::Close(SOCKET sockfd)
 
 bool SocketUtil::Connect(SOCKET sockfd, std::string ip, uint16_t port, int timeout)
 {
-	bool isConnected = true;
 	if (timeout > 0)
 	{
 		SocketUtil::SetNonBlock(sockfd);
@@ -170,28 +169,5 @@ bool SocketUtil::Connect(SOCKET sockfd, std::string ip, uint16_t port, int timeo
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
 	addr.sin_addr.s_addr = inet_addr(ip.c_str());
-	if (::connect(sockfd, (struct sockaddr*)&addr, addrlen) == SOCKET_ERROR)
-	{		
-		if (timeout > 0)
-		{
-			isConnected = false;
-			fd_set fdWrite;
-			FD_ZERO(&fdWrite);
-			FD_SET(sockfd, &fdWrite);
-			struct timeval tv = { timeout / 1000, timeout % 1000 * 1000 };
-			select((int)sockfd + 1, NULL, &fdWrite, NULL, &tv);
-			if (FD_ISSET(sockfd, &fdWrite))
-			{
-				isConnected = true;
-			}
-			SocketUtil::SetBlock(sockfd);
-		}
-		else
-		{
-			isConnected = false;
-		}		
-	}
-	
-	return isConnected;
+	return ::connect(sockfd, (struct sockaddr*)&addr, addrlen) == 0;
 }
-
