@@ -17,7 +17,7 @@ using namespace std;
 RtspConnection::RtspConnection(std::shared_ptr<Rtsp> rtsp, TaskScheduler *task_scheduler, SOCKET sockfd, std::string ip, int port)
 	: TcpConnection(task_scheduler, sockfd, ip, port)
 	, rtsp_(rtsp)
-	, rtp_channel_(new Channel(sockfd, ip, port))
+	, rtp_channel_(sockfd, ip, port)
 {
 	this->SetReadCallback([this](std::shared_ptr<TcpConnection> conn, xop::BufferReader& buffer) {
 		return this->OnRead(buffer);
@@ -29,10 +29,10 @@ RtspConnection::RtspConnection(std::shared_ptr<Rtsp> rtsp, TaskScheduler *task_s
 
 	alive_count_ = 1;
 
-	rtp_channel_->SetReadCallback([this]() { this->HandleRead(); });
-	rtp_channel_->SetWriteCallback([this]() { this->HandleWrite(); });
-	rtp_channel_->SetCloseCallback([this]() { this->HandleClose(); });
-	rtp_channel_->SetErrorCallback([this]() { this->HandleError(); });
+	rtp_channel_.SetReadCallback([this]() { this->HandleRead(); });
+	rtp_channel_.SetWriteCallback([this]() { this->HandleWrite(); });
+	rtp_channel_.SetCloseCallback([this]() { this->HandleClose(); });
+	rtp_channel_.SetErrorCallback([this]() { this->HandleError(); });
 
 	for(int chn=0; chn<MAX_MEDIA_CHANNEL; chn++) {
 		rtcp_channels_[chn] = nullptr;
@@ -80,13 +80,10 @@ bool RtspConnection::OnRead(BufferReader& buffer)
 void RtspConnection::OnClose()
 {
 	if(session_id_ != 0) {
-		auto rtsp = rtsp_.lock();
-		if (rtsp) {
-			MediaSessionPtr media_session = rtsp->LookMediaSession(session_id_);
-			if (media_session) {
-				media_session->RemoveClient(this->GetSocket());
-			}
-		}	
+                MediaSessionPtr media_session = rtsp_->LookMediaSession(session_id_);
+                if (media_session) {
+                        media_session->RemoveClient(this->GetSocket());
+                }	
 	}
 
 	for(int chn=0; chn<MAX_MEDIA_CHANNEL; chn++) {
@@ -241,12 +238,9 @@ void RtspConnection::HandleCmdDescribe()
 	std::shared_ptr<char> res(new char[4096], std::default_delete<char[]>());
 	MediaSessionPtr media_session = nullptr;
 
-	auto rtsp = rtsp_.lock();
-	if (rtsp) {
-		media_session = rtsp->LookMediaSession(rtsp_request_.GetRtspUrlSuffix());
-	}
+        media_session = rtsp_->LookMediaSession(rtsp_request_.GetRtspUrlSuffix());
 	
-	if(!rtsp || !media_session) {
+	if(!media_session) {
 		size = rtsp_request_.BuildNotFoundRes(res.get(), 4096);
 	}
 	else {
@@ -261,7 +255,7 @@ void RtspConnection::HandleCmdDescribe()
 			}
 		}
 
-		std::string sdp = media_session->GetSdpMessage(SocketUtil::GetSocketIp(this->GetSocket()), rtsp->GetVersion());
+		std::string sdp = media_session->GetSdpMessage(SocketUtil::GetSocketIp(this->GetSocket()), rtsp_->GetVersion());
 		if(sdp == "") {
 			size = rtsp_request_.BuildServerErrorRes(res.get(), 4096);
 		}
@@ -285,12 +279,9 @@ void RtspConnection::HandleCmdSetup()
 	MediaChannelId channel_id = rtsp_request_.GetChannelId();
 	MediaSessionPtr media_session = nullptr;
 
-	auto rtsp = rtsp_.lock();
-	if (rtsp) {
-		media_session = rtsp->LookMediaSession(session_id_);
-	}
+	media_session = rtsp_->LookMediaSession(session_id_);
 
-	if(!rtsp || !media_session)  {
+	if(!media_session)  {
 		goto server_error;
 	}
 
@@ -436,15 +427,9 @@ void RtspConnection::SendOptions(ConnectionMode mode)
             rtp_conn_.reset(new RtpConnection(me));
 	}
 
-	auto rtsp = rtsp_.lock();
-	if (!rtsp) {
-		HandleClose();
-		return;
-	}	
-
 	conn_mode_ = mode;
 	rtsp_response_.SetUserAgent(USER_AGENT);
-	rtsp_response_.SetRtspUrl(rtsp->GetRtspUrl().c_str());
+	rtsp_response_.SetRtspUrl(rtsp_->GetRtspUrl().c_str());
 
 	std::shared_ptr<char> req(new char[2048], std::default_delete<char[]>());
 	int size = rtsp_response_.BuildOptionReq(req.get(), 2048);
@@ -455,12 +440,9 @@ void RtspConnection::SendAnnounce()
 {
 	MediaSessionPtr media_session = nullptr;
 
-	auto rtsp = rtsp_.lock();
-	if (rtsp) {
-		media_session = rtsp->LookMediaSession(1);
-	}
+	media_session = rtsp_->LookMediaSession(1);
 
-	if (!rtsp || !media_session) {
+	if (!media_session) {
 		HandleClose();
 		return;
 	}
@@ -477,7 +459,7 @@ void RtspConnection::SendAnnounce()
 		}
 	}
 
-	std::string sdp = media_session->GetSdpMessage(SocketUtil::GetSocketIp(this->GetSocket()), rtsp->GetVersion());
+	std::string sdp = media_session->GetSdpMessage(SocketUtil::GetSocketIp(this->GetSocket()), rtsp_->GetVersion());
 	if (sdp == "") {
 		HandleClose();
 		return;
@@ -501,12 +483,9 @@ void RtspConnection::SendSetup()
 	std::shared_ptr<char> buf(new char[2048], std::default_delete<char[]>());	
 	MediaSessionPtr media_session = nullptr;
 
-	auto rtsp = rtsp_.lock();
-	if (rtsp) {
-		media_session = rtsp->LookMediaSession(session_id_);
-	}
-	
-	if (!rtsp || !media_session) {
+	media_session = rtsp_->LookMediaSession(session_id_);
+
+	if (!media_session) {
 		HandleClose();
 		return;
 	}

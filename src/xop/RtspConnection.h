@@ -108,7 +108,7 @@ private:
 	void HandleRecord();
 
 	std::atomic_int alive_count_;
-	std::weak_ptr<Rtsp> rtsp_;
+	std::shared_ptr<Rtsp> rtsp_;
 
 	ConnectionMode  conn_mode_ = RTSP_SERVER;
 	ConnectionState conn_state_ = START_CONNECT;
@@ -118,7 +118,7 @@ private:
 	std::string _nonce;
 	std::unique_ptr<DigestAuthentication> auth_info_;
 
-	std::shared_ptr<Channel>       rtp_channel_;
+	Channel rtp_channel_;
 	std::shared_ptr<Channel>       rtcp_channels_[MAX_MEDIA_CHANNEL];
 	RtspRequest   rtsp_request_;
 	RtspResponse  rtsp_response_;

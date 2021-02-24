@@ -7,10 +7,10 @@
 #include <memory>
 #include <cstdint>
 
-#define RTP_HEADER_SIZE   	   12
-#define MAX_RTP_PAYLOAD_SIZE   1420 //1460  1500-20-12-8
-#define RTP_VERSION			   2
-#define RTP_TCP_HEAD_SIZE	   4
+#define RTP_HEADER_SIZE   	12
+#define MAX_RTP_PAYLOAD_SIZE	1420 //1460  1500-20-12-8
+#define RTP_VERSION		2
+#define RTP_TCP_HEAD_SIZE	4
 
 namespace xop
 {
@@ -62,13 +62,13 @@ struct MediaChannelInfo
 };
 
 struct RtpPacket
-{
+{       
 	RtpPacket()
 		: data(new uint8_t[1600], std::default_delete<uint8_t[]>())
-	{
+        {
 		type = 0;
-	}
-
+        }
+        
 	std::shared_ptr<uint8_t> data;
 	uint32_t size       = 0;
 	uint32_t timestamp  = 0;
