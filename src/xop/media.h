@@ -31,7 +31,7 @@ enum FrameType
 struct AVFrame
 {	
 	AVFrame(uint32_t size = 0)
-		:buffer(new uint8_t[size + 1], std::default_delete<uint8_t[]>())
+		:buffer(new uint8_t[size + 1], std::default_delete< uint8_t[]>())
 	{
 		this->size = size;
 		type = 0;
@@ -44,7 +44,7 @@ struct AVFrame
 	uint32_t timestamp;		  	     /* 时间戳 */
 };
 
-#define MAX_MEDIA_CHANNEL 2
+static const int MAX_MEDIA_CHANNEL = 2;
 
 enum MediaChannelId
 {

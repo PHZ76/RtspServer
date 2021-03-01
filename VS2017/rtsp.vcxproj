@@ -175,7 +175,6 @@
     <ClInclude Include="..\src\net\TcpConnection.h" />
     <ClInclude Include="..\src\net\TcpServer.h" />
     <ClInclude Include="..\src\net\TcpSocket.h" />
-    <ClInclude Include="..\src\net\ThreadSafeQueue.h" />
     <ClInclude Include="..\src\net\Timer.h" />
     <ClInclude Include="..\src\net\Timestamp.h" />
     <ClInclude Include="..\src\xop\AACSource.h" />

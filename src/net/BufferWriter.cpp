@@ -65,7 +65,7 @@ bool BufferWriter::Append(std::shared_ptr<char> data, uint32_t size, uint32_t in
 		return false;
 	}
      
-	Packet pkt = {data, size, index};
+	Packet pkt = { data, size, index };
 	buffer_.emplace(std::move(pkt));
 	return true;
 }
@@ -81,7 +81,7 @@ bool BufferWriter::Append(const char* data, uint32_t size, uint32_t index)
 	}
      
 	Packet pkt;
-	pkt.data.reset(new char[size+512], std::default_delete<char[]>());
+	pkt.data.reset(new char[size+512]);
 	memcpy(pkt.data.get(), data, size);
 	pkt.size = size;
 	pkt.writeIndex = index;

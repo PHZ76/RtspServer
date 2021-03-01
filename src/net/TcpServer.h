@@ -33,8 +33,8 @@ public:
 	{ return port_; }
 
 protected:
-	virtual TcpConnection::Ptr OnConnect(SOCKET sockfd, std::string ip, int port);
-	virtual void AddConnection(SOCKET sockfd, TcpConnection::Ptr tcpConn);
+	virtual TcpConnection::Ptr OnConnect(SOCKET sockfd);
+	virtual void AddConnection(SOCKET sockfd, TcpConnection::Ptr tcp_conn);
 	virtual void RemoveConnection(SOCKET sockfd);
 
 	EventLoop* event_loop_;
@@ -43,7 +43,7 @@ protected:
 	std::unique_ptr<Acceptor> acceptor_; 
 	bool is_started_;
 	std::mutex mutex_;
-	std::unordered_map<SOCKET, std::shared_ptr<TcpConnection>> connections_;
+	std::unordered_map<SOCKET, TcpConnection::Ptr> connections_;
 };
 
 }

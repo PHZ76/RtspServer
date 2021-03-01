@@ -18,9 +18,9 @@ using namespace std;
 
 G711ASource::G711ASource()
 {
-    payload_    = 8;
-    media_type_ = PCMA;
-    clock_rate_ = 8000;
+	payload_    = 8;
+	media_type_ = PCMA;
+	clock_rate_ = 8000;
 }
 
 G711ASource* G711ASource::CreateNew()
@@ -37,7 +37,6 @@ string G711ASource::GetMediaDescription(uint16_t port)
 {
 	char buf[100] = {0};
 	sprintf(buf, "m=audio %hu RTP/AVP 8", port);
-
 	return string(buf);
 }
 	
@@ -55,16 +54,16 @@ bool G711ASource::HandleFrame(MediaChannelId channel_id, AVFrame frame)
 	uint8_t *frame_buf  = frame.buffer.get();
 	uint32_t frame_size = frame.size;
 
-	RtpPacket rtpPkt;
-	rtpPkt.type = frame.type;
-	rtpPkt.timestamp = frame.timestamp;
-	rtpPkt.size = frame_size + 4 + RTP_HEADER_SIZE;
-	rtpPkt.last = 1;
+	RtpPacket rtp_pkt;
+	rtp_pkt.type = frame.type;
+	rtp_pkt.timestamp = frame.timestamp;
+	rtp_pkt.size = frame_size + 4 + RTP_HEADER_SIZE;
+	rtp_pkt.last = 1;
 
-	memcpy(rtpPkt.data.get()+4+RTP_HEADER_SIZE, frame_buf, frame_size);
+	memcpy(rtp_pkt.data.get()+4+RTP_HEADER_SIZE, frame_buf, frame_size);
 
 	if (send_frame_callback_) {
-		send_frame_callback_(channel_id, rtpPkt);
+		send_frame_callback_(channel_id, rtp_pkt);
 	}
 
 	return true;

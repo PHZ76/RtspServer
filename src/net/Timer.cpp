@@ -8,6 +8,7 @@ using namespace std::chrono;
 TimerId TimerQueue::AddTimer(const TimerEvent& event, uint32_t ms)
 {    
 	std::lock_guard<std::mutex> locker(mutex_);
+
 	int64_t timeout = GetTimeNow();
 	TimerId timer_id = ++last_timer_id_;
 
@@ -21,6 +22,7 @@ TimerId TimerQueue::AddTimer(const TimerEvent& event, uint32_t ms)
 void TimerQueue::RemoveTimer(TimerId timerId)
 {
 	std::lock_guard<std::mutex> locker(mutex_);
+
 	auto iter = timers_.find(timerId);
 	if (iter != timers_.end()) {
 		int64_t timeout = iter->second->getNextTimeout();

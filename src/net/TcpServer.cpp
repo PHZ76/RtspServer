@@ -13,8 +13,8 @@ TcpServer::TcpServer(EventLoop* event_loop)
 	, acceptor_(new Acceptor(event_loop_))
 	, is_started_(false)
 {
-	acceptor_->SetNewConnectionCallback([this](SOCKET sockfd, std::string ip, int port) {
-		TcpConnection::Ptr conn = this->OnConnect(sockfd, ip, port);
+	acceptor_->SetNewConnectionCallback([this](SOCKET sockfd) {
+		TcpConnection::Ptr conn = this->OnConnect(sockfd);
 		if (conn) {
 			this->AddConnection(sockfd, conn);
 			conn->SetDisconnectCallback([this](TcpConnection::Ptr conn) {
@@ -53,8 +53,7 @@ bool TcpServer::Start(std::string ip, uint16_t port)
 
 void TcpServer::Stop()
 {
-	if (is_started_) {
-		
+	if (is_started_) {		
 		mutex_.lock();
 		for (auto iter : connections_) {
 			iter.second->Disconnect();
@@ -65,7 +64,7 @@ void TcpServer::Stop()
 		is_started_ = false;
 
 		while (1) {
-			Timer::Sleep(1);
+			Timer::Sleep(10);
 			if (connections_.empty()) {
 				break;
 			}
@@ -73,9 +72,9 @@ void TcpServer::Stop()
 	}	
 }
 
-TcpConnection::Ptr TcpServer::OnConnect(SOCKET sockfd, std::string ip, int port)
+TcpConnection::Ptr TcpServer::OnConnect(SOCKET sockfd)
 {
-	return std::make_shared<TcpConnection>(event_loop_->GetTaskScheduler().get(), sockfd, ip, port);
+	return std::make_shared<TcpConnection>(event_loop_->GetTaskScheduler().get(), sockfd);
 }
 
 void TcpServer::AddConnection(SOCKET sockfd, TcpConnection::Ptr tcpConn)

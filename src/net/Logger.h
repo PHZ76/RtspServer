@@ -25,32 +25,32 @@ class Logger
 public:
 	Logger &operator=(const Logger &) = delete;
 	Logger(const Logger &) = delete;	
-	static Logger& instance();
+	static Logger& Instance();
 	~Logger();
 
-	void init(char *pathname = nullptr);
-	void exit();
+	void Init(char *pathname = nullptr);
+	void Exit();
 
-	void log(Priority priority, const char* __file, const char* __func, int __line, const char *fmt, ...);
-	void log2(Priority priority, const char *fmt, ...);
+	void Log(Priority priority, const char* __file, const char* __func, int __line, const char *fmt, ...);
+	void Log2(Priority priority, const char *fmt, ...);
 
 private:
-	void write(std::string buf);
+	void Write(std::string buf);
 	Logger();
 
-	std::mutex _mutex;
-	std::ofstream _ofs;
+	std::mutex mutex_;
+	std::ofstream ofs_;
 };
  
 }
 
 #ifdef _DEBUG
-#define LOG_DEBUG(fmt, ...) xop::Logger::instance().log(LOG_DEBUG, __FILE__, __FUNCTION__,__LINE__, fmt, ##__VA_ARGS__)
+#define LOG_DEBUG(fmt, ...) xop::Logger::Instance().Log(LOG_DEBUG, __FILE__, __FUNCTION__,__LINE__, fmt, ##__VA_ARGS__)
 #else
 #define LOG_DEBUG(fmt, ...)
 #endif
-#define LOG_INFO(fmt, ...) xop::Logger::instance().log2(LOG_INFO, fmt, ##__VA_ARGS__)
-#define LOG_ERROR(fmt, ...) xop::Logger::instance().log(LOG_ERROR, __FILE__, __FUNCTION__,__LINE__, fmt, ##__VA_ARGS__)
+#define LOG_INFO(fmt, ...) xop::Logger::Instance().Log2(LOG_INFO, fmt, ##__VA_ARGS__)
+#define LOG_ERROR(fmt, ...) xop::Logger::Instance().Log(LOG_ERROR, __FILE__, __FUNCTION__,__LINE__, fmt, ##__VA_ARGS__)
 
 #endif
 

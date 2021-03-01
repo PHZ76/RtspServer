@@ -10,7 +10,7 @@
 namespace xop
 {
 
-typedef std::function<void(SOCKET, std::string, int)> NewConnectionCallback;
+typedef std::function<void(SOCKET)> NewConnectionCallback;
 
 class EventLoop;
 
@@ -18,7 +18,7 @@ class Acceptor
 {
 public:	
 	Acceptor(EventLoop* eventLoop);
-	~Acceptor();
+	virtual ~Acceptor();
 
 	void SetNewConnectionCallback(const NewConnectionCallback& cb)
 	{ new_connection_callback_ = cb; }
@@ -39,5 +39,3 @@ private:
 }
 
 #endif 
-
-

@@ -50,7 +50,7 @@ void RtspServer::RemoveSession(MediaSessionId sessionId)
     }
 }
 
-MediaSessionPtr RtspServer::LookMediaSession(const std::string& suffix)
+MediaSession::Ptr RtspServer::LookMediaSession(const std::string& suffix)
 {
     std::lock_guard<std::mutex> locker(mutex_);
 
@@ -63,11 +63,11 @@ MediaSessionPtr RtspServer::LookMediaSession(const std::string& suffix)
     return nullptr;
 }
 
-MediaSessionPtr RtspServer::LookMediaSession(MediaSessionId sessionId)
+MediaSession::Ptr RtspServer::LookMediaSession(MediaSessionId session_Id)
 {
     std::lock_guard<std::mutex> locker(mutex_);
 
-    auto iter = media_sessions_.find(sessionId);
+    auto iter = media_sessions_.find(session_Id);
     if(iter != media_sessions_.end()) {
         return iter->second;
     }
@@ -75,13 +75,13 @@ MediaSessionPtr RtspServer::LookMediaSession(MediaSessionId sessionId)
     return nullptr;
 }
 
-bool RtspServer::PushFrame(MediaSessionId sessionId, MediaChannelId channelId, AVFrame frame)
+bool RtspServer::PushFrame(MediaSessionId session_id, MediaChannelId channel_id, AVFrame frame)
 {
     std::shared_ptr<MediaSession> sessionPtr = nullptr;
 
     {
         std::lock_guard<std::mutex> locker(mutex_);
-        auto iter = media_sessions_.find(sessionId);
+        auto iter = media_sessions_.find(session_id);
         if (iter != media_sessions_.end()) {
             sessionPtr = iter->second;
         }
@@ -91,14 +91,14 @@ bool RtspServer::PushFrame(MediaSessionId sessionId, MediaChannelId channelId, A
     }
 
     if (sessionPtr!=nullptr && sessionPtr->GetNumClient()!=0) {
-        return sessionPtr->HandleFrame(channelId, frame);
+        return sessionPtr->HandleFrame(channel_id, frame);
     }
 
     return false;
 }
 
-TcpConnection::Ptr RtspServer::OnConnect(SOCKET sockfd, std::string ip, int port)
+TcpConnection::Ptr RtspServer::OnConnect(SOCKET sockfd)
 {	
-	return std::make_shared<RtspConnection>(shared_from_this(), event_loop_->GetTaskScheduler().get(), sockfd, ip, port);
+	return std::make_shared<RtspConnection>(shared_from_this(), event_loop_->GetTaskScheduler().get(), sockfd);
 }
 

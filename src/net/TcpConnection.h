@@ -7,6 +7,7 @@
 #include "BufferReader.h"
 #include "BufferWriter.h"
 #include "Channel.h"
+#include "SocketUtil.h"
 
 namespace xop
 {
@@ -19,7 +20,7 @@ public:
 	using CloseCallback = std::function<void(std::shared_ptr<TcpConnection> conn)>;
 	using ReadCallback = std::function<bool(std::shared_ptr<TcpConnection> conn, xop::BufferReader& buffer)>;
 
-	TcpConnection(TaskScheduler *task_scheduler, SOCKET sockfd, std::string ip, int port);
+	TcpConnection(TaskScheduler *task_scheduler, SOCKET sockfd);
 	virtual ~TcpConnection();
 
 	TaskScheduler* GetTaskScheduler() const 
@@ -42,15 +43,11 @@ public:
 	SOCKET GetSocket() const
 	{ return channel_->GetSocket(); }
 
-        int GetPort() const
-        {
-            return channel_->GetPort();
-        }
+	uint16_t GetPort() const
+	{ return SocketUtil::GetPeerPort(channel_->GetSocket()); }
     
-        const std::string& GetIp() const
-        {
-            return channel_->GetIp();
-        }
+	std::string GetIp() const
+	{ return SocketUtil::GetPeerIp(channel_->GetSocket()); }
 
 protected:
 	friend class TcpServer;

@@ -14,11 +14,11 @@
 using namespace xop;
 using namespace std;
 
-RtspConnection::RtspConnection(std::shared_ptr<Rtsp> rtsp, TaskScheduler *task_scheduler, SOCKET sockfd, std::string ip, int port)
-	: TcpConnection(task_scheduler, sockfd, ip, port)
+RtspConnection::RtspConnection(std::shared_ptr<Rtsp> rtsp, TaskScheduler *task_scheduler, SOCKET sockfd)
+	: TcpConnection(task_scheduler, sockfd)
 	, rtsp_(rtsp)
-        , task_scheduler_(task_scheduler)
-	, rtp_channel_(new Channel(sockfd, ip, port))
+	, task_scheduler_(task_scheduler)
+	, rtp_channel_(new Channel(sockfd))
 	, rtsp_request_(new RtspRequest)
 	, rtsp_response_(new RtspResponse)
 {
@@ -85,7 +85,7 @@ void RtspConnection::OnClose()
 	if(session_id_ != 0) {
 		auto rtsp = rtsp_.lock();
 		if (rtsp) {
-			MediaSessionPtr media_session = rtsp->LookMediaSession(session_id_);
+			MediaSession::Ptr media_session = rtsp->LookMediaSession(session_id_);
 			if (media_session) {
 				media_session->RemoveClient(this->GetSocket());
 			}
@@ -109,7 +109,7 @@ bool RtspConnection::HandleRtspRequest(BufferReader& buffer)
 	}
 #endif
 
-    if (rtsp_request_->ParseRequest(&buffer)) {
+	if (rtsp_request_->ParseRequest(&buffer)) {
 		RtspRequest::Method method = rtsp_request_->GetMethod();
 		if(method == RtspRequest::RTCP) {
 			HandleRtcp(buffer);
@@ -146,7 +146,7 @@ bool RtspConnection::HandleRtspRequest(BufferReader& buffer)
 		if (rtsp_request_->GotAll()) {
 			rtsp_request_->Reset();
 		}
-    }
+	}
 	else {
 		return false;
 	}
@@ -216,10 +216,10 @@ void RtspConnection::HandleRtcp(BufferReader& buffer)
  
 void RtspConnection::HandleRtcp(SOCKET sockfd)
 {
-    char buf[1024] = {0};
-    if(recv(sockfd, buf, 1024, 0) > 0) {
-        KeepAlive();
-    }
+	char buf[1024] = {0};
+	if(recv(sockfd, buf, 1024, 0) > 0) {
+		KeepAlive();
+	}
 }
 
 void RtspConnection::HandleCmdOption()
@@ -241,7 +241,7 @@ void RtspConnection::HandleCmdDescribe()
 
 	int size = 0;
 	std::shared_ptr<char> res(new char[4096], std::default_delete<char[]>());
-	MediaSessionPtr media_session = nullptr;
+	MediaSession::Ptr media_session = nullptr;
 
 	auto rtsp = rtsp_.lock();
 	if (rtsp) {
@@ -285,7 +285,7 @@ void RtspConnection::HandleCmdSetup()
 	int size = 0;
 	std::shared_ptr<char> res(new char[4096], std::default_delete<char[]>());
 	MediaChannelId channel_id = rtsp_request_->GetChannelId();
-	MediaSessionPtr media_session = nullptr;
+	MediaSession::Ptr media_session = nullptr;
 
 	auto rtsp = rtsp_.lock();
 	if (rtsp) {
@@ -321,14 +321,14 @@ void RtspConnection::HandleCmdSetup()
 			size = rtsp_request_->BuildSetupTcpRes(res.get(), 4096, rtp_channel, rtcp_channel, session_id);
 		}
 		else if(rtsp_request_->GetTransportMode() == RTP_OVER_UDP) {
-			uint16_t cliRtpPort = rtsp_request_->GetRtpPort();
-			uint16_t cliRtcpPort = rtsp_request_->GetRtcpPort();
+			uint16_t peer_rtp_port = rtsp_request_->GetRtpPort();
+			uint16_t peer_rtcp_port = rtsp_request_->GetRtcpPort();
 			uint16_t session_id = rtp_conn_->GetRtpSessionId();
 
-			if(rtp_conn_->SetupRtpOverUdp(channel_id, cliRtpPort, cliRtcpPort)) {                
-				auto rtcpSockInfo = rtp_conn_->GetRtcpSockInfo(channel_id);
-				rtcp_channels_[channel_id].reset(new Channel(rtcpSockInfo.fd, rtcpSockInfo.ip, rtcpSockInfo.port));
-				rtcp_channels_[channel_id]->SetReadCallback([rtcpSockInfo, this]() { this->HandleRtcp(rtcpSockInfo.fd); });
+			if(rtp_conn_->SetupRtpOverUdp(channel_id, peer_rtp_port, peer_rtcp_port)) {
+				SOCKET rtcp_fd = rtp_conn_->GetRtcpSocket(channel_id);
+				rtcp_channels_[channel_id].reset(new Channel(rtcp_fd));
+				rtcp_channels_[channel_id]->SetReadCallback([rtcp_fd, this]() { this->HandleRtcp(rtcp_fd); });
 				rtcp_channels_[channel_id]->EnableReading();
 				task_scheduler_->UpdateChannel(rtcp_channels_[channel_id]);
 			}
@@ -454,7 +454,7 @@ void RtspConnection::SendOptions(ConnectionMode mode)
 
 void RtspConnection::SendAnnounce()
 {
-	MediaSessionPtr media_session = nullptr;
+	MediaSession::Ptr media_session = nullptr;
 
 	auto rtsp = rtsp_.lock();
 	if (rtsp) {
@@ -499,8 +499,8 @@ void RtspConnection::SendDescribe()
 void RtspConnection::SendSetup()
 {
 	int size = 0;
-	std::shared_ptr<char> buf(new char[2048], std::default_delete<char[]>());	
-	MediaSessionPtr media_session = nullptr;
+	std::shared_ptr<char> buf(new char[2048], std::default_delete<char[]>());
+	MediaSession::Ptr media_session = nullptr;
 
 	auto rtsp = rtsp_.lock();
 	if (rtsp) {

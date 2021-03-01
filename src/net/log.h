@@ -3,7 +3,7 @@
 
 #include <cstdio>
 
-//#ifdef HI_DEBUG
+//#ifdef _DEBUG
 #define LOG(format, ...)  	\
 {								\
     fprintf(stderr, "[DEBUG] [%s:%s:%d] " format "", \

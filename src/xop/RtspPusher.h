@@ -29,7 +29,7 @@ private:
 	friend class RtspConnection;
 
 	RtspPusher(xop::EventLoop *event_loop);
-	MediaSessionPtr LookMediaSession(MediaSessionId session_id);
+	MediaSession::Ptr LookMediaSession(MediaSessionId session_id);
 
 	xop::EventLoop* event_loop_ = nullptr;
 	xop::TaskScheduler* task_scheduler_ = nullptr;

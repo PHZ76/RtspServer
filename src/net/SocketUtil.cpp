@@ -32,7 +32,7 @@ void SocketUtil::SetNonBlock(SOCKET fd)
 #endif
 }
 
-void SocketUtil::SetBlock(SOCKET fd, int writeTimeout)
+void SocketUtil::SetBlock(SOCKET fd, int write_timeout)
 {
 #if defined(__linux) || defined(__linux__) 
     int flags = fcntl(fd, F_GETFL, 0);
@@ -42,14 +42,14 @@ void SocketUtil::SetBlock(SOCKET fd, int writeTimeout)
     ioctlsocket(fd, FIONBIO, &on);
 #else
 #endif
-    if(writeTimeout > 0)
+    if(write_timeout > 0)
     {
 #ifdef SO_SNDTIMEO
 #if defined(__linux) || defined(__linux__) 
-        struct timeval tv = {writeTimeout/1000, (writeTimeout%1000)*1000};
-        setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&tv, sizeof tv);
+    struct timeval tv = {write_timeout/1000, (write_timeout%1000)*1000};
+    setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&tv, sizeof tv);
 #elif defined(WIN32) || defined(_WIN32)
-    unsigned long ms = (unsigned long)writeTimeout;
+    unsigned long ms = (unsigned long)write_timeout;
     setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&ms, sizeof(unsigned long));
 #else
 #endif		
@@ -111,17 +111,17 @@ std::string SocketUtil::GetPeerIp(SOCKET sockfd)
     {
         return inet_ntoa(addr.sin_addr);
     }
-
     return "0.0.0.0";
 }
 
 std::string SocketUtil::GetSocketIp(SOCKET sockfd)
 {
-	struct sockaddr_in addr = {0};
-	char str[INET_ADDRSTRLEN] = "127.0.0.1";
-	if (GetSocketAddr(sockfd, &addr) == 0)
-		inet_ntop(AF_INET, &addr.sin_addr, str, sizeof(str));
-	return str;
+    struct sockaddr_in addr = {0};
+    char str[INET_ADDRSTRLEN] = "127.0.0.1";
+    if (GetSocketAddr(sockfd, &addr) == 0) {
+        inet_ntop(AF_INET, &addr.sin_addr, str, sizeof(str));
+    }
+    return str;
 }
 
 int SocketUtil::GetSocketAddr(SOCKET sockfd, struct sockaddr_in* addr)
@@ -138,7 +138,6 @@ uint16_t SocketUtil::GetPeerPort(SOCKET sockfd)
     {
         return ntohs(addr.sin_port);
     }
-
     return 0;
 }
 
@@ -159,9 +158,9 @@ void SocketUtil::Close(SOCKET sockfd)
 
 bool SocketUtil::Connect(SOCKET sockfd, std::string ip, uint16_t port, int timeout)
 {
-	bool isConnected = true;
-	if (timeout > 0)
-	{
+	bool is_connected = true;
+
+	if (timeout > 0) {
 		SocketUtil::SetNonBlock(sockfd);
 	}
 
@@ -170,28 +169,25 @@ bool SocketUtil::Connect(SOCKET sockfd, std::string ip, uint16_t port, int timeo
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
 	addr.sin_addr.s_addr = inet_addr(ip.c_str());
-	if (::connect(sockfd, (struct sockaddr*)&addr, addrlen) == SOCKET_ERROR)
-	{		
-		if (timeout > 0)
-		{
-			isConnected = false;
-			fd_set fdWrite;
-			FD_ZERO(&fdWrite);
-			FD_SET(sockfd, &fdWrite);
+
+	if (::connect(sockfd, (struct sockaddr*)&addr, addrlen) == SOCKET_ERROR) {		
+		if (timeout > 0) {
+            is_connected = false;
+			fd_set fd_write;
+			FD_ZERO(&fd_write);
+			FD_SET(sockfd, &fd_write);
 			struct timeval tv = { timeout / 1000, timeout % 1000 * 1000 };
-			select((int)sockfd + 1, NULL, &fdWrite, NULL, &tv);
-			if (FD_ISSET(sockfd, &fdWrite))
-			{
-				isConnected = true;
+			select((int)sockfd + 1, NULL, &fd_write, NULL, &tv);
+			if (FD_ISSET(sockfd, &fd_write)) {
+                is_connected = true;
 			}
 			SocketUtil::SetBlock(sockfd);
 		}
-		else
-		{
-			isConnected = false;
+		else {
+            is_connected = false;
 		}		
 	}
 	
-	return isConnected;
+	return is_connected;
 }
 

@@ -50,7 +50,7 @@ public:
 	virtual std::string GetRtspUrl()
 	{ return rtsp_url_info_.url; }
 
-	bool parseRtspUrl(std::string url)
+	bool ParseRtspUrl(std::string url)
 	{
 		char ip[100] = { 0 };
 		char suffix[100] = { 0 };
@@ -85,10 +85,11 @@ public:
 
 protected:
 	friend class RtspConnection;
-	virtual MediaSessionPtr LookMediaSession(const std::string& suffix)
+
+	virtual MediaSession::Ptr LookMediaSession(const std::string& suffix)
 	{ return nullptr; }
 
-	virtual MediaSessionPtr LookMediaSession(MediaSessionId sessionId)
+	virtual MediaSession::Ptr LookMediaSession(MediaSessionId sessionId)
 	{ return nullptr; }
 
 	bool has_auth_info_ = false;

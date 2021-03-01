@@ -14,9 +14,8 @@ RtpConnection::RtpConnection(std::weak_ptr<TcpConnection> rtsp_connection)
 	std::random_device rd;
 
 	for(int chn=0; chn<MAX_MEDIA_CHANNEL; chn++) {
-		rtcpfd_[chn].fd = 0;
-        rtcpfd_[chn].ip = "";
-        rtcpfd_[chn].port = 0;
+		rtpfd_[chn] = 0;
+		rtcpfd_[chn] = 0;
 		memset(&media_channel_info_[chn], 0, sizeof(media_channel_info_[chn]));
 		media_channel_info_[chn].rtp_header.version = RTP_VERSION;
 		media_channel_info_[chn].packet_seq = rd()&0xffff;
@@ -24,17 +23,21 @@ RtpConnection::RtpConnection(std::weak_ptr<TcpConnection> rtsp_connection)
 		media_channel_info_[chn].rtp_header.ts = htonl(rd());
 		media_channel_info_[chn].rtp_header.ssrc = htonl(rd());
 	}
+
+	auto conn = rtsp_connection_.lock();
+	rtsp_ip_ = conn->GetIp();
+	rtsp_port_ = conn->GetPort();
 }
 
 RtpConnection::~RtpConnection()
 {
 	for(int chn=0; chn<MAX_MEDIA_CHANNEL; chn++) {
-		if(rtpfd_[chn].fd > 0) {
-			SocketUtil::Close(rtpfd_[chn].fd);
+		if(rtpfd_[chn] > 0) {
+			SocketUtil::Close(rtpfd_[chn]);
 		}
 
-		if(rtcpfd_[chn].fd > 0) {
-			SocketUtil::Close(rtcpfd_[chn].fd);
+		if(rtcpfd_[chn] > 0) {
+			SocketUtil::Close(rtcpfd_[chn]);
 		}
 	}
 }
@@ -58,10 +61,8 @@ bool RtpConnection::SetupRtpOverTcp(MediaChannelId channel_id, uint16_t rtp_chan
 
 	media_channel_info_[channel_id].rtp_channel = rtp_channel;
 	media_channel_info_[channel_id].rtcp_channel = rtcp_channel;
-	rtpfd_[channel_id].fd = conn->GetSocket();
-	rtcpfd_[channel_id].fd = conn->GetSocket();
-    rtcpfd_[channel_id].ip   = conn->GetIp();
-    rtcpfd_[channel_id].port = conn->GetPort();
+	rtpfd_[channel_id] = conn->GetSocket();
+	rtcpfd_[channel_id] = conn->GetSocket();
 	media_channel_info_[channel_id].is_setup = true;
 	transport_mode_ = RTP_OVER_TCP;
 
@@ -91,26 +92,23 @@ bool RtpConnection::SetupRtpOverUdp(MediaChannelId channel_id, uint16_t rtp_port
 		local_rtp_port_[channel_id] = rd() & 0xfffe;
 		local_rtcp_port_[channel_id] =local_rtp_port_[channel_id] + 1;
 
-		rtpfd_[channel_id].fd = ::socket(AF_INET, SOCK_DGRAM, 0);
-		if(!SocketUtil::Bind(rtpfd_[channel_id].fd, "0.0.0.0",  local_rtp_port_[channel_id])) {
-			SocketUtil::Close(rtpfd_[channel_id].fd);
+		rtpfd_[channel_id] = ::socket(AF_INET, SOCK_DGRAM, 0);
+		if(!SocketUtil::Bind(rtpfd_[channel_id], "0.0.0.0",  local_rtp_port_[channel_id])) {
+			SocketUtil::Close(rtpfd_[channel_id]);
 			continue;
 		}
 
-		rtcpfd_[channel_id].fd = ::socket(AF_INET, SOCK_DGRAM, 0);
-		if(!SocketUtil::Bind(rtcpfd_[channel_id].fd, "0.0.0.0", local_rtcp_port_[channel_id])) {
-			SocketUtil::Close(rtpfd_[channel_id].fd);
-			SocketUtil::Close(rtcpfd_[channel_id].fd);
+		rtcpfd_[channel_id] = ::socket(AF_INET, SOCK_DGRAM, 0);
+		if(!SocketUtil::Bind(rtcpfd_[channel_id], "0.0.0.0", local_rtcp_port_[channel_id])) {
+			SocketUtil::Close(rtpfd_[channel_id]);
+			SocketUtil::Close(rtcpfd_[channel_id]);
 			continue;
 		}
 
-                rtcpfd_[channel_id].port = local_rtcp_port_[channel_id];
-                rtcpfd_[channel_id].ip   = "0.0.0.0";
-        
 		break;
 	}
 
-	SocketUtil::SetSendBufSize(rtpfd_[channel_id].fd, 50*1024);
+	SocketUtil::SetSendBufSize(rtpfd_[channel_id], 50*1024);
 
 	peer_rtp_addr_[channel_id].sin_family = AF_INET;
 	peer_rtp_addr_[channel_id].sin_addr.s_addr = peer_addr_.sin_addr.s_addr;
@@ -135,9 +133,9 @@ bool RtpConnection::SetupRtpOverMulticast(MediaChannelId channel_id, std::string
 		}
        
 		local_rtp_port_[channel_id] = rd() & 0xfffe;
-		rtpfd_[channel_id].fd = ::socket(AF_INET, SOCK_DGRAM, 0);
-		if (!SocketUtil::Bind(rtpfd_[channel_id].fd, "0.0.0.0", local_rtp_port_[channel_id])) {
-			SocketUtil::Close(rtpfd_[channel_id].fd);
+		rtpfd_[channel_id] = ::socket(AF_INET, SOCK_DGRAM, 0);
+		if (!SocketUtil::Bind(rtpfd_[channel_id], "0.0.0.0", local_rtp_port_[channel_id])) {
+			SocketUtil::Close(rtpfd_[channel_id]);
 			continue;
 		}
 
@@ -284,12 +282,8 @@ int RtpConnection::SendRtpOverTcp(MediaChannelId channel_id, RtpPacket pkt)
 
 int RtpConnection::SendRtpOverUdp(MediaChannelId channel_id, RtpPacket pkt)
 {
-	//media_channel_info_[channel_id].octetCount  += pktSize;
-	//media_channel_info_[channel_id].packetCount += 1;
-
-	int ret = sendto(rtpfd_[channel_id].fd, (const char*)pkt.data.get()+4, pkt.size-4, 0,
-					(struct sockaddr *)&(peer_rtp_addr_[channel_id]),
-					sizeof(struct sockaddr_in));
+	int ret = sendto(rtpfd_[channel_id], (const char*)pkt.data.get()+4, pkt.size-4, 0,
+					(struct sockaddr *)&(peer_rtp_addr_[channel_id]), sizeof(struct sockaddr_in));
                    
 	if(ret < 0) {        
 		Teardown();

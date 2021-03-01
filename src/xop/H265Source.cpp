@@ -20,14 +20,14 @@ using namespace std;
 H265Source::H265Source(uint32_t framerate)
 	: framerate_(framerate)
 {
-    payload_    = 96;
-    media_type_ = H265;
-    clock_rate_ = 90000;
+	payload_    = 96;
+	media_type_ = H265;
+	clock_rate_ = 90000;
 }
 
 H265Source* H265Source::CreateNew(uint32_t framerate)
 {
-    return new H265Source(framerate);
+	return new H265Source(framerate);
 }
 
 H265Source::~H265Source()
@@ -39,7 +39,6 @@ string H265Source::GetMediaDescription(uint16_t port)
 {
 	char buf[100] = {0};
 	sprintf(buf, "m=video %hu RTP/AVP 96", port);
-
 	return string(buf);
 }
 	
@@ -72,7 +71,7 @@ bool H265Source::HandleFrame(MediaChannelId channelId, AVFrame frame)
 			}          
 		}
 	}	
-    else {	
+	else {	
 		char FU[3] = {0};	
 		char nalUnitType = (frame_buf[0] & 0x7E) >> 1; 
 		FU[0] = (frame_buf[0] & 0x81) | (49<<1); 
@@ -125,9 +124,9 @@ bool H265Source::HandleFrame(MediaChannelId channelId, AVFrame frame)
 				}               
 			}
 		}            
-    }
+	}
 
-    return true;
+	return true;
 }
 
 

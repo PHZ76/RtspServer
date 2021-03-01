@@ -22,7 +22,7 @@ TaskScheduler::TaskScheduler(int id)
 	});
 
 	if (wakeup_pipe_->Create()) {
-		wakeup_channel_.reset(new Channel(wakeup_pipe_->Read(),"pip", -1));
+		wakeup_channel_.reset(new Channel(wakeup_pipe_->Read()));
 		wakeup_channel_->EnableReading();
 		wakeup_channel_->SetReadCallback([this]() { this->Wake(); });		
 	}        
@@ -71,10 +71,10 @@ void TaskScheduler::RemoveTimer(TimerId timerId)
 
 bool TaskScheduler::AddTriggerEvent(TriggerEvent callback)
 {
-	if (trigger_events_->size() < kMaxTriggetEvents) {
+	if (trigger_events_->Size() < kMaxTriggetEvents) {
 		std::lock_guard<std::mutex> lock(mutex_);
 		char event = kTriggetEvent;
-		trigger_events_->push(std::move(callback));
+		trigger_events_->Push(std::move(callback));
 		wakeup_pipe_->Write(&event, 1);
 		return true;
 	}
@@ -93,8 +93,8 @@ void TaskScheduler::HandleTriggerEvent()
 	do 
 	{
 		TriggerEvent callback;
-		if (trigger_events_->pop(callback)) {
+		if (trigger_events_->Pop(callback)) {
 			callback();
 		}
-	} while (trigger_events_->size() > 0);
+	} while (trigger_events_->Size() > 0);
 }

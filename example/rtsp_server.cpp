@@ -30,9 +30,12 @@ int main(int argc, char **argv)
 	session->AddSource(xop::channel_1, xop::AACSource::CreateNew(44100,2));
 	// session->startMulticast(); /* 开启组播(ip,端口随机生成), 默认使用 RTP_OVER_UDP, RTP_OVER_RTSP */
 
-	session->AddNotifyConnectedCallback([&clients](xop::MediaSessionId sessionId, uint32_t num_clients, std::string ip) {
-		clients = num_clients;
-		std::cout << "The number of rtsp clients: " << num_clients << std::endl;
+	session->AddNotifyConnectedCallback([] (xop::MediaSessionId sessionId, std::string peer_ip, uint16_t peer_port){
+		printf("RTSP client connect, ip=%s, port=%hu \n", peer_ip.c_str(), peer_port);
+	});
+   
+	session->AddNotifyDisconnectedCallback([](xop::MediaSessionId sessionId, std::string peer_ip, uint16_t peer_port) {
+		printf("RTSP client disconnect, ip=%s, port=%hu \n", peer_ip.c_str(), peer_port);
 	});
 
 	std::cout << "URL: " << rtsp_url << std::endl;

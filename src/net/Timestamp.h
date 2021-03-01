@@ -17,23 +17,23 @@ class Timestamp
 {
 public:
     Timestamp()
-        : _beginTimePoint(std::chrono::high_resolution_clock::now())
+        : begin_time_point_(std::chrono::high_resolution_clock::now())
     { }
 
-    void reset()
+    void Reset()
     {
-        _beginTimePoint = std::chrono::high_resolution_clock::now();
+        begin_time_point_ = std::chrono::high_resolution_clock::now();
     }
 
-    int64_t elapsed()
+    int64_t Elapsed()
     {
-        return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - _beginTimePoint).count();
+        return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - begin_time_point_).count();
     }
 
-    static std::string localtime();
+    static std::string Localtime();
 
 private:
-    std::chrono::time_point<std::chrono::high_resolution_clock> _beginTimePoint;
+    std::chrono::time_point<std::chrono::high_resolution_clock> begin_time_point_;
 };
 
 }

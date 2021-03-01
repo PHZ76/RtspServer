@@ -8,9 +8,9 @@
 #endif
 
 #include "Logger.h"
+#include "Timestamp.h"
 #include <stdarg.h>
 #include <iostream>
-#include "Timestamp.h"
 
 using namespace xop;
 
@@ -28,7 +28,7 @@ Logger::Logger()
     
 }
 
-Logger& Logger::instance()
+Logger& Logger::Instance()
 {
 	static Logger s_logger;
 	return s_logger;
@@ -39,33 +39,31 @@ Logger::~Logger()
 
 }
 
-void Logger::init(char *pathname)
+void Logger::Init(char *pathname)
 {
-	std::unique_lock<std::mutex> lock(_mutex);
+	std::unique_lock<std::mutex> lock(mutex_);
 
-	if (pathname != nullptr)
-	{
-		_ofs.open(pathname, std::ios::out | std::ios::binary);
-		if (_ofs.fail())
+	if (pathname != nullptr) {
+		ofs_.open(pathname, std::ios::out | std::ios::binary);
+		if (ofs_.fail())
 		{
 			std::cerr << "Failed to open logfile." << std::endl;
 		}
 	}
 }
 
-void Logger::exit()
+void Logger::Exit()
 {
-	std::unique_lock<std::mutex> lock(_mutex);
+	std::unique_lock<std::mutex> lock(mutex_);
 
-	if (_ofs.is_open())
-	{
-		_ofs.close();
+	if (ofs_.is_open()) {
+		ofs_.close();
 	}
 }
 
-void Logger::log(Priority priority, const char* __file, const char* __func, int __line, const char *fmt, ...)
+void Logger::Log(Priority priority, const char* __file, const char* __func, int __line, const char *fmt, ...)
 {	
-	std::unique_lock<std::mutex> lock(_mutex);
+	std::unique_lock<std::mutex> lock(mutex_);
 
 	char buf[2048] = {0};
 	sprintf(buf, "[%s][%s:%s:%d] ", Priority_To_String[priority],  __file, __func, __line);
@@ -73,13 +71,12 @@ void Logger::log(Priority priority, const char* __file, const char* __func, int 
 	va_start(args, fmt);
 	vsprintf(buf + strlen(buf), fmt, args);
 	va_end(args);
-
-	write(std::string(buf));
+	this->Write(std::string(buf));
 }
 
-void Logger::log2(Priority priority, const char *fmt, ...)
+void Logger::Log2(Priority priority, const char *fmt, ...)
 {
-	std::unique_lock<std::mutex> lock(_mutex);
+	std::unique_lock<std::mutex> lock(mutex_);
 
 	char buf[4096] = { 0 };
 	sprintf(buf, "[%s] ", Priority_To_String[priority]);  
@@ -87,18 +84,16 @@ void Logger::log2(Priority priority, const char *fmt, ...)
 	va_start(args, fmt);
 	vsprintf(buf + strlen(buf), fmt, args);
 	va_end(args);
-
-	write(std::string(buf));
+	this->Write(std::string(buf));
 }
 
-void Logger::write(std::string info)
+void Logger::Write(std::string info)
 {
-	if (_ofs.is_open())
-	{
-		_ofs << "[" << Timestamp::localtime() << "]"
+	if (ofs_.is_open()) {
+		ofs_ << "[" << Timestamp::Localtime() << "]"
 			<< info << std::endl;
 	}
    
-	std::cout << "[" << Timestamp::localtime() << "]"  
+	std::cout << "[" << Timestamp::Localtime() << "]"
 			<< info << std::endl;
 }

@@ -32,8 +32,6 @@ public:
 		}
 	}
 
-	Timer() { }
-
 	static void Sleep(uint32_t msec)
 	{ 
 		std::this_thread::sleep_for(std::chrono::milliseconds(msec));
@@ -54,7 +52,9 @@ public:
 		{
 			std::this_thread::sleep_for(std::chrono::microseconds(microseconds - elapsed));
 			time_begin = std::chrono::high_resolution_clock::now();
-			event_callback_();
+			if (event_callback_) {
+				event_callback_();
+			}			
 			elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - time_begin).count();
 			if (elapsed < 0) {
 				elapsed = 0;
@@ -63,7 +63,7 @@ public:
 		} while (is_repeat_);
 	}
 
-	void stop()
+	void Stop()
 	{
 		is_repeat_ = false;
 	}	
@@ -103,7 +103,6 @@ private:
 	std::unordered_map<TimerId, std::shared_ptr<Timer>> timers_;
 	std::map<std::pair<int64_t, TimerId>, std::shared_ptr<Timer>> events_;
 	uint32_t last_timer_id_ = 0;
-//	uint32_t time_remaining_ = 0;
 };
 
 }

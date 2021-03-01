@@ -32,8 +32,7 @@ bool TcpSocket::Bind(std::string ip, uint16_t port)
 	addr.sin_addr.s_addr = inet_addr(ip.c_str()); 
 	addr.sin_port = htons(port);  
 
-	if(::bind(sockfd_, (struct sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR)
-	{
+	if(::bind(sockfd_, (struct sockaddr*)&addr, sizeof(addr)) == SOCKET_ERROR) {
 		LOG_DEBUG(" <socket=%d> bind <%s:%u> failed.\n", sockfd_, ip.c_str(), port);
 		return false;
 	}
@@ -43,8 +42,7 @@ bool TcpSocket::Bind(std::string ip, uint16_t port)
 
 bool TcpSocket::Listen(int backlog)
 {
-	if(::listen(sockfd_, backlog) == SOCKET_ERROR)
-	{
+	if(::listen(sockfd_, backlog) == SOCKET_ERROR) {
 		LOG_DEBUG("<socket=%d> listen failed.\n", sockfd_);
 		return false;
 	}
@@ -52,24 +50,18 @@ bool TcpSocket::Listen(int backlog)
 	return true;
 }
 
-std::tuple<SOCKET,std::string,int> TcpSocket::Accept()
+SOCKET TcpSocket::Accept()
 {
 	struct sockaddr_in addr = {0};
 	socklen_t addrlen = sizeof addr;
 
-    std::tuple<SOCKET,std::string,int> ret;
-	std::get<0>(ret) = ::accept(sockfd_, (struct sockaddr*)&addr, &addrlen);
-    if (std::get<0>(ret) > 0) {
-        std::get<1>(ret) = inet_ntoa(addr.sin_addr);
-        std::get<2>(ret) = htons(addr.sin_port);
-    }
-	return ret;
+	SOCKET socket_fd = ::accept(sockfd_, (struct sockaddr*)&addr, &addrlen);
+	return socket_fd;
 }
 
 bool TcpSocket::Connect(std::string ip, uint16_t port, int timeout)
 { 
-	if(!SocketUtil::Connect(sockfd_, ip, port, timeout))
-	{
+	if(!SocketUtil::Connect(sockfd_, ip, port, timeout)) {
 		LOG_DEBUG("<socket=%d> connect failed.\n", sockfd_);
 		return false;
 	}

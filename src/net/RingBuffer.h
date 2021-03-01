@@ -16,60 +16,77 @@ template <typename T>
 class RingBuffer
 {
 public:
-	RingBuffer(unsigned capacity=60)
-		: _capacity(capacity)
-		, _numDatas(0)
-                , _buffer(capacity)
+	RingBuffer(int capacity=60)
+		: capacity_(capacity)
+		, num_datas_(0)
+		, buffer_(capacity)
 	{ }
 	
-	~RingBuffer() {	}
+	virtual ~RingBuffer() {	}
 
-	bool push(const T& data) { return pushData(std::forward<T>(data)); } 	
-	bool push(T&& data) { return pushData(data); } 
+	bool Push(const T& data) 
+	{ 
+		return pushData(std::forward<T>(data)); 
+	} 	
+
+	bool Push(T&& data) 
+	{ 
+		return PushData(data); 
+	} 
         
-	bool pop(T& data)
+	bool Pop(T& data)
 	{
-		if(_numDatas > 0)
-		{
-			data = std::move(_buffer[_getPos]);
-			add(_getPos);
-			_numDatas--;
+		if(num_datas_ > 0) {
+			data = std::move(buffer_[get_pos_]);
+			Add(get_pos_);
+			num_datas_--;
 			return true;
 		}
 
 		return false;
 	}	
 
-	bool isFull()  const { return ((_numDatas==_capacity)?true:false); }	
-	bool isEmpty() const { return ((_numDatas==0)?true:false); }
-	int size() const { return _numDatas; }
+	bool IsFull()  const 
+	{ 
+		return ((num_datas_==capacity_) ? true : false); 
+	}	
+
+	bool IsEmpty() const 
+	{ 
+		return ((num_datas_==0) ? true : false); 
+	}
+
+	int  Size() const 
+	{ 
+		return num_datas_; 
+	}
 	
 private:		
 	template <typename F>
-	bool pushData(F&& data)
+	bool PushData(F&& data)
 	{
-		if (_numDatas < _capacity)
+		if (num_datas_ < capacity_)
 		{
-		_buffer[_putPos] = std::forward<F>(data);
-		add(_putPos);
-		_numDatas++;
-		return true;
+			buffer_[put_pos_] = std::forward<F>(data);
+			Add(put_pos_);
+			num_datas_++;
+			return true;
 		}
 
 		return false;
 	}
 
-	void add(int& pos)
+	void Add(int& pos)
 	{	
-		pos = (((pos+1)==_capacity) ? 0 : (pos+1));
+		pos = (((pos+1)==capacity_) ? 0 : (pos+1));
 	}
 
-	int _capacity = 0;	
-	int _putPos   = 0;  					
-	int _getPos   = 0;  		
+	int capacity_ = 0;
+	int put_pos_ = 0;
+	int get_pos_ = 0;
 
-	std::atomic_int _numDatas;     			
-	std::vector<T> _buffer;	
+	std::atomic_int num_datas_;     			
+	std::vector<T> buffer_;
 };
 
 }

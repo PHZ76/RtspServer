@@ -221,9 +221,6 @@
     <ClInclude Include="..\src\net\TcpSocket.h">
       <Filter>源文件\net</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\net\ThreadSafeQueue.h">
-      <Filter>源文件\net</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\net\Timer.h">
       <Filter>源文件\net</Filter>
     </ClInclude>

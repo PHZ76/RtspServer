@@ -28,7 +28,13 @@ public:
 	typedef std::function<void()> EventCallback;
     
 	Channel() = delete;
-	Channel(SOCKET sockfd, std::string ip, uint16_t port) : sockfd_(sockfd), ip_(ip), port_(port) {};
+
+	Channel(SOCKET sockfd) 
+		: sockfd_(sockfd)
+	{
+
+	}
+
 	virtual ~Channel() {};
     
 	void SetReadCallback(const EventCallback& cb)
@@ -44,8 +50,6 @@ public:
 	{ error_callback_ = cb; }
 
 	SOCKET GetSocket() const { return sockfd_; }
-        const std::string& GetIp() const { return ip_; }
-        uint16_t GetPort() const { return port_; }
 
 	int  GetEvents() const { return events_; }
 	void SetEvents(int events) { events_ = events; }
@@ -93,8 +97,6 @@ private:
 	EventCallback error_callback_ = []{};
     
 	SOCKET sockfd_ = 0;
-        const std::string ip_;
-        const uint16_t    port_;
 	int events_ = 0;    
 };
 

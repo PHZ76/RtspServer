@@ -20,7 +20,7 @@ bool RtspRequest::ParseRequest(BufferReader *buffer)
 		return true;
 	}
     
-    bool ret = true;
+	bool ret = true;
 	while(1) {
 		if(state_ == kParseRequestLine) {
 			const char* firstCrlf = buffer->FindFirstCrlf();
@@ -170,7 +170,7 @@ bool RtspRequest::ParseHeadersLine(const char* begin, const char* end)
 		return true;
 	}
 
-    return true;
+	return true;
 }
 
 bool RtspRequest::ParseCSeq(std::string& message)
@@ -183,7 +183,7 @@ bool RtspRequest::ParseCSeq(std::string& message)
 		return true;
 	}
 
-    return false;
+	return false;
 }
 
 bool RtspRequest::ParseAccept(std::string& message)
@@ -237,7 +237,7 @@ bool RtspRequest::ParseTransport(std::string& message)
 		return true;
 	}
 
-    return false;
+	return false;
 }
 
 bool RtspRequest::ParseSessionId(std::string& message)

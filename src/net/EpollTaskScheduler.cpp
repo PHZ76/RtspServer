@@ -14,7 +14,7 @@ EpollTaskScheduler::EpollTaskScheduler(int id)
 	: TaskScheduler(id)
 {
 #if defined(__linux) || defined(__linux__) 
-    epollfd_ = epoll_create1(0);
+    epollfd_ = epoll_create(1024);
  #endif
     this->UpdateChannel(wakeup_channel_);
 }

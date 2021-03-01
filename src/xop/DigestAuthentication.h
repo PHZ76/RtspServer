@@ -17,21 +17,21 @@ public:
 	virtual ~DigestAuthentication();
 
 	std::string GetRealm() const
-	{ return m_realm; }
+	{ return realm_; }
 
 	std::string GetUsername() const
-	{ return m_username; }
+	{ return username_; }
 
 	std::string GetPassword() const
-	{ return m_password; }
+	{ return password_; }
 
 	std::string GetNonce();
 	std::string GetResponse(std::string nonce, std::string cmd, std::string url);
 
 private:
-	std::string m_realm;
-	std::string m_username;
-	std::string m_password;
+	std::string realm_;
+	std::string username_;
+	std::string password_;
 
 };
 

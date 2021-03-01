@@ -37,10 +37,9 @@ H264Source::~H264Source()
 
 string H264Source::GetMediaDescription(uint16_t port)
 {
-	char buf[100] = {0};
-	sprintf(buf, "m=video %hu RTP/AVP 96", port); // \r\nb=AS:2000
-
-	return string(buf);
+    char buf[100] = {0};
+    sprintf(buf, "m=video %hu RTP/AVP 96", port); // \r\nb=AS:2000
+    return string(buf);
 }
 
 string H264Source::GetAttribute()
@@ -53,22 +52,22 @@ bool H264Source::HandleFrame(MediaChannelId channel_id, AVFrame frame)
     uint8_t* frame_buf  = frame.buffer.get();
     uint32_t frame_size = frame.size;
 
-	if (frame.timestamp == 0) {
-		frame.timestamp = GetTimestamp();
-	}    
+    if (frame.timestamp == 0) {
+	    frame.timestamp = GetTimestamp();
+    }    
 
     if (frame_size <= MAX_RTP_PAYLOAD_SIZE) {
         RtpPacket rtp_pkt;
-		rtp_pkt.type = frame.type;
-		rtp_pkt.timestamp = frame.timestamp;
-		rtp_pkt.size = frame_size + 4 + RTP_HEADER_SIZE;
-		rtp_pkt.last = 1;
+	    rtp_pkt.type = frame.type;
+	    rtp_pkt.timestamp = frame.timestamp;
+	    rtp_pkt.size = frame_size + 4 + RTP_HEADER_SIZE;
+	    rtp_pkt.last = 1;
         memcpy(rtp_pkt.data.get()+4+RTP_HEADER_SIZE, frame_buf, frame_size); 
 
         if (send_frame_callback_) {
-			if (!send_frame_callback_(channel_id, rtp_pkt)) {
-				return false;
-			}               
+		    if (!send_frame_callback_(channel_id, rtp_pkt)) {
+			    return false;
+		    }               
         }
     }
     else {
@@ -115,9 +114,9 @@ bool H264Source::HandleFrame(MediaChannelId channel_id, AVFrame frame)
             memcpy(rtp_pkt.data.get()+4+RTP_HEADER_SIZE+2, frame_buf, frame_size);
 
             if (send_frame_callback_) {
-				if (!send_frame_callback_(channel_id, rtp_pkt)) {
-					return false;
-				}              
+			    if (!send_frame_callback_(channel_id, rtp_pkt)) {
+				    return false;
+			    }              
             }
         }
     }
@@ -128,13 +127,13 @@ bool H264Source::HandleFrame(MediaChannelId channel_id, AVFrame frame)
 uint32_t H264Source::GetTimestamp()
 {
 /* #if defined(__linux) || defined(__linux__)
-	struct timeval tv = {0};
-	gettimeofday(&tv, NULL);
-	uint32_t ts = ((tv.tv_sec*1000)+((tv.tv_usec+500)/1000))*90; // 90: _clockRate/1000;
-	return ts;
+    struct timeval tv = {0};
+    gettimeofday(&tv, NULL);
+    uint32_t ts = ((tv.tv_sec*1000)+((tv.tv_usec+500)/1000))*90; // 90: _clockRate/1000;
+    return ts;
 #else  */
-	auto time_point = chrono::time_point_cast<chrono::microseconds>(chrono::steady_clock::now());
-	return (uint32_t)((time_point.time_since_epoch().count() + 500) / 1000 * 90 );
+    auto time_point = chrono::time_point_cast<chrono::microseconds>(chrono::steady_clock::now());
+    return (uint32_t)((time_point.time_since_epoch().count() + 500) / 1000 * 90 );
 //#endif
 }
  

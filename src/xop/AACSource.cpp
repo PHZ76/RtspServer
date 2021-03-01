@@ -18,8 +18,8 @@ using namespace xop;
 using namespace std;
 
 AACSource::AACSource(uint32_t samplerate, uint32_t channels, bool has_adts)
-    : samplerate_(samplerate)
-    , channels_(channels)
+	: samplerate_(samplerate)
+	, channels_(channels)
 	, has_adts_(has_adts)
 {
 	payload_    = 97;
@@ -41,7 +41,6 @@ string AACSource::GetMediaDescription(uint16_t port)
 {
 	char buf[100] = { 0 };
 	sprintf(buf, "m=audio %hu RTP/AVP 97", port); // \r\nb=AS:64
-
 	return string(buf);
 }
 
@@ -105,21 +104,21 @@ bool AACSource::HandleFrame(MediaChannelId channel_id, AVFrame frame)
 	AU[2] = (frame_size & 0x1fe0) >> 5;
 	AU[3] = (frame_size & 0x1f) << 3;
 
-	RtpPacket rtpPkt;
-	rtpPkt.type = frame.type;
-	rtpPkt.timestamp = frame.timestamp;
-	rtpPkt.size = frame_size + 4 + RTP_HEADER_SIZE + AU_SIZE;
-	rtpPkt.last = 1;
+	RtpPacket rtp_pkt;
+	rtp_pkt.type = frame.type;
+	rtp_pkt.timestamp = frame.timestamp;
+	rtp_pkt.size = frame_size + 4 + RTP_HEADER_SIZE + AU_SIZE;
+	rtp_pkt.last = 1;
 
-	rtpPkt.data.get()[4 + RTP_HEADER_SIZE + 0] = AU[0];
-	rtpPkt.data.get()[4 + RTP_HEADER_SIZE + 1] = AU[1];
-	rtpPkt.data.get()[4 + RTP_HEADER_SIZE + 2] = AU[2];
-	rtpPkt.data.get()[4 + RTP_HEADER_SIZE + 3] = AU[3];
+	rtp_pkt.data.get()[4 + RTP_HEADER_SIZE + 0] = AU[0];
+	rtp_pkt.data.get()[4 + RTP_HEADER_SIZE + 1] = AU[1];
+	rtp_pkt.data.get()[4 + RTP_HEADER_SIZE + 2] = AU[2];
+	rtp_pkt.data.get()[4 + RTP_HEADER_SIZE + 3] = AU[3];
 
-	memcpy(rtpPkt.data.get()+4+RTP_HEADER_SIZE+AU_SIZE, frame_buf, frame_size);
+	memcpy(rtp_pkt.data.get()+4+RTP_HEADER_SIZE+AU_SIZE, frame_buf, frame_size);
 
 	if (send_frame_callback_) {
-		send_frame_callback_(channel_id, rtpPkt);
+		send_frame_callback_(channel_id, rtp_pkt);
 	}
 
 	return true;

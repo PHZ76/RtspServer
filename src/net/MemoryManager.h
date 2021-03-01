@@ -16,7 +16,7 @@ class MemoryPool;
 
 struct MemoryBlock
 {
-	uint32_t blockId = 0;
+	uint32_t block_id = 0;
 	MemoryPool *pool = nullptr;
 	MemoryBlock *next = nullptr;
 };
@@ -25,7 +25,7 @@ class MemoryPool
 {
 public:
 	MemoryPool();
-	~MemoryPool();
+	virtual ~MemoryPool();
 
 	void  Init(uint32_t size, uint32_t n);
 	void* Alloc(uint32_t size);

@@ -26,7 +26,7 @@ bool Pipe::Create()
 	int again = 5;
 
 	while(again--) {
-		port = rd(); // random
+		port = rd(); 
 		if (rp.Bind("127.0.0.1", port)) {
 			break;
 		}		
@@ -44,8 +44,8 @@ bool Pipe::Create()
 		return false;
 	}
 
-	auto ret = rp.Accept();
-	if ((pipe_fd_[0] = std::get<0>(ret)) < 0) {
+	pipe_fd_[0] = rp.Accept();
+	if (pipe_fd_[0] < 0) {
 		return false;
 	}
 
@@ -88,5 +88,3 @@ void Pipe::Close()
 #endif
 
 }
-
-

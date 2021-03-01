@@ -1,13 +1,13 @@
 #include "Timestamp.h"
 #include <iostream>
-#include <iomanip>      // std::put_time
+#include <iomanip>  
 #include <sstream>
 
 using namespace xop;
 using namespace std;
 using namespace std::chrono;
 
-std::string Timestamp::localtime()
+std::string Timestamp::Localtime()
 {
     std::ostringstream stream;
     auto now = system_clock::now();
