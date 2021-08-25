@@ -120,7 +120,7 @@ H264File::H264File(int buf_size)
 
 H264File::~H264File()
 {
-	delete m_buf;
+	delete [] m_buf;
 }
 
 bool H264File::Open(const char *path)
