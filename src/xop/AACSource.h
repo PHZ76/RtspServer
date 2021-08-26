@@ -26,7 +26,7 @@ public:
 
     virtual std::string GetAttribute();
 
-    bool HandleFrame(MediaChannelId channel_id, AVFrame frame);
+    virtual bool HandleFrame(MediaChannelId channel_id, AVFrame frame);
 
     static uint32_t GetTimestamp(uint32_t samplerate =44100);
 

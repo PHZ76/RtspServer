@@ -11,6 +11,7 @@
 #define MAX_RTP_PAYLOAD_SIZE   1420 //1460  1500-20-12-8
 #define RTP_VERSION			   2
 #define RTP_TCP_HEAD_SIZE	   4
+#define RTP_VPX_HEAD_SIZE	   1
 
 namespace xop
 {
@@ -67,6 +68,9 @@ struct RtpPacket
 		: data(new uint8_t[1600], std::default_delete<uint8_t[]>())
 	{
 		type = 0;
+		size = 0;
+		timestamp = 0;
+		last = 0;
 	}
 
 	std::shared_ptr<uint8_t> data;

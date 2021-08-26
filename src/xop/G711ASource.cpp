@@ -57,10 +57,10 @@ bool G711ASource::HandleFrame(MediaChannelId channel_id, AVFrame frame)
 	RtpPacket rtp_pkt;
 	rtp_pkt.type = frame.type;
 	rtp_pkt.timestamp = frame.timestamp;
-	rtp_pkt.size = frame_size + 4 + RTP_HEADER_SIZE;
+	rtp_pkt.size = frame_size + RTP_TCP_HEAD_SIZE + RTP_HEADER_SIZE;
 	rtp_pkt.last = 1;
 
-	memcpy(rtp_pkt.data.get()+4+RTP_HEADER_SIZE, frame_buf, frame_size);
+	memcpy(rtp_pkt.data.get()+RTP_TCP_HEAD_SIZE+RTP_HEADER_SIZE, frame_buf, frame_size);
 
 	if (send_frame_callback_) {
 		send_frame_callback_(channel_id, rtp_pkt);

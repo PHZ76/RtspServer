@@ -15,6 +15,7 @@
 #include "media.h"
 #include "H264Source.h"
 #include "H265Source.h"
+#include "VP8Source.h"
 #include "G711ASource.h"
 #include "AACSource.h"
 #include "MediaSource.h"
