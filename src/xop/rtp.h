@@ -13,7 +13,7 @@
 #define RTP_TCP_HEAD_SIZE	   4
 #define RTP_VPX_HEAD_SIZE	   1
 
-#define BIG_ENDIAN             1
+#define BIG_ENDIAN             0
 
 namespace xop
 {
