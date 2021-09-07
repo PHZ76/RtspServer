@@ -13,7 +13,7 @@
 #define RTP_TCP_HEAD_SIZE	   4
 #define RTP_VPX_HEAD_SIZE	   1
 
-#define BIG_ENDIAN             0
+#define RTP_HEADER_BIG_ENDIAN  0
 
 namespace xop
 {
@@ -27,7 +27,7 @@ enum TransportMode
 
 typedef struct _RTP_header
 {
-#if BIG_ENDIAN
+#if RTP_HEADER_BIG_ENDIAN
 	/* 大端序 */
 	unsigned char version   : 2;
 	unsigned char padding   : 1;
