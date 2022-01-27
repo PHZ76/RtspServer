@@ -13,6 +13,7 @@ class Pipe
 {
 public:
 	Pipe();
+	virtual ~Pipe();
 	bool  Create();
 	int   Write(void *buf, int len);
 	int   Read(void *buf, int len);
