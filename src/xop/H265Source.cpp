@@ -51,6 +51,22 @@ bool H265Source::HandleFrame(MediaChannelId channelId, AVFrame frame)
 {
 	uint8_t *frame_buf  = frame.buffer.get();
 	uint32_t frame_size = frame.size;
+	
+	if ((frame_buf[0] == 0x00) &&
+		(frame_buf[1] == 0x00) &&
+		(frame_buf[2] == 0x00) &&
+		(frame_buf[3] == 0x01))
+	{
+		frame_buf = frame_buf + 4;
+		frame_size = frame_size - 4;
+	}
+	else if ((frame_buf[0] == 0x00) &&
+			(frame_buf[1] == 0x00) &&
+			(frame_buf[2] == 0x01))
+	{
+		frame_buf = frame_buf + 3;
+		frame_size = frame_size - 3;
+	}
 
 	if (frame.timestamp == 0) {
 		frame.timestamp = GetTimestamp();
