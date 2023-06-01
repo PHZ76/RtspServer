@@ -44,6 +44,11 @@ string H264Source::GetMediaDescription(uint16_t port)
 
 string H264Source::GetAttribute()
 {
+    // 使用时需要添加媒体类型，例如：
+    // R"(a=rtpmap:96 H264/90000
+    // a=fmtp:96 packetization-mode=1; sprop-parameter-sets=Z2QAH6yyAeBr8v/gIgAiIgAAAwACAAADAHgeMGSQ,aOvDyyLA; profile-level-id=64001F
+    // )")
+    // 如果不添加媒体信息，在rtsp中播放没问题，但是如果进行服务器转发切片时无法播放。
     return string("a=rtpmap:96 H264/90000");
 }
 
@@ -51,7 +56,23 @@ bool H264Source::HandleFrame(MediaChannelId channel_id, AVFrame frame)
 {
     uint8_t* frame_buf  = frame.buffer.get();
     uint32_t frame_size = frame.size;
-
+	
+    if ((frame_buf[0] == 0x00) &&
+    	(frame_buf[1] == 0x00) &&
+    	(frame_buf[2] == 0x00) &&
+    	(frame_buf[3] == 0x01))
+    {
+    	frame_buf = frame_buf + 4;
+    	frame_size = frame_size - 4;
+    }
+    else if ((frame_buf[0] == 0x00) &&
+    		 (frame_buf[1] == 0x00) &&
+    		 (frame_buf[2] == 0x01))
+    {
+    	frame_buf = frame_buf + 3;
+    	frame_size = frame_size - 3;
+    }
+	
     if (frame.timestamp == 0) {
 	    frame.timestamp = GetTimestamp();
     }    
